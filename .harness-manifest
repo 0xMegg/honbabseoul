@@ -1,0 +1,116 @@
+# Harness Manifest v1
+# =====================================================================
+# Declares per-file ownership policy for the harness template.
+# Consumed by scripts/upgrade-harness.sh to decide what to copy where.
+#
+# Sections (first-match-wins, in order: managed → seed → ignore):
+#   [managed]  harness owns this file — upgrade overwrites the project copy
+#   [seed]     harness seeds this file once — upgrade skips if destination exists
+#   [ignore]   project-local state — upgrade never touches
+#
+# Template files that match no section are reported as coverage gaps.
+#
+# Pattern forms:
+#   path/to/dir/**   recursive under dir (matches dir and any descendant)
+#   path/to/file     exact match
+#   *.ext            simple shell glob (bash [[ == ]] semantics)
+# =====================================================================
+
+[managed]
+# Core agent config — owned by harness
+.claude/commands/**
+.claude/hooks/**
+.claude/rules/base/**
+.claude/skills/fitness-filter/**
+.claude/skills/harness-report/**
+.claude/skills/trend-harvest/**
+.claude/.harness-version
+
+# Top-level skills — only the meta checklist is harness-managed.
+# Individual skill workflows (bug-fix, code-review) ship as seed so
+# projects can rewrite them for their own domain (e.g. divebase has
+# its own DiveBase-named workflow).
+skills/SKILL-TEST-CHECKLIST.md
+
+# Harness-provided scripts (enumerate explicitly so project-local
+# scripts in the same dir stay untouched)
+scripts/acceptance-check.sh
+scripts/audit-coherence.sh
+scripts/diagnose.sh
+scripts/epic-monitor.sh
+scripts/harness-report.sh
+scripts/mcp-check.sh
+scripts/run-epic.sh
+scripts/run-harvest.sh
+scripts/run-task.sh
+scripts/upgrade-harness.sh
+scripts/verify-parallel-worktree.sh
+scripts/verify-status-file.sh
+
+# Reusable document templates
+templates/**
+
+# Harness docs (operational guides, not project-specific content)
+docs/epic-guide.md
+docs/plugin-guide.md
+docs/troubleshooting.md
+docs/assumptions.md
+
+# Update changelog (per-commit update docs, INDEX, convention README)
+# Consumed by Phase 2 auto-apply to summarize what's being applied.
+docs/updates/**
+
+# The manifest itself — propagates with the template
+.harness-manifest
+
+[seed]
+# Project-specific files — seeded once, then owned by the project
+CLAUDE.md
+.gitignore
+README.md
+setup.sh
+PlaceholderGuide.md
+DRYRUN-NOTES.md
+.mcp.json.example
+
+# Claude config users edit per-project
+.claude/settings.json
+
+# Project-owned rules — upgrade never overwrites. Harness-owned rules
+# live under .claude/rules/base/ (managed above).
+.claude/rules/local/**
+
+# Per-project template-repo pointer — seed once, project owns it after
+# (each project may have a different TEMPLATE_REPO path)
+.claude/.harness-origin
+
+# User-added skills under .claude/skills/ — the 3 managed above are
+# owned by the harness; any others are project-local.
+.claude/skills/**
+
+# Top-level skill workflows — seeded from harness defaults, then each
+# project may rewrite (DiveBase / kody / etc. tailor these to their
+# own bug-fix and code-review processes)
+skills/bug-fix/**
+skills/code-review/**
+
+# Project background / policy — users tailor these
+context/**
+
+# Project-facing narrative
+docs/blog/**
+docs/project-plan.md
+
+# Working state scaffolds
+handoff/**
+harvest/config.json
+
+[ignore]
+# Project-local state — upgrade never reads or writes
+.claude/settings.local.json
+harvest/**
+outputs/**
+.env
+.env.*
+node_modules/**
+.DS_Store

@@ -1,0 +1,13 @@
+.DS_Store
+*.log
+
+# Parallel epic worktree scratch (HARVEST_PARALLEL_WORKTREE=1)
+.harvest-wt/
+
+# Per-machine Claude Code permission overrides (keep shared settings in settings.json)
+.claude/settings.local.json
+
+# Secrets — never commit
+.env
+.env.local
+.env.*.local

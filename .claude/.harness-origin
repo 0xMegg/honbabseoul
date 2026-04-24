@@ -1,0 +1,3 @@
+# Harness template origin — used by run-epic/run-task for auto-sync.
+# Edit TEMPLATE_REPO to match your local template repo path.
+TEMPLATE_REPO=../claude-code-harness-template

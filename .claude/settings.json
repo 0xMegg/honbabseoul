@@ -1,0 +1,86 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit",
+
+      "Bash(git commit *)",
+      "Bash(git add *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ],
+    "_allow_comment": "Batch-runner, pnpm/npm/yarn/bun, extended git (checkout/merge/branch/worktree/fetch/...), /tmp/*-run/** reads, bash -n, chmod +x — all live in ~/.claude/settings.json so they apply to every project. Keep this file focused on entries that must travel with the repo (core tools + commit/push group) or are truly project-specific.",
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(rm -rf /)",
+      "Bash(git push --force)",
+      "Bash(git push -f)",
+      "Bash(git reset --hard)",
+      "Bash(git clean -fd)",
+      "Bash(git commit * --no-verify *)",
+      "Bash(git commit * -n *)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit -n*)",
+      "Bash(chmod 777)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | bash)"
+    ],
+    "_deny_comment": "Intentionally duplicated from ~/.claude/settings.json — repo-checked-in defense so anyone cloning this project inherits the same safety gates even if their user-level settings are empty."
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/block-dangerous.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-commit-branch-check.sh \"$TOOL_INPUT\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit-check.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit-lint.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit-test.sh \"$TOOL_INPUT\""
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit-size-check.sh \"$TOOL_INPUT\""
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/handoff-freshness-check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
