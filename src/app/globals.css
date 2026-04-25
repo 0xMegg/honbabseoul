@@ -1,26 +1,27 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "../styles/tokens.css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-bg: var(--hb-bg);
+  --color-text: var(--hb-text);
+  --color-text-invert: var(--hb-text-invert);
+  --color-brand: var(--hb-brand);
+  --color-brand-hover: var(--hb-brand-hover);
+  --color-success: var(--hb-success);
+  --color-danger: var(--hb-danger);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-sm: var(--hb-radius-sm);
+  --radius-md: var(--hb-radius-md);
+  --radius-lg: var(--hb-radius-lg);
+
+  --shadow-card: var(--hb-shadow-card);
+
+  --font-sans: var(--hb-font-sans);
+  --font-mono: var(--hb-font-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--hb-bg);
+  color: var(--hb-text);
+  font-family: var(--hb-font-sans);
 }
