@@ -1,45 +1,47 @@
 # Session Handoff
 
 ## Current State
-- Task: Task 2 (Epic 1 / Stage 2 / Slice 2) — Tailwind v4 + `--hb-*` token layer
+- Task: Slice 2 (Epic 2 / Stage 1 / Slice 2) — Seed data
 - Phase: Review → APPROVE
 - Date: 2026-04-25
+- Branch: `dev` (Slice 2 file authored here; no task branch created by run-task.sh)
 
 ## Last Action
-Reviewer verified Slice 2 deliverables (`src/styles/tokens.css` + `src/app/globals.css`) against `outputs/plans/task-2-verify.md`. Prettier passes on both Slice 2 files; hex literals confined to `tokens.css`; `@theme inline` aliases `--color-*`/`--radius-*`/`--shadow-card`/`--font-*` to `var(--hb-*)`; Slice 1 protected files byte-identical vs HEAD; no `tailwind.config.ts` introduced (matches today's CSS-first decision-log entry). `pnpm lint` / `pnpm build` / `tsc --noEmit` are blocked by Slice 3's pre-existing `next-intl` import without the package installed — confirmed all 10 TS errors trace to Slice 3 paths, **zero from Slice 2 files**. `nextscaffold/` directory removal + four exclude-entry deletions remain blocked by sandbox `rm -rf` policy and carry over (plan explicitly anticipated this and forbade `--dangerouslyDisableSandbox` bypass).
+- Reviewer ran static verification (verify plan §1–11): all PASS — file present, disclaimer header, 20 tuples, status='approved' invariant, 4 group-only annotations, all naver URLs match map.naver.com, lat/lng inside Seoul box, photo_url=NULL ×20, ON CONFLICT clause present, lint/tsc/test/build all green.
+- Distribution audit: Hongdae 7 / Myeongdong 7 / Gangnam 6; price low:7 mid:8 high:5; has_jp_menu=true ×16; is_late_night=true ×6; is_solo_default=false ×4; 20 unique UUID literals; every coord inside its declared neighbourhood window.
+- Live checks (§12–20) DEFERRED per verify plan's escape clause (Slice 1 migration not yet applied to `$DATABASE_URL`).
 - Verdict: APPROVE
-- Commit: `6ba6cbf` (pushed to `origin/epic/20260425-133941`)
+- Commit: see commit hash recorded after staging completes.
 
 ## Files Changed
-- `src/styles/tokens.css` — NEW. `--hb-*` token set: color (bg/text/text-invert/brand `#5e6ad2`/brand-hover/success/danger), radius (sm/md/lg = 4/8/16px), `--hb-shadow-card`, `--hb-font-sans`/`--hb-font-mono` composing `--font-geist-*`.
-- `src/app/globals.css` — REWRITE. `@import "tailwindcss"` → `@import "../styles/tokens.css"` → `@theme inline { … = var(--hb-*) }` → body uses `var(--hb-*)`. Dropped scaffold `--background`/`--foreground` literals + `prefers-color-scheme: dark` block.
-- `outputs/plans/task-2-plan.md`, `outputs/plans/task-2-verify.md` — Planner output for Slice 2.
-- `outputs/archive/handoff-2026-04-25-task1-slice1-approve.md`, `outputs/archive/handoff-2026-04-25-task-slice-2-pre-plan.md` — Planner-archived prior handoffs.
-- `outputs/reviews/task-2-review.md` — Reviewer report.
-- `handoff/task-slice-1.md` — this file.
+- `supabase/seed.sql` — created; 224 lines; 20 approved restaurant rows with idempotent INSERT + verification queries.
+- `outputs/reviews/task-slice-2-review.md` — Reviewer report (this slice).
+- `outputs/plans/task-slice-2-plan.md` + `outputs/plans/task-slice-2-verify.md` — slice planning artefacts (untracked, to be committed alongside).
+- `handoff/task-slice-1.md` — this handoff (overwritten by Reviewer).
 
 ## Verification Status
-- Lint: BLOCKED (Slice 3 next-intl gap; not a Slice 2 defect)
-- Test: N/A (Vitest arrives in Slice 5)
-- Live: N/A (build blocked upstream)
-- Prettier (Slice 2 files): PASS
-- Hex literals outside `tokens.css`: NONE
-- Slice 1 protected files (`page.tsx`, `layout.tsx`, `package.json`, `pnpm-lock.yaml`, `postcss.config.mjs`, `.prettierrc`, `public/`): UNCHANGED vs HEAD
+- Lint: PASS (`pnpm lint` — 0 errors / 0 warnings)
+- Test: PASS (`pnpm test` — 10/10 vitest; `pnpm exec tsc --noEmit` silent; `pnpm build` success)
+- Live: DEFERRED (Slice 1 migration not applied to `$DATABASE_URL`; verify plan §12–20 to run after Slice 1 lands)
 
 ## Issues Found
 - Critical: none
-- Important: 1 — `nextscaffold/` cleanup carry-over (sandbox blocked `rm -rf`; plan-anticipated, single Important → APPROVE with carry-over).
+- Important: none
+- Minor: none worth recording
 
 ## Next Step
-Slice 3+ owns the `nextscaffold/` cleanup (directory delete + four exclude-entry removals in `tsconfig.json`, `eslint.config.mjs`, `.prettierignore`, `.gitignore`) once a slice gains sandbox permission for `rm -rf`. Slice 3 also unblocks `pnpm lint`/`pnpm build` by installing `next-intl`. Refresh `frontend-honbabseoul.md` rule wording from `tailwind.config.ts` to CSS-first `@theme inline` in a future harness-rules edit.
+- Operator / Slice 1 author: land Slice 1's deliverables (`supabase/migrations/0001_restaurants.sql`, `.down`, `supabase/config.toml`, plus the related `package.json` / `pnpm-lock.yaml` / `.env.local.example` / `scripts/db-preflight.sh` changes already sitting in the working tree) under their own slice commit — do NOT absorb them into Slice 2.
+- After Slice 1 lands and is applied: run verify plan §12–20 to close out Slice 2's live verification (1 carry-over below).
 
 ## Carry Over
-- `nextscaffold/` directory + 4 exclude entries → Slice 3+.
-- `frontend-honbabseoul.md` mechanism wording (principle holds; literal stale) → harness-rules follow-up.
-- Logo SVG (`혼밥서울 / ホンバプソウル`) → Slice 3.
-- Supabase keys → Epic 2; Naver Maps client ID → Epic 3; shadcn/ui adoption → post-Epic-1.
+- **Live verification §12–20** for Slice 2 — apply Slice 1's migration + this seed, then confirm: 20 approved rows; ≥3 (expected 4) with `is_solo_default=false`; price_range each ≥4 (expected low:7 mid:8 high:5); `has_jp_menu=true` ≥10 (expected 16); `is_late_night=true` ≥4 (expected 6); anon RLS visibility = 20 rows; idempotent re-apply still 20.
+- Logo SVG (Epic 3 dependency) — already shipped at `2e27e39`.
+- Supabase Storage bucket validation — Epic 4 / Slice 4 dependency.
+- service_role key rotation — pre-deployment.
+- shadcn/ui adoption decision — after first two product screens.
 
 ## Plan & Review Locations
-- Plan: outputs/plans/task-2-plan.md
-- Verify: outputs/plans/task-2-verify.md
-- Review: outputs/reviews/task-2-review.md
+- Plan: outputs/plans/task-slice-2-plan.md
+- Verify: outputs/plans/task-slice-2-verify.md
+- Review: outputs/reviews/task-slice-2-review.md
+- Epic 2 plan: outputs/plans/epic-2-plan.md
