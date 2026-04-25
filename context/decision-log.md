@@ -14,6 +14,28 @@ Format:
 
 ---
 
+## 2026-04-25 — Epic 1 tech stack versions (pre-scaffolding lock-in)
+- **Context:** Epic 1 (scaffolding) needs deterministic versions so the Planner/Developer don't drift and so reviewer diffs stay small.
+- **Chosen versions:**
+  - Node: `22.17.0` (pinned via `.nvmrc`)
+  - pnpm: `10` (activated via `corepack enable` in Node 22)
+  - Next.js: `15` (App Router, `--ts --tailwind --eslint --app --src-dir --import-alias "@/*" --no-turbopack`)
+  - React: `19` (default with Next 15)
+  - TypeScript: `5.6+` (bundled with create-next-app) — `strict: true`, `noUncheckedIndexedAccess: true` (add to tsconfig after scaffolding)
+  - Tailwind: `4` (create-next-app default), but all color/radius/shadow tokens aliased to `var(--hb-*)` in `tailwind.config.ts`
+  - next-intl: `4` (latest)
+  - `@supabase/supabase-js`: latest `^2`
+  - Vitest: `3`, `@vitejs/plugin-react`, `@testing-library/react`, `jsdom`
+  - Playwright: latest; **chromium already pre-downloaded** to `~/Library/Caches/ms-playwright/chromium_headless_shell-1217` — Epic 1's `playwright install` should be a no-op
+- **Reason:** Pinning now prevents "Planner picks Tailwind v3, Developer picks v4" type of mismatch. Versions chosen are the current stable baselines that fit the spec.
+- **Trade-off:** Locking the minor version means a future hot upgrade requires an explicit decision-log entry.
+
+## 2026-04-25 — Scaffolding command
+- **Context:** Slice 1.1 needs a reproducible one-liner so the Planner specifies exactly what runs.
+- **Chosen:** `pnpm dlx create-next-app@15 . --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --no-turbopack --use-pnpm`
+- **Reason:** `.` (current directory) avoids nested folder. `--no-turbopack` keeps the bundler choice open for Epic 5 (decision-log earlier implied Turbopack is fine but we defer the decision to post-MVP). `--use-pnpm` locks the package manager in the generated scripts.
+- **Trade-off:** Must merge the scaffold against existing files (CLAUDE.md, .gitignore, etc.) — Developer uses `--force` only if needed and manually preserves harness files.
+
 ## 2026-04-25 — Geolocation fallback
 - **Context:** Spec §4.1 requires "current location or designated area" but is silent on what happens when the browser denies geolocation.
 - **Options considered:** A) 서울시청 center + toast, B) Random main area (Hongdae/Myeongdong/Gangnam), C) Hard block with a permission-required modal.
