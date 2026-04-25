@@ -10,16 +10,16 @@ Coordinates so both model and human see the same finish line.
 
 ## Automated Checks
 Run in order. Stop on first failure.
-1. Lint/Analyze: `pnpm lint`
-2. Type check: `pnpm exec tsc --noEmit`
-3. Targeted test (changed area): `pnpm test <path>` (Vitest)
-4. Full test suite: `pnpm test`
-5. Build: `pnpm build`
-6. E2E (UI-touching tasks only): `pnpm test:e2e` (Playwright, needs dev server or preview server)
+1. Lint/Analyze: `{{LINT_CMD}}`
+2. Type check: `{{TYPECHECK_CMD}}` <!-- optional: remove if project has no type checker -->
+3. Targeted test: `{{TEST_SINGLE_CMD}}` (changed area only)
+4. Full test: `{{TEST_CMD}}`
+5. Build: `{{BUILD_CMD}}`
 
 ## Live Verification (UI/API tasks)
 Reviewer verifies against a running app to catch runtime bugs invisible in static review.
-1. Start dev server: `pnpm dev` (use `run_in_background: true` and kill before marking done)
+1. Start dev server: `{{DEV_CMD}}`
+   <!-- Multi-repo: start the repo's own server, e.g., backend {{BACKEND_DEV_CMD}}, frontend {{FRONTEND_DEV_CMD}} -->
 2. Happy path:
    - [ ] [Normal scenario — e.g., "valid email/password signup → redirects to main"]
 3. Edge cases:

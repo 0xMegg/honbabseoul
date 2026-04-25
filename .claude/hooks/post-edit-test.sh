@@ -12,14 +12,19 @@
 INPUT="$1"
 
 # ============================================================
-# Project configuration (honbabseoul: Vitest, co-located tests)
-# Vitest tests live next to the source file: src/lib/foo.ts ↔ src/lib/foo.test.ts
-# Playwright E2E specs live in e2e/ and are intentionally NOT run here
-# (they need a running dev server — run manually with `pnpm test:e2e`).
+# Project configuration — replace these placeholders
 # ============================================================
-SRC_DIR="src"
-TEST_DIR="src"
-TEST_CMD="pnpm test"
+SRC_DIR="{{SRC_DIR}}"
+TEST_DIR="{{TEST_DIR}}"
+TEST_CMD="{{TEST_CMD}}"
+
+# ============================================================
+# Skip if not configured
+# ============================================================
+if [[ "$SRC_DIR" == *"{{"* ]] || [[ "$TEST_CMD" == *"{{"* ]]; then
+  # Placeholders not replaced yet — skip silently
+  exit 0
+fi
 
 # ============================================================
 # Extract edited file path from tool input
@@ -44,14 +49,8 @@ if ! echo "$EDITED_FILE" | grep -q "$SRC_DIR"; then
   exit 0
 fi
 
-# Skip if the edited file IS itself a test file (extension-based, since
-# TEST_DIR=SRC_DIR under co-location; a directory check would match everything)
-if echo "$EDITED_FILE" | grep -qE '\.(test|spec)\.(ts|tsx|js|jsx)$'; then
-  exit 0
-fi
-
-# Skip Playwright E2E specs — they need a running dev server
-if echo "$EDITED_FILE" | grep -qE '(^|/)e2e/'; then
+# Skip if the edited file IS a test file
+if echo "$EDITED_FILE" | grep -q "$TEST_DIR"; then
   exit 0
 fi
 

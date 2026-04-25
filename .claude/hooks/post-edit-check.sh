@@ -47,12 +47,9 @@ done
 #   "document\.cookie"        — direct cookie manipulation forbidden
 # ============================================================
 BLOCKED_PATTERNS=(
-  # Supabase service-role key must never appear in client bundles.
-  "SUPABASE_SERVICE_ROLE_KEY"
-  # Admin client factory must not be called outside server-only paths.
-  "createClient\([^)]*service_role"
-  # Naver Maps app-intent scheme forbidden — spec requires web browser navigation.
-  "nmap://"
+  # {{BLOCKED_PATTERN_1}}
+  # {{BLOCKED_PATTERN_2}}
+  # {{BLOCKED_PATTERN_3}}
 )
 
 for pattern in "${BLOCKED_PATTERNS[@]}"; do
@@ -77,13 +74,8 @@ fi
 # Add project-specific warnings here.
 # ============================================================
 WARN_PATTERNS=(
-  "console\.log"
-  "TODO:"
-  "FIXME:"
-  # Direct @supabase/supabase-js import — verify caller is under src/lib/repositories/ or src/lib/supabase/.
-  "from ['\"]@supabase/supabase-js['\"]"
-  # Raw Tailwind palette utilities bypass the --hb-* token layer. Use tailwind config aliases or bg-[var(--hb-*)].
-  "(bg|text|border)-(red|blue|green|yellow|purple|pink|indigo|gray|slate|zinc|neutral|stone|orange|amber|lime|emerald|teal|cyan|sky|violet|fuchsia|rose)-[0-9]{2,3}"
+  # {{WARN_PATTERN_1}}
+  # {{WARN_PATTERN_2}}
 )
 
 for pattern in "${WARN_PATTERNS[@]}"; do

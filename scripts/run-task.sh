@@ -10,7 +10,7 @@
 # With --max-iter N, Develop→Review loops up to N times on ITERATE verdict.
 # With --dry-run, claude -p is stubbed (no tokens spent) — used for
 # smoke testing the orchestrator and status file protocol.
-# Stops on failure. Logs saved to /tmp/{{PROJECT_NAME}}-run/
+# Stops on failure. Logs saved to /tmp/-run/
 
 set -euo pipefail
 
@@ -786,6 +786,7 @@ while [ "$ITER" -le "$MAX_ITER" ]; do
   # no-op (claude session that exited 0 without touching anything — the
   # Slice 4 "Developer phase never ran" failure mode observed in the wild).
   DEVELOP_PRE_STATE="$(git -C "$PROJECT_DIR" status --porcelain 2>/dev/null)|$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null)"
+  DEVELOP_PRE_HEAD="$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null || echo "")"
 
   # Override log file for iteration tracking
   if ! run_claude "develop-iter${ITER}" "$DEVELOP_PROMPT"; then
@@ -809,6 +810,57 @@ while [ "$ITER" -le "$MAX_ITER" ]; do
   fi
 
   log_success "Develop phase complete (iter ${ITER})"
+
+  # --- Scope-leak detector (warn-only) ---
+  # Enumerate files Develop just touched (uncommitted + any committed since
+  # DEVELOP_PRE_HEAD) and compare against the slice's plan Files list. Files
+  # outside the plan get appended to the handoff under ## Unplanned changes
+  # so the Reviewer (and the next Planner) can see them. This is a signal,
+  # not a gate — the verdict cross-check in run-epic.sh blocks bad commits.
+  if [ -n "$DEVELOP_PRE_HEAD" ] && [ "$ITER" -eq 1 ]; then
+    _scope_changed=$( {
+      _post_head=$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null || echo "")
+      if [ -n "$_post_head" ] && [ "$DEVELOP_PRE_HEAD" != "$_post_head" ]; then
+        git -C "$PROJECT_DIR" diff --name-only "$DEVELOP_PRE_HEAD" "$_post_head" 2>/dev/null
+      fi
+      git -C "$PROJECT_DIR" status --porcelain 2>/dev/null | awk '{print $NF}'
+    } | sort -u | sed '/^$/d' )
+    # Local emergency patch (2026-04-26): under `set -euo pipefail`, the
+    # original line `... | head -1)` aborts the entire script when $TASK
+    # carries no "Task N" pattern (e.g. epic slices named "Slice 1: …").
+    # Downstream code already handles empty `_scope_task_num` via
+    # `${_scope_task_num:-unknown}` + `if [ -n ... ]` guards — only the
+    # assignment itself needs `|| true` to absorb grep's no-match exit 1.
+    # Forge feedback: docs/forge-feedback/2026-04-26-run-task-scope-num-pipefail.md.
+    _scope_task_num=$(echo "$TASK" | grep -oE "[Tt]ask[[:space:]]+[0-9]+" | grep -oE "[0-9]+" | head -1 || true)
+    _scope_plan_file="$PROJECT_DIR/outputs/plans/task-${_scope_task_num:-unknown}-plan.md"
+    _scope_planned=""
+    if [ -n "$_scope_task_num" ] && [ -f "$_scope_plan_file" ]; then
+      # Extract files from "## Scope" → "- Files to modify:" line. Strip
+      # surrounding brackets, split commas, trim whitespace. Falls through to
+      # empty (skip) if the plan does not follow templates/plan.md format.
+      _scope_planned=$(awk '/^- Files to modify:/{sub(/^- Files to modify:[[:space:]]*/,""); gsub(/[][]/,""); gsub(/,/,"\n"); print; exit}' "$_scope_plan_file" \
+        | awk '{$1=$1; print}' | sed '/^$/d' | sort -u)
+    fi
+    if [ -n "$_scope_changed" ] && [ -n "$_scope_planned" ]; then
+      _scope_unplanned=$(comm -23 <(printf '%s\n' "$_scope_changed") <(printf '%s\n' "$_scope_planned"))
+      if [ -n "$_scope_unplanned" ]; then
+        log_warn "Develop touched files outside plan Files list — see handoff ## Unplanned changes"
+        {
+          echo ""
+          echo "## Unplanned changes (auto-detected $(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          echo ""
+          echo "Plan file: outputs/plans/task-${_scope_task_num}-plan.md"
+          echo "Files Develop touched but plan did not authorise:"
+          echo ""
+          printf '%s\n' "$_scope_unplanned" | sed 's/^/- /'
+          echo ""
+          echo "Developer: mark each as \`keep — <reason>\` or \`drop — <reason>\` before /review."
+        } >> "${PROJECT_DIR}/${HANDOFF_FILE}" 2>/dev/null || true
+      fi
+    fi
+    unset _scope_changed _scope_task_num _scope_plan_file _scope_planned _scope_unplanned _post_head
+  fi
 
   # --- Review ---
   write_status "ROLE=review" "ITER=${ITER}"
