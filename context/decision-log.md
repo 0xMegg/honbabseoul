@@ -57,6 +57,27 @@ Format:
 - **Reason:** Stays inside Supabase free-tier storage budget and keeps upload time acceptable on mobile data.
 - **Trade-off:** Visually richer listings (multiple photos, higher resolution) not possible in MVP.
 
+## 2026-04-25 — Tailwind v4 token wiring mechanism (CSS @theme vs tailwind.config.ts)
+- **Context:** Slice 2 must alias Tailwind utilities (`bg-brand`, `rounded-md`, `shadow-card`) back to `--hb-*` CSS variables. The earlier Epic 1 plan and `frontend-honbabseoul.md` referenced `tailwind.config.ts` as the wiring point. With Tailwind v4 (locked in the version-stack entry above), the JS config is optional and the canonical mechanism is the `@theme` directive in CSS.
+- **Options considered:** A) Add `tailwind.config.ts` with `colors.brand = "var(--hb-brand)"` etc., load via an explicit `@config` directive in `globals.css`. B) Define the alias inline via `@theme inline { --color-brand: var(--hb-brand); … }` in `globals.css` (v4 CSS-first idiom). C) Both (TS + CSS for redundancy).
+- **Chosen:** B — CSS-first `@theme inline`.
+- **Reason:** Fewer surfaces (no JS↔CSS bridge); composes naturally with `@import "../styles/tokens.css"`; matches v4 documentation; keeps token authority in one CSS file. `tailwind.config.ts` remains addable later if a JS-only need (e.g. plugins, content scanning tweaks) appears.
+- **Trade-off:** `frontend-honbabseoul.md` line "configure tailwind.config.ts so colors.brand = …" is now mechanism-specific and stale — keep its intent (token-aliasing principle), refresh the literal text in a follow-up rule edit.
+
+## 2026-04-25 — Supabase Next.js cookie wiring package (Slice 4)
+- **Context:** Epic 1 / Slice 4 mandates a `createServerClient()` factory "wired for Next.js cookies". The Slice 4 line in `outputs/plans/epic-1-plan.md` lists only `@supabase/supabase-js`, but that package alone does not handle Next.js App Router cookies.
+- **Options considered:** A) `@supabase/ssr` (current canonical Supabase package for Next.js App Router; `getAll`/`setAll` API compatible with Next.js 15's async `cookies()`), B) `@supabase/auth-helpers-nextjs` (legacy, deprecated by Supabase in favour of `@supabase/ssr`), C) hand-rolled cookie adapter on top of bare `@supabase/supabase-js`.
+- **Chosen:** A — `@supabase/ssr` alongside `@supabase/supabase-js`.
+- **Reason:** Canonical, actively maintained, matches Next.js 15's cookies-as-Promise model. Hand-rolling (C) would duplicate logic Supabase already ships and tests. `auth-helpers-nextjs` (B) is explicitly deprecated. `@supabase/supabase-js` is still required for the admin client (no cookies needed for service-role).
+- **Trade-off:** Adds one extra dependency (`@supabase/ssr`) on top of `@supabase/supabase-js`. Worth it for cookie correctness + future auth flow compatibility.
+
+## 2026-04-25 — Server-only enforcement for admin client
+- **Context:** `src/lib/supabase/admin.ts` uses `SUPABASE_SERVICE_ROLE_KEY`, which bypasses RLS and must NEVER reach the browser bundle. Slice 4 needs a build-time guard so a careless `import` from a `"use client"` module fails CI rather than silently leaking the key.
+- **Options considered:** A) `import "server-only"` at the top of `admin.ts` (canonical Next.js / React server-component package). B) Custom Webpack/Turbopack rule barring `src/lib/supabase/admin.ts` from the client graph. C) Runtime check (`if (typeof window !== "undefined") throw …`) that runs only after a leak already shipped.
+- **Chosen:** A — `import "server-only"`.
+- **Reason:** First-class React/Next.js convention; produces a build-time error with a readable message; zero config; understood by Vercel and the Next.js error overlay.
+- **Trade-off:** Adds one more dependency (`server-only`, ~0.5KB). The package is essentially a marker file Next.js detects.
+
 ## 2026-04-25 — "혼밥 가능" OFF semantics
 - **Context:** Spec §3 says the default-on "혼밥 가능" filter, when turned off, should also show "2인 이상만 가능한 식당 (무한리필, 전골 등)". Ambiguous whether `is_solo_default=false` means "confirmed not solo-friendly" or "not yet verified".
 - **Options considered:** A) false = "confirmed 2인 이상 전용", B) false = "unverified" (default for new rows).

@@ -71,3 +71,5 @@ Reviewer ran the full verification plan (`outputs/plans/task-1-verify.md` steps 
 
 ## Post-task activities
 - 2026-04-25 — Pushed `epic/20260425-133941` to `origin` (commit `e1c6308`). PR creation deferred to user (`gh pr create --base dev --head epic/20260425-133941`).
+
+## Stage 1 Results (parallel)
