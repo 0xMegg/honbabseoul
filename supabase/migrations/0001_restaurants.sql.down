@@ -1,0 +1,24 @@
+-- Down migration: 0001_restaurants
+-- Reverses 0001_restaurants.sql in dependency-safe order.
+-- pgcrypto extension is intentionally NOT dropped — other tables may use it.
+
+begin;
+
+drop trigger  if exists restaurants_force_pending_for_anon on restaurants;
+drop trigger  if exists restaurants_set_updated_at         on restaurants;
+
+drop function if exists force_pending_for_anon();
+drop function if exists set_updated_at();
+
+drop policy   if exists "anon insert pending only" on restaurants;
+drop policy   if exists "anon read approved"       on restaurants;
+
+drop index    if exists restaurants_status_solo_idx;
+drop index    if exists restaurants_status_idx;
+
+drop table    if exists restaurants;
+
+drop type     if exists price_range;
+drop type     if exists restaurant_status;
+
+commit;
