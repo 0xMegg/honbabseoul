@@ -1,6 +1,56 @@
 # Session Handoff
 
 ## Current State
+- Task: Epic 1 / Stage 2 manually completed (Slice 3 + Slice 4 hybrid recovery)
+- Phase: Stage 2 complete — Stage 3 (Vitest) + Stage 4 (Playwright) pending
+- Date: 2026-04-25
+- Branch: `epic/20260425-133941` (commit `d6ad1d0` pushed to origin)
+
+## Hybrid Recovery (Option C) — what just happened
+After the overnight `/epic 1` run halted at Stage 2 with REQUEST_CHANGES on Slice 3 + Slice 4, the user picked Option C: human-driven install + code, deferring the Reviewer step. Manual completion details:
+
+- **Slice 3 (next-intl) finished**:
+  - `pnpm add next-intl@^4` (was missing — root cause of original RC).
+  - `git rm src/app/page.tsx` (Slice 1 placeholder superseded by `[locale]` routing).
+  - Slice 3's existing on-disk code (`src/i18n/`, `src/middleware.ts`, `messages/`, `src/app/[locale]/`) now resolves cleanly.
+- **Slice 4 (Supabase factories) written from scratch** (Developer phase had not produced any output during the overnight run):
+  - `pnpm add @supabase/supabase-js @supabase/ssr server-only`.
+  - `src/lib/env.ts` — `MissingEnvError` + `publicEnv` / `serverEnv` getters that throw on missing env.
+  - `src/lib/supabase/browser.ts` — singleton `createBrowserClient`.
+  - `src/lib/supabase/server.ts` — cookies-aware `createServerClient` for Next 15's async `cookies()`.
+  - `src/lib/supabase/admin.ts` — service-role client with `import "server-only"` build-time guard.
+
+Verification at `d6ad1d0`:
+- `pnpm lint` → 0 errors / 0 warnings.
+- `pnpm exec tsc --noEmit` → silent exit (clean).
+- `pnpm build` → `/[locale]` (ja, ko) prerendered, middleware emitted (45.4 kB).
+
+## Stage 1 / Stage 2 — Slice statuses
+- Slice 1 (Next.js + TS + lint/format + scripts) → APPROVE (`97afa96`).
+- Slice 2 (Tailwind v4 + `--hb-*` tokens) → APPROVE (`6ba6cbf`).
+- Slice 3 (next-intl) → manually completed in `d6ad1d0` (Reviewer step skipped; commit message documents).
+- Slice 4 (Supabase factories) → manually completed in `d6ad1d0` (Reviewer step skipped).
+
+## Next Step
+- **Stage 3**: Slice 5 (Vitest + smoke test). Recommended approach: `./scripts/run-task.sh "Slice 5: Vitest + one smoke test"` since the bash 3 vs 4 race conditions only bit on parallel slices.
+- **Stage 4**: Slice 6 (Playwright + smoke spec) — Playwright chromium is already cached at `~/Library/Caches/ms-playwright/chromium_headless_shell-1217`, so install will be a no-op.
+- After Stages 3 + 4: epic ff-merge to `dev` (manual) or PR `gh pr create --base dev --head epic/20260425-133941`.
+
+## Carry Over (still open)
+- `nextscaffold/` — 408 MB of leftover scaffold artifacts (gitignored). User needs to `rm -rf nextscaffold` from a real terminal — session deny rules block the assistant from doing this.
+- `nextscaffold` exclude entries in `tsconfig.json`, `eslint.config.mjs`, `.prettierignore` — drop after the dir is gone.
+- `!.env.local.example` negation in `.gitignore` (optional robustness).
+- **bash 3 vs 4 incompatibility** in `scripts/run-epic.sh` (`declare -A` failed under macOS bash 3.2). For future `/epic` runs, install bash 5 via `brew install bash` and ensure it's first on PATH, OR run with `HARVEST_PARALLEL_WORKTREE=1` to isolate slices in worktrees.
+- Logo SVG (`혼밥서울 / ホンバプソウル`) — needed by future product slices.
+- Supabase migration application — blocks Epic 2 (will need either Supabase CLI auth or a `DATABASE_URL` direct-psql route).
+- Naver Maps integration verification — blocks Epic 3.
+- `curl localhost` allowance for live HTTP probing — Reviewer fell back to build prerender + dev-server boot.
+
+---
+
+# (Legacy section below — Slice 1 review notes from the overnight run, kept for traceability.)
+
+## Current State
 - Task: Task 1 (Epic 1 / Stage 1 / Slice 1) — Next.js 15 + TypeScript + lint/format baseline + all package.json scripts
 - Phase: Review → APPROVE
 - Date: 2026-04-25
