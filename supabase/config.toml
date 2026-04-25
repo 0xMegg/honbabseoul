@@ -1,4 +1,6 @@
 project_id = "iosqakynywnrwxrexrfh"
 
 [db]
-major_version = 15
+# Matches the live Supabase project's Postgres major version (verified
+# 2026-04-25 via `select version()` → 17.6).
+major_version = 17

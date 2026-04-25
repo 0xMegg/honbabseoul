@@ -59,9 +59,12 @@ create trigger restaurants_set_updated_at
 -- auth.role() reads request.jwt.role, which PostgREST sets per-request.
 -- Returns 'anon' for unauthenticated REST calls; NULL for direct psql
 -- connections (so seed/admin inserts are not affected).
--- NOTE: PostgreSQL evaluates RLS WITH CHECK against the original client-provided
--- row values, before BEFORE-trigger modifications. The INSERT policy therefore
--- uses with check (true) and trusts the trigger for the actual coercion.
+-- NOTE: PostgreSQL evaluates RLS WITH CHECK *after* BEFORE INSERT triggers
+-- (the same model as table CHECK constraints). The trigger above coerces
+-- `new.status` to 'pending' first, and the policy below then verifies the
+-- post-trigger row really is 'pending' — defense-in-depth, so a future
+-- migration that drops/breaks the trigger still cannot let anon write a
+-- non-pending row. Verified empirically 2026-04-25.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 create or replace function force_pending_for_anon()
@@ -90,14 +93,14 @@ create policy "anon read approved"
   to anon
   using (status = 'approved');
 
--- Anon users may insert; the trigger above silently forces status = 'pending'
--- before the row is stored. The with-check is permissive because PostgreSQL
--- evaluates it against original client values (before trigger modification),
--- so restricting it to 'pending' here would reject valid UGC submissions.
+-- Anon users may insert; the trigger above forces status = 'pending' first
+-- (BEFORE INSERT runs first), then this WITH CHECK verifies the post-trigger
+-- row. Both guards are required: the trigger normalises the value, the
+-- WITH CHECK enforces the invariant if the trigger ever regresses.
 create policy "anon insert pending only"
   on restaurants for insert
   to anon
-  with check (true);
+  with check (status = 'pending');
 
 -- No anon UPDATE or DELETE policies → RLS denies by default.
 

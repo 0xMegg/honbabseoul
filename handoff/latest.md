@@ -1,10 +1,40 @@
 # Session Handoff
 
 ## Current State
-- Task: **Epic 1 — COMPLETE + post-cleanup done**. Dev branch ready for Epic 2 entry.
-- Phase: All Epic 1 stages green; nextscaffold leftovers and `.env.local.example` gitignore robustness handled.
+- Task: **Epic 2 — COMPLETE + Slice 1 REQUEST_CHANGES addressed**. Strict (Option A) cleanup pass applied. Awaits `dev` ff-merge.
+- Phase: Epic 2 closed; ready for `dev` ff-merge then Epic 3 entry.
 - Date: 2026-04-25
-- Branch: `dev` (HEAD `0c7e444`, pushed to origin). `epic/20260425-133941` deleted from local + origin (fully merged into dev).
+- Branch: `task/slice-2-seed-data` (HEAD post-cleanup; will ff-merge into `dev`).
+
+## Epic 2 — slice statuses (post-cleanup)
+| Slice | Original verdict | After this cleanup |
+|---|---|---|
+| Slice 1 (schema + RLS + zod) | 🟥 REQUEST_CHANGES | ✅ Cleanup addresses both critical (WITH CHECK weakened) and important (scope leak) flags |
+| Slice 2 (seed data) | ✅ APPROVE | 20 approved rows, 4 with `is_solo_default=false` |
+| Slice 3 (read repository) | ✅ APPROVE | `listApproved` / `getById`, RestaurantSchema zod-validated |
+| Slice 4 (submissions repo + storage helper) | ✅ APPROVE | naver_url allow-list, photo MIME/size, `reason` deferred |
+
+## Cleanup pass — what this commit does
+1. **WITH CHECK restored** — `(true)` → `(status = 'pending')` in both migration file and live DB. Reviewer empirically proved BEFORE-trigger output is what WITH CHECK sees, so the defense-in-depth Slice 1 plan asked for is reinstated.
+2. **All 9 `scripts/db-*.sh` removed** — debug + investigation artefacts, none plan-mandated. `db:push` / `db:reset` are inline psql, no backing scripts needed.
+3. **`db:verify` and `db:smoke` removed from package.json** — verify §30 enforced exactly the 10 plan-mandated script keys.
+4. **`supabase/config.toml` `major_version`** 15 → 17 (matches live `select version()` → 17.6).
+5. **Seed re-applied** — `pnpm db:reset` followed by `psql -f supabase/seed.sql`. Live: 20 approved rows.
+6. **Decision-log entries added**: `is_solo_default NOT NULL`, `reason` column deferral, Postgres major version.
+
+## Verification at cleanup HEAD
+- `pnpm lint` → 0 errors / 0 warnings
+- `pnpm test` → 40 passed (env, restaurants, submissions, storage, Logo)
+- `pnpm exec tsc --noEmit` → silent
+- `pnpm build` → `/[locale]` (ja, ko) prerendered, middleware 45.4 kB
+- `pnpm test:e2e` → 3 Playwright tests passed (locale smoke)
+- Live anon SELECT: 20 approved rows, no pending leak
+- Live anon INSERT with `status='approved'`: 201 Created, row stored as `pending` (trigger + WITH CHECK both active)
+- Live anon UPDATE: silently denied (no UPDATE policy)
+
+## Scope NOT addressed in this cleanup (intentional, deferred — see decision-log)
+- `reason` column missing from `restaurants` schema (spec §5). Epic 4's first slice will own a `0002_*` migration adding it alongside the UGC form UI.
+- `is_solo_default OR-NULL` deviation: column stays `NOT NULL DEFAULT true`, repository code drops the OR-NULL branch (decision-log entry locks this).
 
 ## Epic 1 — slice statuses
 

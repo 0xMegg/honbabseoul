@@ -12,9 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:push": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 --single-transaction -f supabase/migrations/0001_restaurants.sql",
-    "db:reset": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 --single-transaction -f supabase/migrations/0001_restaurants.sql.down && pnpm db:push",
-    "db:verify": "bash ./scripts/db-verify.sh",
-    "db:smoke": "bash ./scripts/db-rls-smoke.sh"
+    "db:reset": "set -a && . ./.env.local && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 --single-transaction -f supabase/migrations/0001_restaurants.sql.down && pnpm db:push"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",

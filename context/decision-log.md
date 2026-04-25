@@ -78,6 +78,26 @@ Format:
 - **Reason:** First-class React/Next.js convention; produces a build-time error with a readable message; zero config; understood by Vercel and the Next.js error overlay.
 - **Trade-off:** Adds one more dependency (`server-only`, ~0.5KB). The package is essentially a marker file Next.js detects.
 
+## 2026-04-25 — `is_solo_default` is `NOT NULL DEFAULT TRUE` (not nullable)
+- **Context:** Epic 2 plan Slice 3 wrote `listApproved`'s isSolo filter as `is_solo_default=true OR IS NULL`, anticipating that some rows might be unverified (`NULL`). Slice 1 migration instead defines the column as `boolean NOT NULL DEFAULT true`, which makes the `IS NULL` branch dead code.
+- **Options considered:** A) Loosen the column to `NULL` and keep the OR-NULL filter to allow an explicit "unverified" state. B) Keep `NOT NULL DEFAULT true` and drop the OR-NULL branch — every row is either verified-solo or verified-2인-이상-전용.
+- **Chosen:** B. Slice 3's repository drops the OR-NULL clause; the column constraint is canonical.
+- **Reason:** Aligns with the prior decision ("`is_solo_default = false` means verified 2인 이상 전용, not unverified"). A `NULL` state would re-introduce the very ambiguity that decision rejected. UGC submissions default to `true` because the operator ratifies every row before flipping `status='approved'` — at that point the operator either confirms `true` or downgrades to `false`.
+- **Trade-off:** Anon UGC submitters who genuinely don't know the answer can over-report `is_solo_default=true`. The operator's approval gate is the corrective.
+
+## 2026-04-25 — `reason` column deferred to Epic 4 schema delta
+- **Context:** Spec §5 lists "추천 이유" as a required UGC field. Epic 2 Slice 1's column list (frozen by the plan and ratified by Reviewer) does NOT include a `reason` column. Slice 4's `submissions.ts` accepts `reason` via zod but does not persist it (`TODO(Epic 4)`).
+- **Options considered:** A) Patch Slice 1 migration retroactively to add `reason text`. B) Defer the column to an Epic 4 schema delta (e.g. `0002_submission_reason.sql`) so Slice 1 stays untouched and the new write path lands together with the UGC form UI.
+- **Chosen:** B. The Epic 2 cleanup pass (this commit) does not add the column; Epic 4's first slice will own a small migration that adds `reason text` plus any other UGC-specific fields surfaced by Slice 4 reality.
+- **Reason:** Plan adherence — Reviewer's verify §29 enumerated the column set; mutating it after-the-fact would muddle the audit trail. Storing `reason` is genuinely scoped with the UGC UI work, so coupling them in Epic 4 is natural.
+- **Trade-off:** `reason` is currently logged at submission time but lost after the request ends. No production submissions are happening yet, so the data loss is hypothetical until Epic 4 ships.
+
+## 2026-04-25 — Postgres major version is 17 (not 15)
+- **Context:** Slice 1 set `supabase/config.toml [db].major_version = 15` based on a guess. Live `select version()` reports `17.6`.
+- **Chosen:** Bump `major_version = 17`.
+- **Reason:** Catches latent CLI mismatch (Supabase CLI uses this value to launch the local matching Postgres version for migration validation).
+- **Trade-off:** None.
+
 ## 2026-04-25 — "혼밥 가능" OFF semantics
 - **Context:** Spec §3 says the default-on "혼밥 가능" filter, when turned off, should also show "2인 이상만 가능한 식당 (무한리필, 전골 등)". Ambiguous whether `is_solo_default=false` means "confirmed not solo-friendly" or "not yet verified".
 - **Options considered:** A) false = "confirmed 2인 이상 전용", B) false = "unverified" (default for new rows).
