@@ -70,6 +70,14 @@ All Epic 1 acceptance criteria from `outputs/plans/epic-1-plan.md` met.
 - 2026-04-25 — Slice 5 + Slice 6 hybrid completion (Vitest + Playwright). Epic ff-merged into newly created `dev` branch (commit `2ec7e42`), pushed to origin.
 - 2026-04-25 — Post-Epic-1 cleanup (`0c7e444`): dropped 4 dead `nextscaffold` exclude entries, added `!.env.local.example` negation to .gitignore. Verification: lint/test/tsc/build all green.
 - 2026-04-25 — `epic/20260425-133941` deleted from local and origin (fully merged into dev). Final branches: `main` (stable), `dev` (Epic 1 result + cleanup).
+- 2026-04-25 — Logo SVG component (`2e27e39`): `src/lib/features/layout/Logo.tsx` + 4 vitest invariants. Bilingual brand mark (혼밥서울 / ホンバプソウル), `--hb-*` token-backed `tone` prop, `viewBox="200 64"`. `vitest.config.ts` got `esbuild.jsx: 'automatic'` so component tests compile without @vitejs/plugin-react. Test count: 6 → 10 passing.
+- 2026-04-25 — Epic 2 plan drafted (`87606ff`): `outputs/plans/epic-2-plan.md`. 4 slices in 2 stages, β migration path (`DATABASE_URL` direct-psql), zod for runtime validation. Awaits user pasting `DATABASE_URL` into `.env.local` before Stage 1 starts.
+
+## Awaiting from user (Epic 2 entry blockers)
+1. **`DATABASE_URL` in `.env.local`** — Supabase Dashboard → Settings → Database → Connection string → URI tab → copy whole string into `.env.local` as `DATABASE_URL=…`. After paste, just message **"DATABASE_URL 넣었어"** — do NOT paste the URL into chat (same exposure model as service_role).
+2. **`psql` availability** — `which psql` in a terminal. If absent: `brew install libpq && brew link --force libpq`.
+
+Once both are confirmed, `/epic 2` (or hybrid Option B) can launch.
 
 ---
 
