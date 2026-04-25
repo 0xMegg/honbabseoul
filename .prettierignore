@@ -1,0 +1,24 @@
+.next
+node_modules
+pnpm-lock.yaml
+playwright-report
+test-results
+coverage
+# Harness-owned (must not be reformatted)
+.claude/
+context/
+docs/
+handoff/
+outputs/
+scripts/
+skills/
+templates/
+CLAUDE.md
+PlaceholderGuide.md
+README.md
+DRYRUN-NOTES.md
+.mcp.json.example
+.harness-manifest
+setup.sh
+# Temp scaffold directory (remove after Slice 1 is approved)
+nextscaffold/
