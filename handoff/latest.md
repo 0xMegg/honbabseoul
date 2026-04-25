@@ -1,43 +1,51 @@
 # Session Handoff
 
-## Current State (as of 2026-04-26 — Phase 0 housekeeping)
+## Current State (as of 2026-04-26 — Epic 3 ready to launch)
 - **Epic 1 — DONE** (6 slices, ff-merged into dev)
 - **Epic 2 — DONE** (4 slices + Slice 1 cleanup pass, ff-merged into dev)
-- **Phase 0 — IN PROGRESS** on `task/chore-renumber-and-rc-cleanup` branch: epic renumber across docs + stale RC marker cleanup. ff-merge into dev pending.
-- **Epic 3 (Test infra reinforcement) — NOT STARTED**. Plan saved at `/Users/mero/.claude/plans/honbabseoul-hazy-orbit.md`. After Phase 0 ff-merges, run `/plan Epic 3`.
-- Live Supabase DB: `restaurants` table seeded with 20 approved rows; RLS verified (anon read approved-only, anon insert coerced to pending via trigger + WITH CHECK)
+- **Phase 0 — DONE** (commit `e23279f`, ff-merged into dev): epic renumber across docs + 3 stale RC marker cleanup. Task branch deleted (local + remote).
+- **Epic 3 (Test infra reinforcement) — PLAN READY, AWAITING `/epic 3`**. Formal plan at `outputs/plans/epic-3-plan.md`. Approved source plan at `/Users/mero/.claude/plans/honbabseoul-hazy-orbit.md`.
+- Live Supabase DB: `restaurants` table seeded with 20 approved rows; RLS verified (anon read approved-only, anon insert coerced to pending via trigger + WITH CHECK).
+- All 8 review files carry `<!-- FINAL_VERDICT: APPROVE -->` (Phase 0 cleaned the 3 stale REQUEST_CHANGES markers from Epic 1/2).
 
 ### Epic numbering (renumbered 2026-04-26)
 | # | Epic | Status |
 |---|---|---|
 | 1 | Project scaffolding | DONE |
 | 2 | Data layer + RLS + repositories | DONE |
-| 3 | **Test infra reinforcement** (vite pin / Supabase types / int test / decision-log frontmatter) | NOT STARTED — plan ready |
-| 4 | Map + filters + bottom sheet (read path) | NOT STARTED — sketch only (was Epic 3) |
-| 5 | UGC submission (write path) | NOT STARTED — sketch only (was Epic 4) |
-| 6 | Polish (logo, OG, perf, error boundaries) | NOT STARTED — was "follow-up Epic 5" |
+| 3 | **Test infra reinforcement** (vite pin / Supabase types / int test / decision-log frontmatter) | PLAN READY — `outputs/plans/epic-3-plan.md` |
+| 4 | Map + filters + bottom sheet (read path) | NOT STARTED — sketch in `roadmap.md` (was Epic 3) |
+| 5 | UGC submission (write path) | NOT STARTED — sketch in `roadmap.md` (was Epic 4) |
+| 6 | Polish (logo, OG, perf, error boundaries) | NOT STARTED — was "follow-up Epic 5" hint |
 
-## How this session ended
-Heavy session — onboarding + Epic 1 + Epic 2 + Epic 2 strict cleanup + retrospective. Two reports written for the next round:
+## Next session — first action
 
-- 📕 **`docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md`** — 4 forge fix candidates derived from the Epic 2 retrospective. Forge round 1 (3 fixes from `2026-04-25-bash3-noop-install.md`) is already merged + propagated to honbabseoul. This round 2 is **proposal only — no patches written yet**, awaiting forge owner's decision.
-- 📗 **`docs/improvements/2026-04-26-priority-roadmap.md`** — honbabseoul-side improvements organised by when to land them (Epic 3 entry / pre-production / post-MVP / process). Each item has effort estimate + acceptance criterion.
+Just one command:
 
-The next session should read those two documents in full before deciding what to do next.
+```bash
+./scripts/run-epic.sh 3
+```
 
-## Next session — first three actions
+(or equivalently the `/epic 3` slash command in a Claude Code session). The runner will detect `outputs/plans/epic-3-plan.md` and skip `/plan Epic 3`, going straight into Stage 1 → Stage 2 (parallel) → Stage 3 execution.
 
-1. **ff-merge `task/chore-renumber-and-rc-cleanup` into `dev`** — Phase 0 housekeeping (this branch's commit). Manual: `git checkout dev && git merge --ff-only task/chore-renumber-and-rc-cleanup && git push`.
-2. **`/plan Epic 3`** — writes `outputs/plans/epic-3-plan.md` for Test infra reinforcement. Use `/Users/mero/.claude/plans/honbabseoul-hazy-orbit.md` as input.
-3. **`/epic 3`** — auto-execute. After completion, manually `grep -E '<!-- FINAL_VERDICT' outputs/reviews/task-slice-*-review.md` (forge round 2 P3 not landed yet — runner verdict aggregate not trustworthy).
+After the runner declares completion, **manually verify**:
+
+```bash
+grep -E '<!-- FINAL_VERDICT' outputs/reviews/task-slice-*-review.md
+```
+
+All 4 new entries (task-slice-1 through task-slice-4) should be `APPROVE`. The forge round 2 P3 patch (verdict cross-check inside `run-epic.sh`) is NOT landed yet — Epic 2 had a real "all approved" mis-report on this same gate. Manual grep is the safety net until P3 ships.
+
+If any slice is REQUEST_CHANGES: re-develop + re-review that slice via `/develop "Slice N — fix REQUEST_CHANGES"` then `/review "Slice N — re-inspect"`. The Epic plan + verify documents do not need changes.
 
 ## Critical context the next session must NOT re-derive
 
 | Item | Where it lives |
 |---|---|
-| 9 design / scope decisions (locked, do NOT relitigate) | `context/decision-log.md` |
-| Open questions resolved 2026-04-25 (geo fallback, price_range enum, photo limits, "혼밥 가능" OFF semantics, `is_solo_default NOT NULL`, `reason` deferred to Epic 4, Postgres major 17, Tailwind v4 `@theme inline`, Supabase `@supabase/ssr`, `import "server-only"`) | same file, dated entries |
-| MVP roadmap with all 4 epics sketched | `outputs/plans/roadmap.md` |
+| 9 design / scope decisions (locked, do NOT relitigate) | `context/decision-log.md` (Slice 2 of Epic 3 will add a 10th — Supabase generated types) |
+| Open questions resolved 2026-04-25 (geo fallback, price_range enum, photo limits, "혼밥 가능" OFF semantics, `is_solo_default NOT NULL`, `reason` deferred to Epic 5 [renumbered 2026-04-26], Postgres major 17, Tailwind v4 `@theme inline`, Supabase `@supabase/ssr`, `import "server-only"`) | same file, dated entries |
+| MVP roadmap with all 6 epics (post-renumber) | `outputs/plans/roadmap.md` |
+| Epic 3 formal plan (Test infra) | `outputs/plans/epic-3-plan.md` |
 | Spec source-of-truth | `docs/project-plan.md` |
 | Epic 1 + 2 plans (executable history) | `outputs/plans/epic-1-plan.md` / `epic-2-plan.md` |
 | Per-slice reviews | `outputs/reviews/task-{1..4}-review.md` (Epic 1) + `task-slice-{1..4}-review.md` (Epic 2) |
@@ -84,10 +92,13 @@ The next session should read those two documents in full before deciding what to
 
 ## TL;DR for the next claude session
 
-You're picking up after Epic 2 closed cleanly. Two retrospective reports await:
-1. `docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md` (read for harness improvement decisions)
-2. `docs/improvements/2026-04-26-priority-roadmap.md` (read to plan honbabseoul work)
+Epic 3 (Test infra reinforcement) is fully prepared. Phase 0 housekeeping (epic renumber + stale RC marker cleanup) ff-merged into dev as `e23279f`. Formal epic plan at `outputs/plans/epic-3-plan.md`.
 
-Then the user decides the launch mode for Epic 3.
+**Just run `./scripts/run-epic.sh 3` (or `/epic 3` in Claude Code).** Then manually `grep -E '<!-- FINAL_VERDICT' outputs/reviews/task-slice-*-review.md` to verify (forge round 2 P3 not landed).
+
+After Epic 3 ships:
+1. Epic 4 (Map) — `/plan Epic 4` to expand `roadmap.md` Epic 4 sketch into `outputs/plans/epic-4-plan.md`.
+2. Pre-Epic-5 housekeeping: improvements items E (rotate `SUPABASE_SERVICE_ROLE_KEY`) + I (Storage bucket policy) per `docs/improvements/2026-04-26-priority-roadmap.md`.
+3. Forge round 2 patches (P1-P4) — separate forge cwd session. Cross-repo policy applies.
 
 **Do not touch `harness-forge` or any other path outside this repo.** Do not paste secrets in chat. Do not bypass the protected-branch hooks (use task/{id} branches + ff-merge).
