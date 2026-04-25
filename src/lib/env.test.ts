@@ -1,0 +1,82 @@
+/**
+ * Smoke test for src/lib/env.ts.
+ *
+ * Asserts that `requireEnv` throws a `MissingEnvError` when the variable
+ * is undefined or empty, and returns the literal value when set. Also
+ * checks the public/server getter facades dispatch through `requireEnv`.
+ *
+ * This test exists so `pnpm test` has a non-trivial assertion target
+ * from day 1 — every other slice can grow tests next to its own code.
+ */
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { MissingEnvError, publicEnv, requireEnv, serverEnv } from "@/lib/env";
+
+const VAR = "__VITEST_ENV_PROBE__";
+
+describe("requireEnv", () => {
+  const originalValue = process.env[VAR];
+  beforeEach(() => {
+    delete process.env[VAR];
+  });
+  afterEach(() => {
+    if (originalValue === undefined) {
+      delete process.env[VAR];
+    } else {
+      process.env[VAR] = originalValue;
+    }
+  });
+
+  it("throws MissingEnvError when the variable is undefined", () => {
+    expect(() => requireEnv(VAR)).toThrow(MissingEnvError);
+  });
+
+  it("throws MissingEnvError when the variable is empty string", () => {
+    process.env[VAR] = "";
+    expect(() => requireEnv(VAR)).toThrow(MissingEnvError);
+  });
+
+  it("returns the literal value when set", () => {
+    process.env[VAR] = "hello";
+    expect(requireEnv(VAR)).toBe("hello");
+  });
+
+  it("attaches the missing key to MissingEnvError instances", () => {
+    try {
+      requireEnv(VAR);
+      throw new Error("requireEnv should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(MissingEnvError);
+      expect((err as MissingEnvError).key).toBe(VAR);
+    }
+  });
+});
+
+describe("env getter facades", () => {
+  it("publicEnv.supabaseUrl reads NEXT_PUBLIC_SUPABASE_URL via requireEnv", () => {
+    const original = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    try {
+      expect(publicEnv.supabaseUrl).toBe("https://example.supabase.co");
+    } finally {
+      if (original === undefined) {
+        delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_SUPABASE_URL = original;
+      }
+    }
+  });
+
+  it("serverEnv.supabaseProjectRef reads SUPABASE_PROJECT_REF via requireEnv", () => {
+    const original = process.env.SUPABASE_PROJECT_REF;
+    process.env.SUPABASE_PROJECT_REF = "abc123def456";
+    try {
+      expect(serverEnv.supabaseProjectRef).toBe("abc123def456");
+    } finally {
+      if (original === undefined) {
+        delete process.env.SUPABASE_PROJECT_REF;
+      } else {
+        process.env.SUPABASE_PROJECT_REF = original;
+      }
+    }
+  });
+});
