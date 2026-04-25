@@ -20,5 +20,3 @@ DRYRUN-NOTES.md
 .mcp.json.example
 .harness-manifest
 setup.sh
-# Temp scaffold directory (remove after Slice 1 is approved)
-nextscaffold/
