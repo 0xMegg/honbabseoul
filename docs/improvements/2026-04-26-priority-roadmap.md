@@ -2,12 +2,12 @@
 
 > Companion to `docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md`.
 > The forge feedback covers harness-side fixes (apply to all projects).
-> This document covers honbabseoul-specific improvements layered onto Epic 3 / 4 / 5 entry.
+> This document covers honbabseoul-specific improvements layered onto upcoming epic entries (Epic 3 / 4 / 5 / 6 — see 2026-04-26 renumber note in 🟡 section).
 
 ---
 
 ## TL;DR
-Epic 1 + Epic 2 closed cleanly (with a strict cleanup pass for Slice 1). The MVP is structurally sound but several reinforcements are due before the heavy product work in Epic 3-4 and the production push in Epic 5. Items below are sorted by **when to land them**, not by raw priority — so the next session can pick the next "Epic 3 entry" item without scanning everything.
+Epic 1 + Epic 2 closed cleanly (with a strict cleanup pass for Slice 1). The MVP is structurally sound but several reinforcements are due before the heavy product work in Epic 4-5 and the production push around Epic 5-6. Items below are sorted by **when to land them**, not by raw priority. (Note: 2026-04-26 epic renumber promoted A/B/C/D into Epic 3 itself — see 🟡 section.)
 
 Each row carries an effort estimate and a clear acceptance criterion.
 
@@ -15,18 +15,20 @@ Each row carries an effort estimate and a clear acceptance criterion.
 
 ## 🟡 Epic 3 entry — pre-flight before next epic
 
-These are best done before `/epic 3` because Epic 3 introduces React components + live data and these reinforcements pay off immediately.
+> **Superseded (2026-04-26):** Items A / B / C / D have been promoted to slices of the new **Epic 3 — Test infra reinforcement**. The "pre-flight" framing was inconsistent with the methodology (`docs/epic-guide.md`: every work item is a task or a task bundle = epic). Epic numbering shifted accordingly: Epic 3 = Test infra, Epic 4 = Map (read path), Epic 5 = UGC (write path), Epic 6 = Polish. Section kept below for audit; refer to `outputs/plans/epic-3-plan.md` (forthcoming) for the actual slice structure.
+
+These were best done before the next product epic because that epic introduces React components + live data and these reinforcements pay off immediately.
 
 | # | Item | Why now | Effort | Acceptance |
 |---|---|---|---|---|
-| **A** | Pin `vite + @vitejs/plugin-react` to a compatible pair | Component tests are partially disabled in vitest.config.ts because plugin-react v6 + vite v7 are incompatible. Epic 3 begins shipping `.tsx` heavy code. | 30 min | `pnpm add -D vite@^6 @vitejs/plugin-react@^4 --save-exact`; remove the `esbuild.jsx: 'automatic'` workaround from `vitest.config.ts`; component tests still pass (40 → 40+) |
+| **A** | Pin `vite + @vitejs/plugin-react` to a compatible pair | Component tests are partially disabled in vitest.config.ts because plugin-react v6 + vite v7 are incompatible. Epic 4 (Map, post-renumber) begins shipping `.tsx` heavy code. | 30 min | `pnpm add -D vite@^6 @vitejs/plugin-react@^4 --save-exact`; remove the `esbuild.jsx: 'automatic'` workaround from `vitest.config.ts`; component tests still pass (40 → 40+) |
 | **B** | Generate `src/lib/supabase/types.gen.ts` from live schema | Schema-runtime drift risk. Right now `restaurants.ts` and `submission.ts` zod schemas are hand-rolled to mirror the migration; a future schema change will silently desync. | 30 min | `pnpm dlx supabase gen types typescript --project-id iosqakynywnrwxrexrfh > src/lib/supabase/types.gen.ts`; commit the generated file; add `pnpm db:types` script that regenerates on demand; document in `decision-log.md` that hand-rolled zod schemas remain the runtime gate but the generated types backstop the static side |
 | **C** | Introduce `*.int.test.ts` integration test category | Vitest currently mocks Supabase; Playwright covers UI. The "repository function actually contracts with the live RLS-enabled DB" gap is what bit Slice 1 cleanup. | ~1 hour, can ride on Epic 3 Slice 1 | Add `vitest.config.ts` `test.include` for `*.int.test.ts` running against `DATABASE_URL`; first integration test is `listApproved` actually hitting RLS and confirming pending rows are hidden |
 | **D** | Add `**Affects:**` frontmatter to decision-log entries | The log already has 9 entries. Future Planners need to grep relevant decisions; current free-form makes that brittle. | 15 min | Each entry gains `**Affects:** Epic-N / Slice-X`; new template captured at top of `context/decision-log.md` |
 
 ---
 
-## 🟢 Pre-production — before Epic 4 ships UGC writes / before any deploy
+## 🟢 Pre-production — before Epic 5 ships UGC writes / before any deploy
 
 Items that protect production data and the deployment pipeline. Land before any user-facing endpoint accepts input.
 
@@ -40,12 +42,12 @@ Items that protect production data and the deployment pipeline. Land before any 
 
 ---
 
-## 🔵 Long-term / Post-MVP — after Epic 5 polish
+## 🔵 Long-term / Post-MVP — after Epic 6 polish
 
 | # | Item | Why | Effort | Notes |
 |---|---|---|---|---|
 | **J** | i18n literal lint (`eslint-plugin-i18next` or custom rule) | Inline 한글 / 일본어 literal in `.tsx` is a bug per `frontend-honbabseoul.md`, but currently only humans catch it. | ~2 hours | Tune the rule to allow `messages/*.json` and approved data tokens; expect false positives on first run, prune iteratively |
-| **K** | Performance budget (Vercel Speed Insights + Playwright Lighthouse) | Map page (Epic 3) is the heaviest in the MVP. Without a budget, regression is silent. | ~1 hour | LCP < 2.5s on mobile, CLS < 0.1, JS bundle < 200kB gzipped on `/[locale]` |
+| **K** | Performance budget (Vercel Speed Insights + Playwright Lighthouse) | Map page (Epic 4, post-renumber) is the heaviest in the MVP. Without a budget, regression is silent. | ~1 hour | LCP < 2.5s on mobile, CLS < 0.1, JS bundle < 200kB gzipped on `/[locale]` |
 | **L** | Error monitoring (Sentry or PostHog) | UGC submission failures are silent today. | ~1 hour | Sentry SDK installed (or PostHog with errors); sourcemaps uploaded on build; DSN in `.env.local.example` |
 | **M** | Admin UI (`/[locale]/admin`) | Operator currently approves UGC via Supabase Studio. Mistake-prone (wrong row, wrong status). | ~1 day | Service-role-gated route (NOT anon); list of `pending` rows; one-click approve/reject; audit trail; Slack/Email notification optional |
 | **N** | Logo: replace `<text>` SVG with path-converted SVG | Current logo renders system fonts; depends on user device fonts being installed. Path-converted SVG is locale-agnostic AND device-agnostic. | external (designer) | Receives the path SVG, drops it into `src/lib/features/layout/Logo.tsx` replacing `<text>` blocks |
@@ -63,19 +65,18 @@ Items that protect production data and the deployment pipeline. Land before any 
 
 ---
 
-## Suggested sequencing
+## Suggested sequencing (revised after 2026-04-26 renumber)
 
 ```
-Pre-Epic-3 entry        : A, B, D  (90 min total)
-                          C        (lands inside Epic 3 Slice 1)
+Epic 3 (Test infra)     : A, B, C, D — folded in as slices (90 min total)
 
-Mid Epic 3              : (no improvements; focus on the epic itself)
+Pre-Epic-4 (Map)        : (no improvements; focus on the epic itself)
 
-Pre-Epic-4 entry        : E, I    (25 min)
+Pre-Epic-5 (UGC) entry  : E, I    (25 min)
 
-Mid Epic 4              : F, G, H (~1.5 hours, ideally before any UGC submission can hit a real DB)
+Mid Epic 5 (UGC)        : F, G, H (~1.5 hours, ideally before any UGC submission can hit a real DB)
 
-Post Epic 4 / Epic 5    : J, K, L, M (Epic 5 itself is a "polish" epic — these are its candidate slices)
+Post Epic 5 / Epic 6    : J, K, L, M (Epic 6 itself is a "polish" epic — these are its candidate slices)
 
 Whenever                : O, P, Q, R, N (parallelisable, no blockers)
 ```
@@ -116,8 +117,7 @@ Whenever                : O, P, Q, R, N (parallelisable, no blockers)
 
 ## Open questions for the next session
 
-These are items the next session's first action should resolve before doing anything else:
-
-1. **Epic 3 plan** — `/plan Epic 3` to expand the roadmap.md sketch into `outputs/plans/epic-3-plan.md`. Or a hybrid where I draft and the user reviews.
-2. **Forge feedback approval** — does the user (forge owner) want all 4 fixes from `2026-04-26-epic2-cleanup-lessons.md`, or just a subset?
-3. **Scope of pre-flight** — A, B, D before Epic 3? Or skip A (pin) and use the current esbuild jsx workaround through Epic 3?
+> **Resolved 2026-04-26.** All three answered:
+> 1. **Epic 3 plan**: A/B/C/D promoted into Epic 3 itself (Test infra reinforcement). `/plan Epic 3` writes `outputs/plans/epic-3-plan.md` after Phase 0 housekeeping (renumber + stale RC cleanup) lands.
+> 2. **Forge feedback approval**: deferred to a separate forge cwd session (cross-repo policy). 4 fix candidates remain in `docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md` as proposals.
+> 3. **Scope of pre-flight**: dissolved — there is no "pre-flight". A/B/C/D are slices of Epic 3 per epic-guide methodology.

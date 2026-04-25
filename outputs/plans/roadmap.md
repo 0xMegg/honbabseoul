@@ -6,14 +6,16 @@
 
 ## Overview
 
-Four epics, sequential. Each epic has a concrete acceptance gate so we can ship → verify → learn before the next.
+Six epics, sequential. Each epic has a concrete acceptance gate so we can ship → verify → learn before the next. (Epic 3 = Test infra was inserted on 2026-04-26 via renumber; Epic 6 = Polish was promoted from "follow-up Epic 5" hint.)
 
 | # | Epic | Goal | Files (est.) | Stages |
 |---|---|---|---|---|
 | 1 | Project scaffolding | Empty Next.js app boots with tokens, i18n, Supabase client factories, Vitest, Playwright | ~15 | 3 |
 | 2 | Data layer & repositories | Supabase schema + RLS + seed + read/write repo functions, verified by Vitest | ~8 | 2 |
-| 3 | Map + filters + bottom sheet (read path) | Users see approved restaurants on a Naver map, filter by 3 chips, open a bottom-sheet detail | ~10 | 3 |
-| 4 | UGC submission (write path) | Users submit a new restaurant (pending), operators flip status in Supabase dashboard, next refresh shows it on the map | ~8 | 2 |
+| 3 | **Test infra reinforcement** | vite + plugin-react pin, Supabase types autogen, `*.int.test.ts` category, decision-log frontmatter | ~7 | 3 |
+| 4 | Map + filters + bottom sheet (read path) | Users see approved restaurants on a Naver map, filter by 3 chips, open a bottom-sheet detail | ~10 | 3 |
+| 5 | UGC submission (write path) | Users submit a new restaurant (pending), operators flip status in Supabase dashboard, next refresh shows it on the map | ~8 | 2 |
+| 6 | Polish | Logo final art, meta tags, OG image, Vercel perf tuning, error boundaries (deferred from MVP) | TBD | TBD |
 
 Scope explicitly **out**: admin UI (operators use the Supabase dashboard), social login, reviews/comments, push notifications, dark mode, A/B design variants.
 
@@ -129,7 +131,7 @@ Supabase has a `restaurants` table with RLS policies enforcing `status='approved
 
 ### Acceptance
 - [ ] Schema + RLS applied
-- [ ] Seed provides enough rows to make the map visibly populated in Epic 3
+- [ ] Seed provides enough rows to make the map visibly populated in Epic 4
 - [ ] `pnpm test src/lib/repositories` fully green
 - [ ] Manual curl (documented in slice review) proves RLS holds
 
@@ -138,7 +140,57 @@ The migration is additive — revert is a `drop table restaurants` + `drop type 
 
 ---
 
-## Epic 3 — Map + filters + bottom sheet (read path)
+## Epic 3 — Test infra reinforcement
+
+### Goal
+Test runner normalised for the upcoming `.tsx`-heavy product epics (vite + plugin-react pinned), Supabase schema-runtime drift caught automatically (generated TS types backstop hand-rolled zod), live-DB RLS regression caught immediately (`*.int.test.ts` category), and decision history grep-able for future Planners (`**Affects:**` frontmatter on every entry).
+
+### Context
+- User need: structural reinforcement before Epic 4 (Map) ships React components and live data; closes the "repository ↔ live RLS" gap that bit Epic 2 Slice 1 cleanup.
+- Dependencies: Epic 1 (Vitest baseline), Epic 2 (live Supabase + RLS).
+
+### Stages & Slices
+
+#### Stage 1 — Test runner foundation (sequential)
+##### Slice 3.1.1: vite + plugin-react pin
+- **What:** `pnpm add -D vite@^6 @vitejs/plugin-react@^4 --save-exact`; remove `esbuild.jsx: 'automatic'` workaround in `vitest.config.ts`; introduce `import react from "@vitejs/plugin-react"` + `plugins: [react()]`.
+- **Files:** `package.json`, `pnpm-lock.yaml`, `vitest.config.ts`
+- **Depends on:** (none)
+- **Done when:** Existing 40 tests still green; `vitest.config.ts` uses plugin-react; esbuild jsx workaround removed.
+
+#### Stage 2 — Type-gen + integration test (parallel, no file overlap)
+##### Slice 3.2.1: Supabase types autogen
+- **What:** `pnpm dlx supabase gen types typescript --project-id iosqakynywnrwxrexrfh > src/lib/supabase/types.gen.ts`; add `db:types` script to `package.json`; decision-log entry on the role of generated types vs hand-rolled zod.
+- **Files:** `src/lib/supabase/types.gen.ts` (new), `package.json`, `context/decision-log.md`
+- **Depends on:** 3.1.1
+- **Done when:** `pnpm db:types` runnable; `pnpm build` + `pnpm test` green.
+
+##### Slice 3.2.2: `*.int.test.ts` category + first integration test
+- **What:** Add `**/*.int.test.ts` glob to vitest include; first integration test exercises `listApproved` + RLS WITH-CHECK ablation against the live DB. **Does NOT add a separate `test:int` script** — env guard (`process.env.DATABASE_URL` absent → `describe.skip`) so `pnpm test` auto-branches. Avoids `package.json` overlap with 3.2.1.
+- **Files:** `vitest.config.ts` (modify), `src/lib/repositories/restaurants.int.test.ts` (new)
+- **Depends on:** 3.1.1
+- **Done when:** With `DATABASE_URL` set, `pnpm test` runs the integration test against live RLS and passes; without it, the suite skips cleanly.
+
+#### Stage 3 — Decision log frontmatter (sequential)
+##### Slice 3.3.1: `**Affects:**` on every decision-log entry
+- **What:** Add `**Affects:** Epic-N / Slice-X` line to every entry in `context/decision-log.md`; update the file's Format block to require it going forward.
+- **Files:** `context/decision-log.md`
+- **Depends on:** 3.2.1 (which adds an entry that also gets the new field)
+- **Done when:** `grep -c '\*\*Affects:\*\*' context/decision-log.md` ≥ 10 (existing 9 + Slice 3.2.1 addition).
+
+### Acceptance
+- [ ] All slices APPROVE'd
+- [ ] `pnpm install && pnpm lint && pnpm test && pnpm build` clean
+- [ ] `pnpm db:types` runnable
+- [ ] `DATABASE_URL` set → `pnpm test` exercises ≥1 int test against live RLS, green
+- [ ] Every entry in `context/decision-log.md` carries `**Affects:**`
+
+### Rollback
+All additive. Slice-by-slice revert. 3.1.1 revert restores the esbuild jsx workaround. 3.2.x revert is file deletion. 3.3.1 revert is line-level.
+
+---
+
+## Epic 4 — Map + filters + bottom sheet (read path)
 
 ### Goal
 A user opens the app, sees approved pins on a Naver map centered on Seoul, can toggle three filter chips (혼밥 default on, 日本語メニュー, 深夜営業), taps a pin and gets a bottom-sheet with bilingual name, price range, address (copyable), and a "네이버 지도로 보기" web link. Spec §3–4 fully delivered.
@@ -150,33 +202,33 @@ A user opens the app, sees approved pins on a Naver map centered on Seoul, can t
 ### Stages & Slices
 
 #### Stage 1 — Map foundation (sequential)
-##### Slice 3.1.1: Naver Maps client wrapper
+##### Slice 4.1.1: Naver Maps client wrapper
 - **What:** `MapClient` — `"use client"` component loading Naver Maps SDK only in `useEffect`; exposes an imperative handle for registering pin layers; default center = Seoul City Hall, fallback when geolocation is denied
 - **Files:** `src/lib/features/map/MapClient.tsx`, `src/lib/features/map/useNaverMapsSdk.ts`
 - **Depends on:** Epic 1
 - **Done when:** `pnpm build` has no SSR errors; the component renders a map at the default center in `pnpm dev`
 
-##### Slice 3.1.2: Map page shell
+##### Slice 4.1.2: Map page shell
 - **What:** `/[locale]/page.tsx` hosts the map full-viewport with the logo header and a loading fallback; no pins yet
 - **Files:** `src/app/[locale]/page.tsx`, `src/lib/features/layout/Header.tsx`
-- **Depends on:** Slice 3.1.1
+- **Depends on:** Slice 4.1.1
 - **Done when:** `/ja` and `/ko` render the map + localized header; Lighthouse mobile CLS < 0.1
 
 #### Stage 2 — Filters + pins (parallel, separate directories)
-##### Slice 3.2.1: Filter state + chip UI
+##### Slice 4.2.1: Filter state + chip UI
 - **What:** `useFilters` hook with URL-sync (`?solo=1&jp=0&late=0`); `FilterBar` chip component; default state is `solo=true, jp=false, late=false` per spec §3
 - **Files:** `src/lib/features/filters/useFilters.ts`, `src/lib/features/filters/FilterBar.tsx`, `src/lib/features/filters/useFilters.test.ts`
 - **Depends on:** Stage 1
 - **Done when:** chips toggle URL params; refreshing the page preserves filter state; Vitest covers default + toggle logic
 
-##### Slice 3.2.2: Pin layer on the map
+##### Slice 4.2.2: Pin layer on the map
 - **What:** `RestaurantPins` fetches via `listApproved(filters)` and renders Naver Maps markers with cluster support; click emits a pin-select event
 - **Files:** `src/lib/features/map/RestaurantPins.tsx`, `src/lib/features/map/pin-marker.ts`
 - **Depends on:** Stage 1
 - **Done when:** with seed data, all 20 pins render; toggling `solo=false` in URL changes the pin set; click dispatches the select event (asserted by Playwright in Stage 3)
 
 #### Stage 3 — Bottom sheet detail (sequential, composes prior slices)
-##### Slice 3.3.1: Bottom sheet + detail view
+##### Slice 4.3.1: Bottom sheet + detail view
 - **What:** `BottomSheet` primitive (drag-to-dismiss, snap points); `RestaurantDetail` renders bilingual name, price range, address with copy button, photo, and "네이버 지도로 보기" anchor (validated web URL, `target="_blank"`, `rel="noopener noreferrer"`); hooks into pin-select event
 - **Files:** `src/lib/features/detail/BottomSheet.tsx`, `src/lib/features/detail/RestaurantDetail.tsx`, `src/lib/features/detail/use-copy-to-clipboard.ts`
 - **Depends on:** Stage 2
@@ -193,7 +245,7 @@ If a slice breaks the read path, revert that slice alone — map foundation (Sta
 
 ---
 
-## Epic 4 — UGC submission (write path)
+## Epic 5 — UGC submission (write path)
 
 ### Goal
 User opens `/[locale]/submit`, fills 7 required fields + optional photo, submit button stays disabled until valid, on submit the row is inserted with `status='pending'` and a confirmation toast shows. The operator (me or the stakeholder) later flips `status='approved'` via Supabase dashboard; next map refresh shows the new pin. Spec §5 fully delivered.
@@ -205,35 +257,35 @@ User opens `/[locale]/submit`, fills 7 required fields + optional photo, submit 
 ### Stages & Slices
 
 #### Stage 1 — Submission form UI (parallel, different files)
-##### Slice 4.1.1: Form page + field components
+##### Slice 5.1.1: Form page + field components
 - **What:** `/[locale]/submit/page.tsx` renders `SubmissionForm`; form uses react-hook-form or a hand-rolled equivalent with zod; required-field logic drives submit button disabled state per spec §5
 - **Files:** `src/app/[locale]/submit/page.tsx`, `src/lib/features/submission/SubmissionForm.tsx`, `src/lib/features/submission/fields.ts`, `src/lib/features/submission/submission-schema.ts`
 - **Depends on:** Epic 1
 - **Done when:** Playwright asserts submit is disabled with any required field blank, enabled when all are filled; Vitest covers schema validation
 
-##### Slice 4.1.2: Photo upload widget
+##### Slice 5.1.2: Photo upload widget
 - **What:** `PhotoUpload` component — client-side image selection, MIME/size check, direct Supabase Storage upload returning a public URL the form stashes
 - **Files:** `src/lib/features/submission/PhotoUpload.tsx`, `src/lib/features/submission/use-photo-upload.ts`
 - **Depends on:** Epic 2 (storage helper)
 - **Done when:** manual verification: a ≤2MB jpg/png uploads and shows a thumbnail; oversized or wrong MIME shows an inline error
 
 #### Stage 2 — Wiring + admin workflow
-##### Slice 4.2.1: Server Action submission + toast
+##### Slice 5.2.1: Server Action submission + toast
 - **What:** `actions.ts` validates input server-side (zod + Naver URL allow-list), calls `submitPending`, returns success/error; form shows next-intl toast on success and redirects to `/[locale]`
 - **Files:** `src/app/[locale]/submit/actions.ts`, `src/lib/features/submission/submit-toast.tsx`
-- **Depends on:** Slice 4.1.1, Slice 4.1.2
+- **Depends on:** Slice 5.1.1, Slice 5.1.2
 - **Done when:** real Supabase receives a `status='pending'` row on full form submit; bad Naver URL gets 400; Playwright covers happy path
 
-##### Slice 4.2.2: Operator workflow doc + audit
+##### Slice 5.2.2: Operator workflow doc + audit
 - **What:** `docs/admin-workflow.md` explains how the operator approves a pending row in the Supabase dashboard and what fields to double-check; Playwright E2E asserts a submitted row is NOT visible on the map (still pending); audit report confirms all acceptance criteria
-- **Files:** `docs/admin-workflow.md`, `e2e/submission.spec.ts`, `outputs/reviews/epic-4-audit.md`
-- **Depends on:** Slice 4.2.1
+- **Files:** `docs/admin-workflow.md`, `e2e/submission.spec.ts`, `outputs/reviews/epic-5-audit.md`
+- **Depends on:** Slice 5.2.1
 - **Done when:** the audit file contains `Verdict: PASS` and `Blocker=0`; the E2E spec proves pending row isolation; the operator has manually verified the approve flow once (recorded in audit)
 
 ### Acceptance
 - [ ] All slices APPROVE'd
 - [ ] End-to-end: submit in browser → dashboard shows pending row → operator sets approved → `/[locale]` pin appears on next reload
-- [ ] `outputs/reviews/epic-4-audit.md` — `Verdict: PASS`, `Blocker=0`
+- [ ] `outputs/reviews/epic-5-audit.md` — `Verdict: PASS`, `Blocker=0`
 - [ ] No raw PostgREST errors surface to the UI
 
 ### Rollback
@@ -254,4 +306,4 @@ The submission path is additive — revert is slice-by-slice. Pending rows can s
 
 Suggested pace: one epic per focused session, review between epics, 4 total sessions. Estimated 4–6 hours of Claude orchestration end-to-end (user reviews between).
 
-After Epic 4 ships, a follow-up **Epic 5 — Polish** (logo final art, meta tags, OG image, Vercel perf tuning, error boundaries) is likely — but deferred until the three value loops are live.
+After Epic 5 ships, a follow-up **Epic 6 — Polish** (logo final art, meta tags, OG image, Vercel perf tuning, error boundaries) is likely — but deferred until the three value loops are live.

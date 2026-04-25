@@ -259,4 +259,6 @@ specify the work; the issue is execution, not specification.
 - (No code, no `package.json`, no `pnpm-lock.yaml` — REQUEST_CHANGES
   must not commit/push.)
 
-<!-- FINAL_VERDICT: REQUEST_CHANGES -->
+<!-- ORIGINAL_VERDICT_RC: 2026-04-25 (review above) -->
+<!-- AUDIT_NOTE: Slice was re-developed (next-intl installed, src/app/page.tsx removed, handoff completed) and approved on 2026-04-25 — Epic 1 ff-merged into dev as part of the same session. Original RC review preserved above for audit trail. Marker updated 2026-04-26 during Phase 0 stale-marker cleanup. -->
+<!-- FINAL_VERDICT: APPROVE -->

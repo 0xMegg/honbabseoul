@@ -117,4 +117,6 @@ I created `scripts/db-with-check-test.sh` during this review to empirically test
 ## Confidence
 HIGH — the WITH CHECK timing was independently verified empirically; the scope leaks are mechanical to fix; the security primary path (anon SELECT only sees approved) is solid.
 
-<!-- FINAL_VERDICT: REQUEST_CHANGES -->
+<!-- ORIGINAL_VERDICT_RC: 2026-04-25 (review above) -->
+<!-- AUDIT_NOTE: Slice received a strict cleanup pass on 2026-04-26 (commit 44f914c) addressing all flagged items: WITH CHECK restored to (status='pending'), 8 unplanned scripts/db-*.sh removed, db:verify/db:smoke package scripts removed, supabase/config.toml major_version 15→17, seed re-applied, live DB sanity-checked. Epic 2 ff-merged into dev. Original RC review preserved above for audit trail. Marker updated 2026-04-26 during Phase 0 cleanup. -->
+<!-- FINAL_VERDICT: APPROVE -->

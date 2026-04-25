@@ -1,13 +1,21 @@
 # Session Handoff
 
-## Current State (as of 2026-04-26 session close)
+## Current State (as of 2026-04-26 — Phase 0 housekeeping)
 - **Epic 1 — DONE** (6 slices, ff-merged into dev)
 - **Epic 2 — DONE** (4 slices + Slice 1 cleanup pass, ff-merged into dev)
-- **Epic 3 — NOT STARTED** (sketch in `outputs/plans/roadmap.md`; first action of next session is `/plan Epic 3`)
-- Branch: `dev` at `44f914c` (or whatever this session's final commit is — see `git log -1 dev`)
-- Working tree: clean
-- Local + remote in sync
+- **Phase 0 — IN PROGRESS** on `task/chore-renumber-and-rc-cleanup` branch: epic renumber across docs + stale RC marker cleanup. ff-merge into dev pending.
+- **Epic 3 (Test infra reinforcement) — NOT STARTED**. Plan saved at `/Users/mero/.claude/plans/honbabseoul-hazy-orbit.md`. After Phase 0 ff-merges, run `/plan Epic 3`.
 - Live Supabase DB: `restaurants` table seeded with 20 approved rows; RLS verified (anon read approved-only, anon insert coerced to pending via trigger + WITH CHECK)
+
+### Epic numbering (renumbered 2026-04-26)
+| # | Epic | Status |
+|---|---|---|
+| 1 | Project scaffolding | DONE |
+| 2 | Data layer + RLS + repositories | DONE |
+| 3 | **Test infra reinforcement** (vite pin / Supabase types / int test / decision-log frontmatter) | NOT STARTED — plan ready |
+| 4 | Map + filters + bottom sheet (read path) | NOT STARTED — sketch only (was Epic 3) |
+| 5 | UGC submission (write path) | NOT STARTED — sketch only (was Epic 4) |
+| 6 | Polish (logo, OG, perf, error boundaries) | NOT STARTED — was "follow-up Epic 5" |
 
 ## How this session ended
 Heavy session — onboarding + Epic 1 + Epic 2 + Epic 2 strict cleanup + retrospective. Two reports written for the next round:
@@ -19,9 +27,9 @@ The next session should read those two documents in full before deciding what to
 
 ## Next session — first three actions
 
-1. **Read** `docs/improvements/2026-04-26-priority-roadmap.md` — pick which 🟡 Epic 3 entry items (A, B, C, D) to land before launching Epic 3.
-2. **Read** `docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md` — decide whether to ship round 2 of forge fixes now, defer, or reject specific patches.
-3. **Decide Epic 3 launch mode** — full auto (`/epic 3` with the new forge fixes if applied) or hybrid (Option B from prior sessions, where the assistant authors slices directly).
+1. **ff-merge `task/chore-renumber-and-rc-cleanup` into `dev`** — Phase 0 housekeeping (this branch's commit). Manual: `git checkout dev && git merge --ff-only task/chore-renumber-and-rc-cleanup && git push`.
+2. **`/plan Epic 3`** — writes `outputs/plans/epic-3-plan.md` for Test infra reinforcement. Use `/Users/mero/.claude/plans/honbabseoul-hazy-orbit.md` as input.
+3. **`/epic 3`** — auto-execute. After completion, manually `grep -E '<!-- FINAL_VERDICT' outputs/reviews/task-slice-*-review.md` (forge round 2 P3 not landed yet — runner verdict aggregate not trustworthy).
 
 ## Critical context the next session must NOT re-derive
 
@@ -56,8 +64,8 @@ The next session should read those two documents in full before deciding what to
 
 ## Outstanding session-spanning carry-overs
 
-- **`SUPABASE_SERVICE_ROLE_KEY` rotation** — the value visible in chat history is still live. Roadmap item E. **Required before Epic 4 ships UGC writes to a real environment.**
-- **`reason` column missing from schema** — deferred to Epic 4's first slice (decision-log dated 2026-04-25). UGC submissions currently log `reason` length only, do not persist content.
+- **`SUPABASE_SERVICE_ROLE_KEY` rotation** — the value visible in chat history is still live. Roadmap item E. **Required before Epic 5 ships UGC writes to a real environment.**
+- **`reason` column missing from schema** — deferred to Epic 5's first slice (decision-log dated 2026-04-25, renumber-noted 2026-04-26). UGC submissions currently log `reason` length only, do not persist content.
 - **Logo SVG** — `src/lib/features/layout/Logo.tsx` is a `<text>` placeholder rendering with system fonts. Roadmap item N. Real designer-supplied path SVG due in Epic 5 polish.
 
 ## Session metadata

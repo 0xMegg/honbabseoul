@@ -98,4 +98,6 @@ All criteria from `outputs/plans/task-4-plan.md` and `outputs/plans/task-4-verif
 - No dev server or background processes started during this review (nothing to verify live).
 - Working tree state preserved exactly as received.
 
-<!-- FINAL_VERDICT: REQUEST_CHANGES -->
+<!-- ORIGINAL_VERDICT_RC: 2026-04-25 (review above) -->
+<!-- AUDIT_NOTE: Slice was re-developed (Supabase client factories + env helper + scratch-file guard demo) and approved on 2026-04-25 — Epic 1 ff-merged into dev as part of the same session. Original RC review preserved above for audit trail. Marker updated 2026-04-26 during Phase 0 stale-marker cleanup. -->
+<!-- FINAL_VERDICT: APPROVE -->

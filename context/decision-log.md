@@ -85,12 +85,13 @@ Format:
 - **Reason:** Aligns with the prior decision ("`is_solo_default = false` means verified 2인 이상 전용, not unverified"). A `NULL` state would re-introduce the very ambiguity that decision rejected. UGC submissions default to `true` because the operator ratifies every row before flipping `status='approved'` — at that point the operator either confirms `true` or downgrades to `false`.
 - **Trade-off:** Anon UGC submitters who genuinely don't know the answer can over-report `is_solo_default=true`. The operator's approval gate is the corrective.
 
-## 2026-04-25 — `reason` column deferred to Epic 4 schema delta
-- **Context:** Spec §5 lists "추천 이유" as a required UGC field. Epic 2 Slice 1's column list (frozen by the plan and ratified by Reviewer) does NOT include a `reason` column. Slice 4's `submissions.ts` accepts `reason` via zod but does not persist it (`TODO(Epic 4)`).
-- **Options considered:** A) Patch Slice 1 migration retroactively to add `reason text`. B) Defer the column to an Epic 4 schema delta (e.g. `0002_submission_reason.sql`) so Slice 1 stays untouched and the new write path lands together with the UGC form UI.
-- **Chosen:** B. The Epic 2 cleanup pass (this commit) does not add the column; Epic 4's first slice will own a small migration that adds `reason text` plus any other UGC-specific fields surfaced by Slice 4 reality.
-- **Reason:** Plan adherence — Reviewer's verify §29 enumerated the column set; mutating it after-the-fact would muddle the audit trail. Storing `reason` is genuinely scoped with the UGC UI work, so coupling them in Epic 4 is natural.
-- **Trade-off:** `reason` is currently logged at submission time but lost after the request ends. No production submissions are happening yet, so the data loss is hypothetical until Epic 4 ships.
+## 2026-04-25 — `reason` column deferred to Epic 5 schema delta
+- **Context:** Spec §5 lists "추천 이유" as a required UGC field. Epic 2 Slice 1's column list (frozen by the plan and ratified by Reviewer) does NOT include a `reason` column. Slice 4's `submissions.ts` accepts `reason` via zod but does not persist it (`TODO(Epic 5)`).
+- **Options considered:** A) Patch Slice 1 migration retroactively to add `reason text`. B) Defer the column to an Epic 5 schema delta (e.g. `0002_submission_reason.sql`) so Slice 1 stays untouched and the new write path lands together with the UGC form UI.
+- **Chosen:** B. The Epic 2 cleanup pass does not add the column; Epic 5's first slice will own a small migration that adds `reason text` plus any other UGC-specific fields surfaced by Slice 4 reality.
+- **Reason:** Plan adherence — Reviewer's verify §29 enumerated the column set; mutating it after-the-fact would muddle the audit trail. Storing `reason` is genuinely scoped with the UGC UI work, so coupling them in Epic 5 is natural.
+- **Trade-off:** `reason` is currently logged at submission time but lost after the request ends. No production submissions are happening yet, so the data loss is hypothetical until Epic 5 ships.
+- **Renumber note (2026-04-26):** Original entry said "Epic 4". Epic numbering shifted: new Epic 3 = Test infra reinforcement, Epic 4 = Map (read path), Epic 5 = UGC (write path), Epic 6 = Polish.
 
 ## 2026-04-25 — Postgres major version is 17 (not 15)
 - **Context:** Slice 1 set `supabase/config.toml [db].major_version = 15` based on a guess. Live `select version()` reports `17.6`.
