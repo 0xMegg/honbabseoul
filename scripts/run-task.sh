@@ -781,6 +781,12 @@ while [ "$ITER" -le "$MAX_ITER" ]; do
   fi
 
   DEVELOP_LOG="${LOG_DIR}/develop-iter${ITER}.log"
+
+  # Snapshot working-tree + HEAD before Develop, so we can detect a silent
+  # no-op (claude session that exited 0 without touching anything — the
+  # Slice 4 "Developer phase never ran" failure mode observed in the wild).
+  DEVELOP_PRE_STATE="$(git -C "$PROJECT_DIR" status --porcelain 2>/dev/null)|$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null)"
+
   # Override log file for iteration tracking
   if ! run_claude "develop-iter${ITER}" "$DEVELOP_PROMPT"; then
     log_fail "Develop phase failed (iter ${ITER}). Check ${DEVELOP_LOG}"
@@ -788,6 +794,20 @@ while [ "$ITER" -le "$MAX_ITER" ]; do
     log_task_entry
     exit 1
   fi
+
+  # Detect develop-phase no-op: same working-tree porcelain + same HEAD.
+  # Empty PRE_STATE (e.g. PROJECT_DIR not in a git repo) skips the check
+  # so non-git workspaces are not falsely flagged.
+  DEVELOP_POST_STATE="$(git -C "$PROJECT_DIR" status --porcelain 2>/dev/null)|$(git -C "$PROJECT_DIR" rev-parse HEAD 2>/dev/null)"
+  if [ -n "$DEVELOP_PRE_STATE" ] && [ "$DEVELOP_PRE_STATE" = "$DEVELOP_POST_STATE" ]; then
+    log_fail "Develop phase exited cleanly but produced NO observable changes."
+    log_fail "  Working tree + HEAD identical pre/post — likely a silent claude session failure."
+    log_fail "  See ${DEVELOP_LOG}."
+    write_status "ROLE=failed" "VERDICT=DEVELOP_NOOP"
+    log_task_entry
+    exit 1
+  fi
+
   log_success "Develop phase complete (iter ${ITER})"
 
   # --- Review ---

@@ -1119,21 +1119,24 @@ run_parallel_stage() {
     #    (no background subshell, so output appears directly in the main stream)
     if [ ${#pids[@]} -gt 0 ] && [ "$DRY_RUN" = false ]; then
       local prev_states=""
-      declare -A _pid_done=()   # track which PIDs have been reaped
-      declare -A _pid_rc=()     # exit codes
+      # Parallel-to-pids[] flag/code arrays. Indexed by p_idx (the same
+      # index as pids[]), NOT by PID — keeps bash 3.2 compatibility, since
+      # macOS ships bash 3.2 and `declare -A` is bash 4+ only.
+      local _pid_done=()  # "1" once we have already reaped this slot
+      local _pid_rc=()    # exit code captured at reap time (informational)
 
       while true; do
         # Check for newly finished PIDs (non-blocking via kill -0)
         local any_alive=false
         for p_idx in "${!pids[@]}"; do
           local pid="${pids[$p_idx]}"
-          [ -n "${_pid_done[$pid]:-}" ] && continue  # already reaped
+          [ "${_pid_done[$p_idx]:-0}" = "1" ] && continue  # already reaped
           if ! kill -0 "$pid" 2>/dev/null; then
             # Process finished — reap immediately to collect exit code
             local wait_rc=0
             wait "$pid" || wait_rc=$?
-            _pid_done[$pid]=1
-            _pid_rc[$pid]=$wait_rc
+            _pid_done[$p_idx]=1
+            _pid_rc[$p_idx]=$wait_rc
             local s_idx="${pid_to_idx[$p_idx]}"
             if [ "$wait_rc" -eq 0 ]; then
               echo -e "  ${GREEN}✓ Slice $((s_idx+1)) complete${NC}"

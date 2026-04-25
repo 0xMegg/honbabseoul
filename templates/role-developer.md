@@ -40,6 +40,32 @@ reads this section and assigns the call-site updates to the next Task/Slice.
 This is the Developer-side backstop for the Planner's Pre-Start grep — two
 independent passes at the same coverage question.
 
+## Install Before Import (dependency hygiene)
+A new `import` statement requires a matching dependency in `package.json`
+(or the equivalent `pyproject.toml`, `pubspec.yaml`, `go.mod`, etc.). The
+slice is NOT done until both sides land:
+
+1. **Run the install command first.** When the plan says "use library X",
+   run `pnpm add X` / `npm install X` / `flutter pub add X` / `pip install X`
+   *before* writing the import. This produces a real lockfile diff the
+   Reviewer can verify, and prevents the failure mode where the code
+   compiles in the editor (TypeScript LSP resolves stale node_modules)
+   but `pnpm lint` / `pnpm build` fail with `Cannot find module …`.
+
+2. **Verify the install actually landed.** After installing, glance at the
+   `package.json#dependencies` (or `devDependencies`) entry — many
+   parallel-execution failures trace back to "the model wrote the import
+   line but the dependency never reached the lockfile".
+
+3. **Bundle install + import in the same commit.** Splitting "install in
+   commit A, import in commit B" creates a window where `commit A` has a
+   dependency nobody uses (Reviewer's dead-code guard) and `commit B`
+   imports something that does not exist (Reviewer's lint check).
+
+This mirrors the spirit of the **Follow-up Call-Sites** rule above: when
+you add a new symbol or import, the matching obligation lands in the same
+slice, not "in a follow-up Task".
+
 ## Long-Running Process Hygiene
 Dev servers, file watchers, tunnels, and similar long-lived processes used
 for UI/API verification MUST be:
