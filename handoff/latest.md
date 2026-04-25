@@ -1,192 +1,85 @@
 # Session Handoff
 
-## Current State
-- Task: **Epic 2 — COMPLETE + Slice 1 REQUEST_CHANGES addressed**. Strict (Option A) cleanup pass applied. Awaits `dev` ff-merge.
-- Phase: Epic 2 closed; ready for `dev` ff-merge then Epic 3 entry.
-- Date: 2026-04-25
-- Branch: `task/slice-2-seed-data` (HEAD post-cleanup; will ff-merge into `dev`).
+## Current State (as of 2026-04-26 session close)
+- **Epic 1 — DONE** (6 slices, ff-merged into dev)
+- **Epic 2 — DONE** (4 slices + Slice 1 cleanup pass, ff-merged into dev)
+- **Epic 3 — NOT STARTED** (sketch in `outputs/plans/roadmap.md`; first action of next session is `/plan Epic 3`)
+- Branch: `dev` at `44f914c` (or whatever this session's final commit is — see `git log -1 dev`)
+- Working tree: clean
+- Local + remote in sync
+- Live Supabase DB: `restaurants` table seeded with 20 approved rows; RLS verified (anon read approved-only, anon insert coerced to pending via trigger + WITH CHECK)
 
-## Epic 2 — slice statuses (post-cleanup)
-| Slice | Original verdict | After this cleanup |
-|---|---|---|
-| Slice 1 (schema + RLS + zod) | 🟥 REQUEST_CHANGES | ✅ Cleanup addresses both critical (WITH CHECK weakened) and important (scope leak) flags |
-| Slice 2 (seed data) | ✅ APPROVE | 20 approved rows, 4 with `is_solo_default=false` |
-| Slice 3 (read repository) | ✅ APPROVE | `listApproved` / `getById`, RestaurantSchema zod-validated |
-| Slice 4 (submissions repo + storage helper) | ✅ APPROVE | naver_url allow-list, photo MIME/size, `reason` deferred |
+## How this session ended
+Heavy session — onboarding + Epic 1 + Epic 2 + Epic 2 strict cleanup + retrospective. Two reports written for the next round:
 
-## Cleanup pass — what this commit does
-1. **WITH CHECK restored** — `(true)` → `(status = 'pending')` in both migration file and live DB. Reviewer empirically proved BEFORE-trigger output is what WITH CHECK sees, so the defense-in-depth Slice 1 plan asked for is reinstated.
-2. **All 9 `scripts/db-*.sh` removed** — debug + investigation artefacts, none plan-mandated. `db:push` / `db:reset` are inline psql, no backing scripts needed.
-3. **`db:verify` and `db:smoke` removed from package.json** — verify §30 enforced exactly the 10 plan-mandated script keys.
-4. **`supabase/config.toml` `major_version`** 15 → 17 (matches live `select version()` → 17.6).
-5. **Seed re-applied** — `pnpm db:reset` followed by `psql -f supabase/seed.sql`. Live: 20 approved rows.
-6. **Decision-log entries added**: `is_solo_default NOT NULL`, `reason` column deferral, Postgres major version.
+- 📕 **`docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md`** — 4 forge fix candidates derived from the Epic 2 retrospective. Forge round 1 (3 fixes from `2026-04-25-bash3-noop-install.md`) is already merged + propagated to honbabseoul. This round 2 is **proposal only — no patches written yet**, awaiting forge owner's decision.
+- 📗 **`docs/improvements/2026-04-26-priority-roadmap.md`** — honbabseoul-side improvements organised by when to land them (Epic 3 entry / pre-production / post-MVP / process). Each item has effort estimate + acceptance criterion.
 
-## Verification at cleanup HEAD
-- `pnpm lint` → 0 errors / 0 warnings
-- `pnpm test` → 40 passed (env, restaurants, submissions, storage, Logo)
-- `pnpm exec tsc --noEmit` → silent
-- `pnpm build` → `/[locale]` (ja, ko) prerendered, middleware 45.4 kB
-- `pnpm test:e2e` → 3 Playwright tests passed (locale smoke)
-- Live anon SELECT: 20 approved rows, no pending leak
-- Live anon INSERT with `status='approved'`: 201 Created, row stored as `pending` (trigger + WITH CHECK both active)
-- Live anon UPDATE: silently denied (no UPDATE policy)
+The next session should read those two documents in full before deciding what to do next.
 
-## Scope NOT addressed in this cleanup (intentional, deferred — see decision-log)
-- `reason` column missing from `restaurants` schema (spec §5). Epic 4's first slice will own a `0002_*` migration adding it alongside the UGC form UI.
-- `is_solo_default OR-NULL` deviation: column stays `NOT NULL DEFAULT true`, repository code drops the OR-NULL branch (decision-log entry locks this).
+## Next session — first three actions
 
-## Epic 1 — slice statuses
+1. **Read** `docs/improvements/2026-04-26-priority-roadmap.md` — pick which 🟡 Epic 3 entry items (A, B, C, D) to land before launching Epic 3.
+2. **Read** `docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md` — decide whether to ship round 2 of forge fixes now, defer, or reject specific patches.
+3. **Decide Epic 3 launch mode** — full auto (`/epic 3` with the new forge fixes if applied) or hybrid (Option B from prior sessions, where the assistant authors slices directly).
 
-| Slice | What it delivered | Commit |
-|---|---|---|
-| Slice 1 | Next.js 15 + TS strict + ESLint flat + Prettier + 8 package.json scripts | `97afa96` |
-| Slice 2 | Tailwind v4 wired to `--hb-*` token layer (`tokens.css` + `@theme inline`) | `6ba6cbf` |
-| Slice 3 | next-intl 4 locale skeleton (ja default + ko, middleware redirect, messages/) | `d6ad1d0` |
-| Slice 4 | Supabase factories: env / browser / server (cookies-aware) / admin (`server-only` guard) | `d6ad1d0` |
-| Slice 5 | Vitest 3 + jsdom + smoke test on `requireEnv` (6 assertions) | `18c4640` |
-| Slice 6 | Playwright with Pixel 7 chromium emulation + locale smoke spec (3 tests) | `1b6c774` |
+## Critical context the next session must NOT re-derive
 
-## Verification at `1b6c774`
-- `pnpm lint` → 0 errors / 0 warnings.
-- `pnpm test` → 6 vitest tests passed.
-- `pnpm exec tsc --noEmit` → silent (clean).
-- `pnpm build` → `/[locale]` (ja, ko) prerendered + middleware 45.4 kB.
-- `pnpm test:e2e` → 3 Playwright tests passed (locale smoke).
+| Item | Where it lives |
+|---|---|
+| 9 design / scope decisions (locked, do NOT relitigate) | `context/decision-log.md` |
+| Open questions resolved 2026-04-25 (geo fallback, price_range enum, photo limits, "혼밥 가능" OFF semantics, `is_solo_default NOT NULL`, `reason` deferred to Epic 4, Postgres major 17, Tailwind v4 `@theme inline`, Supabase `@supabase/ssr`, `import "server-only"`) | same file, dated entries |
+| MVP roadmap with all 4 epics sketched | `outputs/plans/roadmap.md` |
+| Spec source-of-truth | `docs/project-plan.md` |
+| Epic 1 + 2 plans (executable history) | `outputs/plans/epic-1-plan.md` / `epic-2-plan.md` |
+| Per-slice reviews | `outputs/reviews/task-{1..4}-review.md` (Epic 1) + `task-slice-{1..4}-review.md` (Epic 2) |
+| Forge round 1 incident report + applied patches | `docs/forge-feedback/2026-04-25-*` |
+| Local rules (apply every session) | `.claude/rules/local/{api,frontend,gotchas}-honbabseoul.md` |
 
-All Epic 1 acceptance criteria from `outputs/plans/epic-1-plan.md` met.
+## External state confirmed working
 
-## Mid-epic harness sync
-`eb26a22` pulled the three forge fixes (`d78bdcb` → `7f96dd4`) surgically:
-- `scripts/run-epic.sh` — bash 3.2 compat (`declare -A` removed).
-- `scripts/run-task.sh` — `DEVELOP_NOOP` guard (catches silent develop-phase failures).
-- `templates/role-developer.md` — "Install Before Import" section merged.
+- `DATABASE_URL` (transaction pooler URI, password reset 2026-04-25) — psql works
+- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY` — REST + storage REST verified
+- `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` (`5xcs9i2c5v`) — SDK URL returns 200; URL whitelist set in NCP for `localhost:3000`, `*.vercel.app`
+- Supabase Storage bucket `restaurant-photos` — exists, public, no MIME/size limit yet (deferred to roadmap item I)
+- GitHub origin (`github.com/0xMegg/honbabseoul`) — `main` + `dev` branches synced, no PRs open
+- Playwright chromium cache at `~/Library/Caches/ms-playwright/` (used by Pixel 7 mobile profile)
 
-[managed]-classified files we had customised (hooks, role-{planner,reviewer}.md, verify.md, commands/task.md) were intentionally NOT overwritten. See `docs/forge-feedback/2026-04-25-bash3-noop-install.md` for the original incident report and patch.
+## Tooling state confirmed working
 
-## Next Step — Epic 2 entry
-**Epic 2 — Data layer & repositories** is the next chunk. Before launching:
+- Node `22.17.0` via `.nvmrc` + `nvm use`
+- pnpm `10.33.2` via corepack
+- psql `14.22` (Homebrew)
+- Bash `3.2.57` (system) — forge round 1 fixed the `declare -A` incompat that this caused
+- Claude CLI `2.1.118`
+- All harness hooks (`pre-commit-branch-check`, `post-edit-*`) active
 
-### Pre-flight (must resolve)
-1. **Migration application strategy** — pick one of:
-   - α) Supabase CLI link (`supabase link --project-ref iosqakynywnrwxrexrfh`) → browser OAuth, can't be automated overnight.
-   - β) `DATABASE_URL` direct-psql (recommended for unattended runs) → user fetches the connection string from Supabase Dashboard → Settings → Database → Connection string (URI), pastes into `.env.local`, slice runs `pnpm dlx supabase db push --db-url=$DATABASE_URL` or raw psql.
-   - γ) Manual paste into Supabase Studio SQL Editor (one-shot, no automation).
-2. **Storage bucket sanity** — anon `bucket list` returned `[]` during the onboarding smoke. Verify `restaurant-photos` actually exists + is public via service-role check, or create it.
-3. **Logo SVG** — Epic 3 Stage 1 needs it; collecting now removes a future blocker.
-4. **service_role key rotation** — recommended before any work that goes near a real Supabase write path. The original key was exposed in chat during onboarding.
+## Outstanding session-spanning carry-overs
 
-### Recommended Epic 2 launch
-- Re-confirm `outputs/plans/roadmap.md` Epic 2 sketch matches reality (decisions in `context/decision-log.md` resolved 4 open questions on 2026-04-25 — price_range enum, photo limits, geo fallback, "혼밥 가능" OFF semantics).
-- Start with `/plan Epic 2` to expand the sketch into `outputs/plans/epic-2-plan.md`. Hybrid execution (Option B) remains a viable fallback if any slice's Developer phase silently fails — though the harness now has the `DEVELOP_NOOP` guard from forge `7f96dd4` which catches that mode at the source.
+- **`SUPABASE_SERVICE_ROLE_KEY` rotation** — the value visible in chat history is still live. Roadmap item E. **Required before Epic 4 ships UGC writes to a real environment.**
+- **`reason` column missing from schema** — deferred to Epic 4's first slice (decision-log dated 2026-04-25). UGC submissions currently log `reason` length only, do not persist content.
+- **Logo SVG** — `src/lib/features/layout/Logo.tsx` is a `<text>` placeholder rendering with system fonts. Roadmap item N. Real designer-supplied path SVG due in Epic 5 polish.
 
-## Carry Over (open across multiple epics)
-- Logo SVG (Epic 3 dependency).
-- Supabase Storage bucket validation (Epic 4 dependency).
-- service_role key rotation (pre-deployment).
-- shadcn/ui adoption decision (after first two product screens).
-- Component tests + compatible vite + plugin-react pair (Epic 2/3 will reintroduce).
-- `brew install bash` on the user machine — defends future `/epic` parallel runs against the bash 3.2 race surface (forge fix already applied; this is belt-and-suspenders).
+## Session metadata
+- Branch flow used: dev ← task/{id} (with intermediate `epic/{ts}` for parallel runs)
+- Forge version honbabseoul tracks: `4.0.0` / `7f96dd4` / built `2026-04-25T10:02:11Z`
+- Forge source: `/Users/mero/Dev/13.claude/templates/harness-forge` (note: NOT `claude-code-harness-template` — that's the built output)
+- Total commits on `dev`: see `git log --oneline dev | wc -l`
 
-## Plan & Review Locations
-- Roadmap: `outputs/plans/roadmap.md`
-- Epic 1 plan: `outputs/plans/epic-1-plan.md`
-- Decision log: `context/decision-log.md` (Epic 1 versions, open question resolutions, Tailwind v4 mechanism, Supabase ssr package, server-only enforcement)
-- Forge feedback (incident report + patches): `docs/forge-feedback/2026-04-25-bash3-noop-install.md`
-- Slice reviews from overnight runs: `outputs/reviews/task-{1..4}-review.md`
-- Slices 3-6 hybrid completions: documented inline in their commits.
+## Anti-patterns observed this session — do NOT repeat
 
-## Post-task activities
-- 2026-04-25 — Slice 5 + Slice 6 hybrid completion (Vitest + Playwright). Epic ff-merged into newly created `dev` branch (commit `2ec7e42`), pushed to origin.
-- 2026-04-25 — Post-Epic-1 cleanup (`0c7e444`): dropped 4 dead `nextscaffold` exclude entries, added `!.env.local.example` negation to .gitignore. Verification: lint/test/tsc/build all green.
-- 2026-04-25 — `epic/20260425-133941` deleted from local and origin (fully merged into dev). Final branches: `main` (stable), `dev` (Epic 1 result + cleanup).
-- 2026-04-25 — Logo SVG component (`2e27e39`): `src/lib/features/layout/Logo.tsx` + 4 vitest invariants. Bilingual brand mark (혼밥서울 / ホンバプソウル), `--hb-*` token-backed `tone` prop, `viewBox="200 64"`. `vitest.config.ts` got `esbuild.jsx: 'automatic'` so component tests compile without @vitejs/plugin-react. Test count: 6 → 10 passing.
-- 2026-04-25 — Epic 2 plan drafted (`87606ff`): `outputs/plans/epic-2-plan.md`. 4 slices in 2 stages, β migration path (`DATABASE_URL` direct-psql), zod for runtime validation. Awaits user pasting `DATABASE_URL` into `.env.local` before Stage 1 starts.
-
-## Awaiting from user (Epic 2 entry blockers)
-1. **`DATABASE_URL` in `.env.local`** — Supabase Dashboard → Settings → Database → Connection string → URI tab → copy whole string into `.env.local` as `DATABASE_URL=…`. After paste, just message **"DATABASE_URL 넣었어"** — do NOT paste the URL into chat (same exposure model as service_role).
-2. **`psql` availability** — `which psql` in a terminal. If absent: `brew install libpq && brew link --force libpq`.
-
-Once both are confirmed, `/epic 2` (or hybrid Option B) can launch.
+1. **Editing the wrong forge** — early in this session the assistant edited `claude-code-harness-template/` (built output) instead of `harness-forge/` (source). User policy is now: assistant only touches honbabseoul + chat-driven artifacts. **Do not touch any path outside `/Users/mero/Dev/13.claude/workouts/honbabseoul/`** unless explicitly directed.
+2. **Service-role / DATABASE_URL value pasted in chat** — happened twice during onboarding. Both were rotated. Future sessions: the user pastes secrets directly into `.env.local` and tells the assistant "values updated", never the literal strings.
+3. **Trusting runner's "all approved" summary without spot-check** — Epic 2 runner mis-reported aggregate. Forge round 2 patch 3 addresses this; until that ships, the next session should `grep FINAL_VERDICT outputs/reviews/*.md` after every epic to verify.
 
 ---
 
-# (Legacy section below — Slice 1 review notes from the overnight run, kept for traceability.)
+## TL;DR for the next claude session
 
-## Current State
-- Task: Task 1 (Epic 1 / Stage 1 / Slice 1) — Next.js 15 + TypeScript + lint/format baseline + all package.json scripts
-- Phase: Review → APPROVE
-- Date: 2026-04-25
+You're picking up after Epic 2 closed cleanly. Two retrospective reports await:
+1. `docs/forge-feedback/2026-04-26-epic2-cleanup-lessons.md` (read for harness improvement decisions)
+2. `docs/improvements/2026-04-26-priority-roadmap.md` (read to plan honbabseoul work)
 
-## Last Action
-Reviewer ran the full verification plan (`outputs/plans/task-1-verify.md` steps 1–13 plus live dev-server boot). All automated checks green; harness preservation diff empty; build prerenders the placeholder route; dev server boots in 1.2s. Reviewer attempted to delete the temp `nextscaffold/` directory; the destructive action was denied by the session permission policy, so the temp dir remains in the working tree (gitignored — does NOT enter the commit). Cleanup is carried over for the next session to run manually.
-- Verdict: APPROVE
-- Commit: `e1c6308` on `epic/20260425-133941` (pushed to origin)
+Then the user decides the launch mode for Epic 3.
 
-## Files Changed
-### New (committed by Reviewer)
-- `package.json`, `pnpm-lock.yaml` — Next 15.5.15 + React 19 + Tailwind v4 + ESLint 9 + Prettier 3; 8 canonical scripts in spec order.
-- `tsconfig.json` — scaffold default + `strict: true` + `noUncheckedIndexedAccess: true` + `forceConsistentCasingInFileNames: true`.
-- `next.config.ts`, `next-env.d.ts`, `postcss.config.mjs` — scaffold defaults.
-- `eslint.config.mjs` — flat config (ESLint v9). Slices 2–8 should extend via `compat.extends()`, NOT a `.eslintrc.json`.
-- `.prettierrc`, `.prettierignore` — project formatting + harness directories excluded.
-- `.gitignore` — scaffold defaults + harness-required entries appended.
-- `src/app/layout.tsx`, `src/app/globals.css` — scaffold defaults (Slice 2 will rewrite globals.css for `--hb-*` tokens; Slice 3 will move layout under `[locale]/`).
-- `src/app/page.tsx` — "honbabseoul — coming soon" placeholder.
-- `public/{file,globe,next,vercel,window}.svg` — scaffold default assets.
-- `outputs/plans/task-1-plan.md`, `outputs/plans/task-1-verify.md` — Planner artifacts.
-- `outputs/archive/handoff-2026-04-25-task0-bootstrap.md` — Planner archived previous handoff.
-- `outputs/reviews/task-1-review.md` — this review.
-- `outputs/evaluations/task-1-eval.md` — task evaluation.
-
-### NOT removed (cleanup deferred — `rm -rf` blocked)
-- `nextscaffold/` — temp directory created when `create-next-app` refused a non-empty target. Files were promoted to project root by the Developer; the temp dir is gitignored so it does NOT enter the commit. Reviewer's `rm -rf nextscaffold` was denied by session permission policy. **Action for next session:** the user should manually `rm -rf nextscaffold` and then drop the four `nextscaffold` exclude entries from `tsconfig.json`, `eslint.config.mjs`, `.prettierignore`, and `.gitignore`.
-
-### Untouched (verified empty diff vs `4c514e4`)
-- `CLAUDE.md`, `PlaceholderGuide.md`, `README.md`, `DRYRUN-NOTES.md`, `setup.sh`, `.harness-manifest`, `.mcp.json.example`, `.env.local.example`, `.nvmrc`
-- Whole directories: `.claude/`, `context/`, `docs/`, `outputs/plans/roadmap.md`, `outputs/plans/epic-1-plan.md`, `scripts/`, `skills/`, `templates/`
-
-## Verification Status
-- Lint: PASS (`pnpm lint` — 0 errors / 0 warnings; deprecation notice is informational)
-- Type check: PASS (`pnpm exec tsc --noEmit` — silent exit)
-- Format: PASS (`pnpm exec prettier --check .`)
-- Build: PASS (`pnpm build` — `/` prerendered as static, 4/4 pages)
-- Test: N/A (Vitest installed in Slice 5)
-- Live: PARTIAL — dev server boots in 1.2s on :3010, but `curl`/`node http` was blocked by session permission policy. Compensated by the build's static prerender of `/` plus direct read of `src/app/page.tsx`.
-
-## Issues Found
-- Critical: none
-- Important: none
-- Minor:
-  1. `.gitignore` line 34 is `.env*` (broader than `.env*.local`). Pre-existing tracked `.env.local.example` is unaffected, but a `!.env.local.example` negation would be more robust on fresh re-adds.
-  2. Four `nextscaffold` exclude entries remain in `tsconfig.json`, `eslint.config.mjs`, `.prettierignore`, `.gitignore`. Now dead-but-harmless after the dir removal. Slice 2 should drop them.
-  3. `next lint` deprecation notice (Next 16 will remove it). Out of scope; track for the Next.js bump.
-
-## Next Step
-1. Manually `rm -rf nextscaffold` (Reviewer's attempt was blocked by session permission policy).
-2. Slice 2 (Tailwind config + `--hb-*` token layer + bilingual logo SVG). When Slice 2 edits `tailwind.config.ts`/`globals.css`/`eslint.config.mjs`, drop the four `nextscaffold` exclude entries listed above.
-
-## Carry Over
-- Manually delete `nextscaffold/` (next session, after permission allowance).
-- Drop `nextscaffold` exclude entries from `tsconfig.json`, `eslint.config.mjs`, `.prettierignore`, `.gitignore` once the dir is gone.
-- Optional: add `!.env.local.example` to `.gitignore` for fresh-clone robustness.
-- Logo SVG (`혼밥서울 / ホンバプソウル`) — needed by Slice 3 onward.
-- Supabase project + service-role key — blocks Epic 2.
-- Naver Maps client ID — blocks Epic 3.
-- shadcn/ui adoption decision — deferred until first two screens exist.
-- Live HTTP probing during review is currently blocked by session permission policy — Reviewer relied on build prerender + dev-server boot. If future slices add API routes, sandbox needs a `curl localhost` allowance.
-
-## Plan & Review Locations
-- Plan: outputs/plans/task-1-plan.md
-- Verify: outputs/plans/task-1-verify.md
-- Review: outputs/reviews/task-1-review.md
-- Evaluation: outputs/evaluations/task-1-eval.md
-
-## Post-task activities
-- 2026-04-25 — Pushed `epic/20260425-133941` to `origin` (commit `e1c6308`). PR creation deferred to user (`gh pr create --base dev --head epic/20260425-133941`).
-
-## Stage 1 Results (parallel)
-
-## Stage 1 Results (parallel)
-
-## Stage 2 Results (parallel)
+**Do not touch `harness-forge` or any other path outside this repo.** Do not paste secrets in chat. Do not bypass the protected-branch hooks (use task/{id} branches + ff-merge).
