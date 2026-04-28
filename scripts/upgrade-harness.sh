@@ -127,7 +127,7 @@ done < "$MANIFEST"
 
 # ---------- Resolve PROJECT_NAME for placeholder substitution ----------
 # Order: env var → CLAUDE.md "- Name:" line → directory basename.
-# Used to substitute  in managed .md/.sh files post-copy
+# Used to substitute {{PROJECT_NAME}} in managed .md/.sh files post-copy
 # (covers files that setup.sh's FILES_TO_REPLACE list missed at init time).
 resolve_project_name() {
   if [ -n "${PROJECT_NAME:-}" ]; then
@@ -137,7 +137,7 @@ resolve_project_name() {
   if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
     local n
     n="$(awk '/^- Name:/ { sub(/^- Name:[[:space:]]*/, ""); print; exit }' "$PROJECT_DIR/CLAUDE.md")"
-    if [ -n "$n" ] && [ "$n" != "" ]; then
+    if [ -n "$n" ] && [ "$n" != "{{PROJECT_NAME}}" ]; then
       echo "$n"
       return
     fi
@@ -211,15 +211,15 @@ while IFS= read -r -d '' file; do
       if $APPLY; then
         mkdir -p "$(dirname "$dst")"
         cp -p "$file" "$dst"
-        # Post-copy: substitute  in managed text files so
+        # Post-copy: substitute {{PROJECT_NAME}} in managed text files so
         # downstream projects do not ship raw placeholders (root cause of
         # the divebase task.md regression where the inline command pointed
-        # at /tmp/-run/).
+        # at /tmp/{{PROJECT_NAME}}-run/).
         case "$rel" in
           *.md|*.sh)
-            if grep -q '' "$dst" 2>/dev/null; then
-              sed -i '' "s//$PROJECT_NAME_RESOLVED/g" "$dst" 2>/dev/null || \
-              sed -i "s//$PROJECT_NAME_RESOLVED/g" "$dst" 2>/dev/null || true
+            if grep -q '{{PROJECT_NAME}}' "$dst" 2>/dev/null; then
+              sed -i '' "s/{{PROJECT_NAME}}/$PROJECT_NAME_RESOLVED/g" "$dst" 2>/dev/null || \
+              sed -i "s/{{PROJECT_NAME}}/$PROJECT_NAME_RESOLVED/g" "$dst" 2>/dev/null || true
             fi
             ;;
         esac

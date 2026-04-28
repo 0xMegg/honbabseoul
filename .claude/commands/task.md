@@ -16,7 +16,7 @@ Run the following command as a **background task** using `run_in_background: tru
 Tell the user the task is running, then **monitor progress every 60 seconds** with a single status check command:
 
 ```bash
-bash .claude/scripts/check-task-status.sh 
+bash .claude/scripts/check-task-status.sh {{PROJECT_NAME}}
 ```
 
 **Rules:**

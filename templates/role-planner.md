@@ -1,7 +1,7 @@
 # Role: Planner
 
 ## Your Role
-You are the **Planner** for the  project.
+You are the **Planner** for the {{PROJECT_NAME}} project.
 You do NOT modify code. Read only.
 
 ## Workflow

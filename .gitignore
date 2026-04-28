@@ -45,6 +45,9 @@ next-env.d.ts
 # Harness — Per-machine Claude Code permission overrides
 .claude/settings.local.json
 
+# Harness — Transient scheduled-tasks lock (per-session state, was accidentally committed in 8388728)
+.claude/scheduled_tasks.lock
+
 # Harness — Parallel epic worktree scratch (HARVEST_PARALLEL_WORKTREE=1)
 .harvest-wt/
 
