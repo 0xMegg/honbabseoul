@@ -1,104 +1,54 @@
 # Session Handoff
 
-## Current State (as of 2026-04-26 — Epic 3 ready to launch)
-- **Epic 1 — DONE** (6 slices, ff-merged into dev)
-- **Epic 2 — DONE** (4 slices + Slice 1 cleanup pass, ff-merged into dev)
-- **Phase 0 — DONE** (commit `e23279f`, ff-merged into dev): epic renumber across docs + 3 stale RC marker cleanup. Task branch deleted (local + remote).
-- **Epic 3 (Test infra reinforcement) — PLAN READY, AWAITING `/epic 3`**. Formal plan at `outputs/plans/epic-3-plan.md`. Approved source plan at `/Users/mero/.claude/plans/honbabseoul-hazy-orbit.md`.
-- Live Supabase DB: `restaurants` table seeded with 20 approved rows; RLS verified (anon read approved-only, anon insert coerced to pending via trigger + WITH CHECK).
-- All 8 review files carry `<!-- FINAL_VERDICT: APPROVE -->` (Phase 0 cleaned the 3 stale REQUEST_CHANGES markers from Epic 1/2).
+## Current State
+- Task: Epic 3 / Slice 1 — vite + plugin-react pin
+- Phase: Review → APPROVE
+- Date: 2026-04-28
 
-### Epic numbering (renumbered 2026-04-26)
-| # | Epic | Status |
-|---|---|---|
-| 1 | Project scaffolding | DONE |
-| 2 | Data layer + RLS + repositories | DONE |
-| 3 | **Test infra reinforcement** (vite pin / Supabase types / int test / decision-log frontmatter) | PLAN READY — `outputs/plans/epic-3-plan.md` |
-| 4 | Map + filters + bottom sheet (read path) | NOT STARTED — sketch in `roadmap.md` (was Epic 3) |
-| 5 | UGC submission (write path) | NOT STARTED — sketch in `roadmap.md` (was Epic 4) |
-| 6 | Polish (logo, OG, perf, error boundaries) | NOT STARTED — was "follow-up Epic 5" hint |
+## Last Action
+- Reviewer: re-verified all static evidence against current working tree (greps + lockfile direct-dep entries + diff inspection). Dynamic gates (lint/test/build/frozen-lockfile) sourced from Developer handoff + first Reviewer pass; this Reviewer's shell sandbox blocked Node 22 binary execution (corepack URL.canParse missing under Node 16). Combined evidence is sufficient for a pure dev-tooling slice with zero `src/**` mutation.
+- Verdict: APPROVE
+- Commit: pending stage (slice files only — harness drift excluded)
 
-## Next session — first action
+## Files Changed
+- `package.json` — added `"vite": "6.4.2"` and `"@vitejs/plugin-react": "4.7.0"` (exact, no caret) to devDependencies
+- `pnpm-lock.yaml` — auto-updated by pnpm add + pnpm install
+- `vitest.config.ts` — removed esbuild workaround + 5-line NOTE comment; added plugin-react import + `plugins: [react()]`
+- `outputs/plans/task-slice-1-plan.md` — Planner output (Epic 3 Slice 1, repurposed filename from Epic 2)
+- `outputs/plans/task-slice-1-verify.md` — Planner output
+- `outputs/reviews/task-slice-1-review.md` — Reviewer output (final, second-pass)
+- `handoff/latest.md` — this file
+- `handoff/archive/session-2026-04-26.md` — appended Developer handoff before overwrite
 
-Just one command:
+## Verification Status
+- Lint: PASS (sourced from Developer handoff + first Reviewer pass; not re-executed in this pass — see Reviewer environment caveat in review file)
+- Type: PASS (`pnpm exec tsc --noEmit` silent — Developer handoff)
+- Test (targeted): PASS (`pnpm test src/lib/features/layout/Logo.test.tsx` 4/4 — Developer handoff)
+- Test (full): PASS (5 files / 40 tests — Developer handoff + first Reviewer pass)
+- Build: PASS (Next prerender for /ja + /ko unchanged from Epic 2 baseline — first Reviewer pass)
+- Lockfile: PASS (`pnpm install --frozen-lockfile` silent — Developer handoff + first Reviewer pass)
+- Static (greps + lockfile direct-dep entries + diff): PASS — re-executed in this pass against current working tree, all match plan
+- Live: N/A (pure dev-tooling change; no UI/API surface)
 
-```bash
-./scripts/run-epic.sh 3
-```
+## Issues Found
+- Critical: none
+- Important: none
+- Minor: harness drift (.claude/, scripts/, templates/, docs/updates/) present in working tree from a second self-upgrade after Develop — explicitly excluded from this slice's commit; tracked as Carry-Over
 
-(or equivalently the `/epic 3` slash command in a Claude Code session). The runner will detect `outputs/plans/epic-3-plan.md` and skip `/plan Epic 3`, going straight into Stage 1 → Stage 2 (parallel) → Stage 3 execution.
+## Next Step
+- User runs `./scripts/run-epic.sh 3` (or `/epic 3`) from `dev` after this slice's task branch ff-merges. The runner will skip Slice 1 (already complete) and proceed to Stage 2 (parallel Slices 2 + 3) → Stage 3 (Slice 4).
 
-After the runner declares completion, **manually verify**:
+## Carry Over
+- **Harness drift cleanup** — second self-upgrade (`d27eaaa`, build `2026-04-26T11:56:02Z`) landed after Develop. Files: `.claude/.harness-version`, `.claude/commands/task.md`, `.claude/rules/base/decision-protocol.md` (untracked), `scripts/run-{epic,task}.sh`, `scripts/upgrade-harness.sh`, `templates/role-{developer,planner,reviewer}.md`, `docs/updates/24070b5.md`, `docs/updates/INDEX.md`, `docs/updates/e2ee114.md` (untracked). Handle in a separate `chore: harness-sync` commit on a `chore/harness-sync-*` branch (per gotchas.md "긴급 우회" guidance) — do NOT mix into Epic 3 slice commits.
+- `scripts/run-task.sh:828` carries a temporary local `|| true` patch — pending upstream forge fix per `docs/forge-feedback/2026-04-26-run-task-scope-num-pipefail.md`.
+- `.claude/scheduled_tasks.lock` shows as deleted in working tree — should be added to `.gitignore` (separate housekeeping task).
+- Reviewer Node 22 sandbox: future reviewer should ensure `nvm use 22.17.0` is sourced before `claude` launches so dynamic gates (lint/test/build) run inside sandbox.
+- Epic 3 Stage 2 (Slices 2 + 3) and Stage 3 (Slice 4) remain queued — see `outputs/plans/epic-3-plan.md`.
+- `SUPABASE_SERVICE_ROLE_KEY` rotation pre-Epic-5.
+- `reason` column deferred to Epic 5 Slice 1.
+- Logo SVG placeholder.
 
-```bash
-grep -E '<!-- FINAL_VERDICT' outputs/reviews/task-slice-*-review.md
-```
-
-All 4 new entries (task-slice-1 through task-slice-4) should be `APPROVE`. The forge round 2 P3 patch (verdict cross-check inside `run-epic.sh`) is NOT landed yet — Epic 2 had a real "all approved" mis-report on this same gate. Manual grep is the safety net until P3 ships.
-
-If any slice is REQUEST_CHANGES: re-develop + re-review that slice via `/develop "Slice N — fix REQUEST_CHANGES"` then `/review "Slice N — re-inspect"`. The Epic plan + verify documents do not need changes.
-
-## Critical context the next session must NOT re-derive
-
-| Item | Where it lives |
-|---|---|
-| 9 design / scope decisions (locked, do NOT relitigate) | `context/decision-log.md` (Slice 2 of Epic 3 will add a 10th — Supabase generated types) |
-| Open questions resolved 2026-04-25 (geo fallback, price_range enum, photo limits, "혼밥 가능" OFF semantics, `is_solo_default NOT NULL`, `reason` deferred to Epic 5 [renumbered 2026-04-26], Postgres major 17, Tailwind v4 `@theme inline`, Supabase `@supabase/ssr`, `import "server-only"`) | same file, dated entries |
-| MVP roadmap with all 6 epics (post-renumber) | `outputs/plans/roadmap.md` |
-| Epic 3 formal plan (Test infra) | `outputs/plans/epic-3-plan.md` |
-| Spec source-of-truth | `docs/project-plan.md` |
-| Epic 1 + 2 plans (executable history) | `outputs/plans/epic-1-plan.md` / `epic-2-plan.md` |
-| Per-slice reviews | `outputs/reviews/task-{1..4}-review.md` (Epic 1) + `task-slice-{1..4}-review.md` (Epic 2) |
-| Forge round 1 incident report + applied patches | `docs/forge-feedback/2026-04-25-*` |
-| Local rules (apply every session) | `.claude/rules/local/{api,frontend,gotchas}-honbabseoul.md` |
-
-## External state confirmed working
-
-- `DATABASE_URL` (transaction pooler URI, password reset 2026-04-25) — psql works
-- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY` — REST + storage REST verified
-- `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` (`5xcs9i2c5v`) — SDK URL returns 200; URL whitelist set in NCP for `localhost:3000`, `*.vercel.app`
-- Supabase Storage bucket `restaurant-photos` — exists, public, no MIME/size limit yet (deferred to roadmap item I)
-- GitHub origin (`github.com/0xMegg/honbabseoul`) — `main` + `dev` branches synced, no PRs open
-- Playwright chromium cache at `~/Library/Caches/ms-playwright/` (used by Pixel 7 mobile profile)
-
-## Tooling state confirmed working
-
-- Node `22.17.0` via `.nvmrc` + `nvm use`
-- pnpm `10.33.2` via corepack
-- psql `14.22` (Homebrew)
-- Bash `3.2.57` (system) — forge round 1 fixed the `declare -A` incompat that this caused
-- Claude CLI `2.1.118`
-- All harness hooks (`pre-commit-branch-check`, `post-edit-*`) active
-
-## Outstanding session-spanning carry-overs
-
-- **`SUPABASE_SERVICE_ROLE_KEY` rotation** — the value visible in chat history is still live. Roadmap item E. **Required before Epic 5 ships UGC writes to a real environment.**
-- **`reason` column missing from schema** — deferred to Epic 5's first slice (decision-log dated 2026-04-25, renumber-noted 2026-04-26). UGC submissions currently log `reason` length only, do not persist content.
-- **Logo SVG** — `src/lib/features/layout/Logo.tsx` is a `<text>` placeholder rendering with system fonts. Roadmap item N. Real designer-supplied path SVG due in Epic 5 polish.
-
-## Session metadata
-- Branch flow used: dev ← task/{id} (with intermediate `epic/{ts}` for parallel runs)
-- Forge version honbabseoul tracks: `4.0.0` / `7f96dd4` / built `2026-04-25T10:02:11Z`
-- Forge source: `/Users/mero/Dev/13.claude/templates/harness-forge` (note: NOT `claude-code-harness-template` — that's the built output)
-- Total commits on `dev`: see `git log --oneline dev | wc -l`
-
-## Anti-patterns observed this session — do NOT repeat
-
-1. **Editing the wrong forge** — early in this session the assistant edited `claude-code-harness-template/` (built output) instead of `harness-forge/` (source). User policy is now: assistant only touches honbabseoul + chat-driven artifacts. **Do not touch any path outside `/Users/mero/Dev/13.claude/workouts/honbabseoul/`** unless explicitly directed.
-2. **Service-role / DATABASE_URL value pasted in chat** — happened twice during onboarding. Both were rotated. Future sessions: the user pastes secrets directly into `.env.local` and tells the assistant "values updated", never the literal strings.
-3. **Trusting runner's "all approved" summary without spot-check** — Epic 2 runner mis-reported aggregate. Forge round 2 patch 3 addresses this; until that ships, the next session should `grep FINAL_VERDICT outputs/reviews/*.md` after every epic to verify.
-
----
-
-## TL;DR for the next claude session
-
-Epic 3 (Test infra reinforcement) is fully prepared. Phase 0 housekeeping (epic renumber + stale RC marker cleanup) ff-merged into dev as `e23279f`. Formal epic plan at `outputs/plans/epic-3-plan.md`.
-
-**Just run `./scripts/run-epic.sh 3` (or `/epic 3` in Claude Code).** Then manually `grep -E '<!-- FINAL_VERDICT' outputs/reviews/task-slice-*-review.md` to verify (forge round 2 P3 not landed).
-
-After Epic 3 ships:
-1. Epic 4 (Map) — `/plan Epic 4` to expand `roadmap.md` Epic 4 sketch into `outputs/plans/epic-4-plan.md`.
-2. Pre-Epic-5 housekeeping: improvements items E (rotate `SUPABASE_SERVICE_ROLE_KEY`) + I (Storage bucket policy) per `docs/improvements/2026-04-26-priority-roadmap.md`.
-3. Forge round 2 patches (P1-P4) — separate forge cwd session. Cross-repo policy applies.
-
-**Do not touch `harness-forge` or any other path outside this repo.** Do not paste secrets in chat. Do not bypass the protected-branch hooks (use task/{id} branches + ff-merge).
+## Plan & Review Locations
+- Plan: outputs/plans/task-slice-1-plan.md
+- Verify: outputs/plans/task-slice-1-verify.md
+- Review: outputs/reviews/task-slice-1-review.md

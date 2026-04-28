@@ -1,18 +1,12 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import react from "@vitejs/plugin-react";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-// NOTE: @vitejs/plugin-react is intentionally NOT loaded yet — it pins vite
-// minor versions tightly and breaks under the vite 7.x that ships with
-// vitest 3.x at time of writing. Epic 2/3 will reintroduce it (alongside
-// React Refresh) by pinning a compatible vite + plugin-react pair. Until
-// then, esbuild's automatic JSX runtime is enough for component render tests.
 export default defineConfig({
-  esbuild: {
-    jsx: "automatic",
-  },
+  plugins: [react()],
   test: {
     environment: "jsdom",
     globals: true,
