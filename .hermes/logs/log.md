@@ -33,3 +33,4 @@ Verification:
 - Root `AGENTS.md` is tracked and no longer ignored by `.git/info/exclude`.
 - `CLAUDE.md` is a thin adapter to `AGENTS.md` and `.hermes/`.
 - Claude final review initially returned required fixes for `.harness-manifest`, `docs/assumptions.md`, and `docs/plugin-guide.md`; those legacy harness files were archived and source provenance was corrected.
+- Claude re-review returned required fixes for `.hermes/wiki/pages/honbabseoul-state.md` provenance and branch labels; those lines were corrected.

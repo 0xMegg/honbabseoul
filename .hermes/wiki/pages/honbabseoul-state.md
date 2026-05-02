@@ -2,14 +2,14 @@
 
 ## Source Provenance
 
-- Legacy handoff before Hermes adoption: `handoff/latest.md`.
+- Legacy handoff before Hermes adoption: `.hermes/archive/legacy-harness-2026-05-03/handoff/latest.md`.
 - Git branch and HEAD checked during migration.
 - Project context: `context/about-me.md`.
 
 ## Current State
 
 - Date: 2026-05-03
-- Branch: `dev`
+- Branch: `harness/hermes-core-cutover-20260503`
 - Baseline checked during Hermes adoption: `216e9c6`
 - Hermes adoption changed operating-layer files only; no runtime source files changed.
 
