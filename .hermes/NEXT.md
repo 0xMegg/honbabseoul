@@ -8,7 +8,7 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 
 ## Current State
 
-- Branch: `dev`
+- Branch: `harness/hermes-core-cutover-20260503`
 - Baseline checked during migration: `216e9c6`
 - Last legacy handoff: Epic 3 / Slice 2 — Supabase types autogen was deferred and not started under the old harness.
 - Source implementation was not changed during Hermes adoption.

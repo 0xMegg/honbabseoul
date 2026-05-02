@@ -25,7 +25,7 @@ This manifest lists source material used to initialize the Honbabseoul Hermes op
 - Access policy: `context/access-policy.md`.
 - MCP policy: `context/mcp-policy.md`.
 - Decision log: `context/decision-log.md`.
-- Product docs: `docs/project-plan.md`, `docs/deployment.md`, `docs/plugin-guide.md`, `docs/assumptions.md`.
+- Product docs: `docs/project-plan.md`, `docs/deployment.md`.
 
 ## Use Rule
 

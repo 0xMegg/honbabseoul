@@ -27,4 +27,9 @@ Source Evidence:
 
 Verification:
 
-- Pending final cutover verification.
+- Snapshot branch and tag resolve to the mixed pre-cutover state.
+- Runtime source diff from `216e9c6` is empty for `src/`, configs, Supabase, messages, E2E, public assets, package files, and lockfile.
+- Legacy active surfaces were moved under `.hermes/archive/legacy-harness-2026-05-03/`.
+- Root `AGENTS.md` is tracked and no longer ignored by `.git/info/exclude`.
+- `CLAUDE.md` is a thin adapter to `AGENTS.md` and `.hermes/`.
+- Claude final review initially returned required fixes for `.harness-manifest`, `docs/assumptions.md`, and `docs/plugin-guide.md`; those legacy harness files were archived and source provenance was corrected.
