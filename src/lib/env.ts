@@ -47,6 +47,12 @@ export const publicEnv = {
   get supabaseUrl(): string {
     return requireEnv("NEXT_PUBLIC_SUPABASE_URL");
   },
+  get supabasePublicKey(): string {
+    return requireFirstEnv([
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ]);
+  },
   get supabaseAnonKey(): string {
     return requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
   },

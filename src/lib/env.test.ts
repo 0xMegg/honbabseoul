@@ -96,6 +96,27 @@ describe("env getter facades", () => {
     }
   });
 
+  it("publicEnv.supabasePublicKey prefers publishable key over legacy anon", () => {
+    const originalPublishable = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    const originalAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_new";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "legacy-anon";
+    try {
+      expect(publicEnv.supabasePublicKey).toBe("sb_publishable_new");
+    } finally {
+      if (originalPublishable === undefined) {
+        delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+      } else {
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = originalPublishable;
+      }
+      if (originalAnon === undefined) {
+        delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      } else {
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnon;
+      }
+    }
+  });
+
   it("serverEnv.supabaseProjectRef reads SUPABASE_PROJECT_REF via requireEnv", () => {
     const original = process.env.SUPABASE_PROJECT_REF;
     process.env.SUPABASE_PROJECT_REF = "abc123def456";

@@ -175,3 +175,30 @@ Carry-over:
 
 - Update deployed server environments with `SUPABASE_SECRET_KEY`.
 - Do not disable legacy JWT keys yet: the current public client still uses legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and Supabase legacy disablement affects anon and service_role together.
+
+## 2026-05-04 — Supabase Publishable Key Migration Prep
+
+Decision:
+
+- Prepared public Supabase clients to prefer `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and fall back to legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- Updated `.env.local.example` to document the new `sb_publishable_...` public key and legacy fallback.
+- Revealed the existing project publishable key through the Management API and wrote it to `.env.local` without printing the value.
+
+Reason:
+
+- Legacy JWT key disablement affects both anon and service_role legacy keys, so public clients must migrate before disabling legacy JWT keys.
+- The fallback keeps local and deployed environments working while env values are rolled forward.
+
+Verification:
+
+- `git diff --check` passed.
+- Supabase JS query using `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` passed with RLS read: `approved_count=20`.
+- Node 22.17.0 `pnpm test` passed: 5 files, 46 tests.
+- Node 22.17.0 `pnpm lint` passed.
+- Node 22.17.0 `pnpm test:e2e` passed: 4 tests.
+- Node 22.17.0 `pnpm build` initially failed in sandbox due to DNS failure fetching Google Fonts, then passed outside sandbox with network access.
+
+Carry-over:
+
+- Update deployed environments with `SUPABASE_SECRET_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+- Disable legacy JWT keys only after deployed verification and explicit approval.
