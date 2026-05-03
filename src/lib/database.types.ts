@@ -24,6 +24,7 @@ export type Database = {
           naver_url: string | null;
           photo_url: string | null;
           price_range: Database["public"]["Enums"]["price_range"] | null;
+          reason: string | null;
           status: Database["public"]["Enums"]["restaurant_status"];
           updated_at: string;
         };
@@ -42,6 +43,7 @@ export type Database = {
           naver_url?: string | null;
           photo_url?: string | null;
           price_range?: Database["public"]["Enums"]["price_range"] | null;
+          reason?: string | null;
           status?: Database["public"]["Enums"]["restaurant_status"];
           updated_at?: string;
         };
@@ -60,6 +62,7 @@ export type Database = {
           naver_url?: string | null;
           photo_url?: string | null;
           price_range?: Database["public"]["Enums"]["price_range"] | null;
+          reason?: string | null;
           status?: Database["public"]["Enums"]["restaurant_status"];
           updated_at?: string;
         };

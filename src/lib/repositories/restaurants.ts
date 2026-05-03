@@ -24,6 +24,25 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { RestaurantSchema, type Restaurant } from "@/lib/models/restaurant";
 
+const PUBLIC_RESTAURANT_COLUMNS = [
+  "id",
+  "name_ja",
+  "name_ko",
+  "address_ja",
+  "address_ko",
+  "latitude",
+  "longitude",
+  "price_range",
+  "status",
+  "is_solo_default",
+  "has_jp_menu",
+  "is_late_night",
+  "naver_url",
+  "photo_url",
+  "created_at",
+  "updated_at",
+].join(",");
+
 export type RestaurantFilters = {
   /** "혼밥 가능" chip — default ON. true = only solo-friendly, false = drop the filter. */
   isSolo: boolean;
@@ -46,7 +65,10 @@ export async function listApproved(
   client: SupabaseClient<Database>,
   filters: RestaurantFilters,
 ): Promise<Restaurant[]> {
-  let query = client.from("restaurants").select("*").eq("status", "approved");
+  let query = client
+    .from("restaurants")
+    .select(PUBLIC_RESTAURANT_COLUMNS)
+    .eq("status", "approved");
   if (filters.isSolo) query = query.eq("is_solo_default", true);
   if (filters.hasJpMenu) query = query.eq("has_jp_menu", true);
   if (filters.isLateNight) query = query.eq("is_late_night", true);
@@ -61,7 +83,7 @@ export async function getById(
 ): Promise<Restaurant | null> {
   const { data, error } = await client
     .from("restaurants")
-    .select("*")
+    .select(PUBLIC_RESTAURANT_COLUMNS)
     .eq("status", "approved")
     .eq("id", id)
     .maybeSingle();

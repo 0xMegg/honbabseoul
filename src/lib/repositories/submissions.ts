@@ -21,11 +21,6 @@ export async function submitPending(input: unknown): Promise<{ id: string }> {
 
   const { data } = parsed;
 
-  // TODO(Epic 4): persist reason once submission_metadata schema lands.
-  // The reason field is validated but not stored — Slice 1 schema has no
-  // reason column. Log length only (no PII) so the gap is auditable.
-  console.info(`[submitPending] received reason of length ${data.reason.length}`);
-
   const row = {
     name_ja: data.name,
     name_ko: null,
@@ -35,6 +30,7 @@ export async function submitPending(input: unknown): Promise<{ id: string }> {
     is_late_night: data.isLateNight,
     price_range: data.priceRange ?? null,
     photo_url: data.photoUrl ?? null,
+    reason: data.reason,
     // status intentionally omitted — column default 'pending' + BEFORE-INSERT
     // trigger both coerce to pending. Explicit omission documents intent.
   } satisfies TablesInsert<"restaurants">;

@@ -92,6 +92,7 @@ Format:
 - **Reason:** Plan adherence — Reviewer's verify §29 enumerated the column set; mutating it after-the-fact would muddle the audit trail. Storing `reason` is genuinely scoped with the UGC UI work, so coupling them in Epic 5 is natural.
 - **Trade-off:** `reason` is currently logged at submission time but lost after the request ends. No production submissions are happening yet, so the data loss is hypothetical until Epic 5 ships.
 - **Renumber note (2026-04-26):** Original entry said "Epic 4". Epic numbering shifted: new Epic 3 = Test infra reinforcement, Epic 4 = Map (read path), Epic 5 = UGC (write path), Epic 6 = Polish.
+- **Resolution note (2026-05-04):** Epic 5 / Slice 1.1 added `supabase/migrations/0002_submission_reason.sql` with nullable `reason text`, persists `reason` from `submitPending`, and changes public restaurant reads to select explicit public columns instead of `*`.
 
 ## 2026-04-25 — Postgres major version is 17 (not 15)
 - **Context:** Slice 1 set `supabase/config.toml [db].major_version = 15` based on a guess. Live `select version()` reports `17.6`.

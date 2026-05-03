@@ -120,3 +120,30 @@ Verification:
 - Node 22.17.0 `pnpm build` passed.
 - Node 22.17.0 `pnpm test:e2e` passed: 4 tests.
 - Claude final review returned no required fixes.
+
+## 2026-05-04 — Epic 5 Slice 1.1 Reason Persistence
+
+Decision:
+
+- Added `supabase/migrations/0002_submission_reason.sql` with nullable `restaurants.reason text`.
+- Added a down migration for scoped rollback.
+- Updated the Supabase `Database` type surface to include `reason`.
+- Changed `submitPending` to persist validated `reason` and removed the length-only audit log.
+- Changed public restaurant reads from `select("*")` to an explicit public column list so approved rows do not expose submission reasons through the public read repository.
+- Updated `pnpm db:push` so fresh DB setup applies `0001` and `0002`.
+
+Reason:
+
+- The deferred `reason` field is part of the UGC submission contract and belongs with Epic 5 write-path work.
+- A nullable additive column preserves existing rows and avoids changing approval/status behavior.
+- Explicit public selects keep internal submission context out of the public restaurant model even though the table now stores it.
+
+Verification:
+
+- Claude-first plan review was attempted, but `claude` was not available in the current shell PATH.
+- `git diff --check` passed.
+- Node 22.17.0 `pnpm test` passed: 5 files, 41 tests.
+- Node 22.17.0 `pnpm lint` passed.
+- Node 22.17.0 `pnpm build` passed.
+- Node 22.17.0 `pnpm test:e2e` initially failed in sandbox with `listen EPERM` on `0.0.0.0:3000`, then passed outside sandbox: 4 tests.
+- Applied `supabase/migrations/0002_submission_reason.sql` to the configured `DATABASE_URL` DB; `information_schema.columns` confirmed `restaurants.reason` has type `text`.
