@@ -19,6 +19,7 @@
 - Epic 5 / Slice 1.1 reason persistence is implemented locally and applied to the configured `DATABASE_URL` DB; final commit is pending.
 - Supabase admin key env is prepared for `SUPABASE_SECRET_KEY` with legacy fallback; local `.env.local` has `SUPABASE_SECRET_KEY` and verified Supabase REST access.
 - Supabase public key env is prepared for `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with legacy fallback; local `.env.local` has the publishable key and verified public RLS read access.
+- Vercel project envs are migrated to the new Supabase keys and a redeploy smoke passed.
 
 ## Active Carry-Over
 
@@ -27,12 +28,10 @@
 
 ## Next Product Work
 
-Finish deployed Supabase key rotation, then plan the next product slice with Claude-first workflow.
+Decide whether to disable Supabase legacy JWT keys, then plan the next product slice with Claude-first workflow.
 
 ## Open Project Gates
 
-- Add `SUPABASE_SECRET_KEY` to deployed server environments before production deployment.
-- Add `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` to deployed environments before production deployment.
 - Disable legacy JWT keys only after deployed verification and explicit approval.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.

@@ -17,21 +17,20 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Epic 5 / Slice 1.1 reason persistence is implemented locally and applied to the configured `DATABASE_URL` DB via `0002_submission_reason.sql`; final commit is pending.
 - Supabase admin key env is prepared for new `SUPABASE_SECRET_KEY` with legacy `SUPABASE_SERVICE_ROLE_KEY` fallback; local `.env.local` now has `SUPABASE_SECRET_KEY` and verified REST access.
 - Supabase public client env is prepared for `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with legacy anon fallback; local `.env.local` now has the publishable key and verified public RLS read access.
+- Vercel `honbabseoul` project now has `SUPABASE_SECRET_KEY` for production/preview and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for production/preview/development; redeploy smoke passed on `https://honbabseoul-4v0m1124i-meggs-projects.vercel.app/ja`.
 
 ## Next Action
 
-Finish production Supabase key rotation: migrate deployed envs to `SUPABASE_SECRET_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, then disable legacy JWT keys after deployed verification.
+Decide whether to disable Supabase legacy JWT keys after confirming no other environments still depend on legacy anon/service_role keys.
 
 Candidate next work:
 
 1. Commit the admin-key env preparation if review stays clear.
-2. Update deployed environments with `SUPABASE_SECRET_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-3. After deployed verification, disable legacy JWT keys with explicit approval.
+2. Audit remaining environments for legacy anon/service_role key usage.
+3. Disable legacy JWT keys only with explicit approval.
 
 ## Open Gates
 
-- Deployed Supabase elevated key rotation before production deployment: local env is migrated, but deployment envs still need `SUPABASE_SECRET_KEY`.
-- Deployed public Supabase key migration before production deployment: local env is migrated, but deployment envs still need `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 - Legacy JWT key disablement requires explicit approval after deployed verification because it is irreversible and affects any environment still using legacy anon/service_role JWT keys.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.

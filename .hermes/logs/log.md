@@ -202,3 +202,26 @@ Carry-over:
 
 - Update deployed environments with `SUPABASE_SECRET_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 - Disable legacy JWT keys only after deployed verification and explicit approval.
+
+## 2026-05-04 — Vercel Supabase Env Migration
+
+Decision:
+
+- Added Vercel project env `SUPABASE_SECRET_KEY` as `sensitive` for production and preview.
+- Added Vercel project env `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as plain for production, preview, and development.
+- Did not add `SUPABASE_SECRET_KEY` to Vercel development because Vercel rejects sensitive env vars for the development target.
+- Redeployed the latest Vercel deployment so the new env configuration is represented in an actual deployment.
+
+Verification:
+
+- `VERCEL_TOKEN` from `.env.local` was present and authorized for the `honbabseoul` Vercel project.
+- Vercel API env upsert returned success for both keys without printing values.
+- Vercel API env list confirmed key/type/target only:
+  - `SUPABASE_SECRET_KEY`: sensitive, production/preview.
+  - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: plain, production/preview/development.
+- Redeploy `dpl_GY9W1SfYK833weFRQFiCxnpYJQuf` reached `READY`.
+- Deployment smoke for `https://honbabseoul-4v0m1124i-meggs-projects.vercel.app/ja` returned HTTP 200.
+
+Carry-over:
+
+- Disable Supabase legacy JWT keys only after explicit approval and one final audit that no remaining runtime depends on legacy anon/service_role keys.
