@@ -77,6 +77,7 @@ Format:
 - **Chosen:** A — `import "server-only"`.
 - **Reason:** First-class React/Next.js convention; produces a build-time error with a readable message; zero config; understood by Vercel and the Next.js error overlay.
 - **Trade-off:** Adds one more dependency (`server-only`, ~0.5KB). The package is essentially a marker file Next.js detects.
+- **Rotation prep note (2026-05-04):** The admin client now prefers `SUPABASE_SECRET_KEY` and falls back to legacy `SUPABASE_SERVICE_ROLE_KEY`. This supports Supabase's new Secret API Key path without breaking local environments that have not rotated yet.
 
 ## 2026-04-25 — `is_solo_default` is `NOT NULL DEFAULT TRUE` (not nullable)
 - **Context:** Epic 2 plan Slice 3 wrote `listApproved`'s isSolo filter as `is_solo_default=true OR IS NULL`, anticipating that some rows might be unverified (`NULL`). Slice 1 migration instead defines the column as `boolean NOT NULL DEFAULT true`, which makes the `IS NULL` branch dead code.

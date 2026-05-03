@@ -30,6 +30,16 @@ export function requireEnv(key: string): string {
   return value;
 }
 
+export function requireFirstEnv(keys: readonly string[]): string {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value !== undefined && value !== "") {
+      return value;
+    }
+  }
+  throw new MissingEnvError(keys.join(" or "));
+}
+
 /**
  * Public envs — fine to read on either side of the client/server boundary.
  */
@@ -52,6 +62,9 @@ export const publicEnv = {
  * elsewhere by `src/lib/supabase/admin.ts`'s `"server-only"` guard.
  */
 export const serverEnv = {
+  get supabaseAdminKey(): string {
+    return requireFirstEnv(["SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY"]);
+  },
   get supabaseServiceRoleKey(): string {
     return requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   },

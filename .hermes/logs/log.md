@@ -147,3 +147,23 @@ Verification:
 - Node 22.17.0 `pnpm build` passed.
 - Node 22.17.0 `pnpm test:e2e` initially failed in sandbox with `listen EPERM` on `0.0.0.0:3000`, then passed outside sandbox: 4 tests.
 - Applied `supabase/migrations/0002_submission_reason.sql` to the configured `DATABASE_URL` DB; `information_schema.columns` confirmed `restaurants.reason` has type `text`.
+
+## 2026-05-04 — Supabase Secret Key Rotation Prep
+
+Decision:
+
+- Prepared the admin client to prefer `SUPABASE_SECRET_KEY` and fall back to legacy `SUPABASE_SERVICE_ROLE_KEY`.
+- Updated `.env.local.example` to document the new `sb_secret_...` server-only key and legacy fallback.
+- Kept actual key creation/replacement/deletion pending because no `SUPABASE_ACCESS_TOKEN` was available in the shell and deleting an API key is irreversible.
+
+Reason:
+
+- Supabase now recommends replacing legacy JWT-based `service_role` keys with new Secret API Keys where possible.
+- This is a no-downtime migration path: introduce the new key, update server environments, verify, then delete the exposed legacy key.
+
+Verification:
+
+- `git diff --check` passed.
+- Node 22.17.0 `pnpm test` passed: 5 files, 45 tests.
+- Node 22.17.0 `pnpm lint` passed.
+- Node 22.17.0 `pnpm build` passed.

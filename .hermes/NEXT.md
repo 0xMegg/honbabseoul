@@ -15,20 +15,21 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - UGC submission form is committed and reachable on `/ja` and `/ko`, backed by a Server Action that calls `submitPending`.
 - UGC cleanup for query robustness, feedback live-region roles, and price-range intent is committed.
 - Epic 5 / Slice 1.1 reason persistence is implemented locally and applied to the configured `DATABASE_URL` DB via `0002_submission_reason.sql`; final commit is pending.
+- Supabase admin key env is prepared for new `SUPABASE_SECRET_KEY` with legacy `SUPABASE_SERVICE_ROLE_KEY` fallback; final key creation/replacement/deletion is pending.
 
 ## Next Action
 
-Commit Epic 5 / Slice 1.1 reason persistence after review, then choose the next product slice.
+Finish Supabase secret key rotation: create a new `sb_secret_...` key, update environment values, verify admin access, then delete the exposed legacy elevated key.
 
 Candidate next work:
 
-1. Commit reason persistence if review stays clear.
-2. Re-check open gates before production deployment.
-3. Plan the next product slice with Claude-first workflow.
+1. Commit the admin-key env preparation if review stays clear.
+2. Create/update the real Supabase secret outside git.
+3. Re-check open gates before production deployment.
 
 ## Open Gates
 
-- `SUPABASE_SERVICE_ROLE_KEY` rotation before production deployment.
+- Actual Supabase elevated key rotation before production deployment: new `SUPABASE_SECRET_KEY` value is not available in this shell, and legacy key deletion requires explicit confirmation because deletion is irreversible.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
