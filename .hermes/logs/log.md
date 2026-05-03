@@ -305,3 +305,17 @@ Carry-over:
 
 - Push the submission admin-client fix to `dev`.
 - Wait for the Vercel deployment and smoke `/ja` plus deployed submission behavior.
+
+Follow-up:
+
+- Pushed commit `b38f2f3` to `dev`; Vercel deployment `dpl_AcENcSCQ6W65U7bbN5pxaXGv9Z2P` reached `READY`.
+- Protected deployment access required a Vercel share URL for smoke checks.
+- `/ja` HTML smoke passed through the share URL.
+- Actual browser form submission returned HTTP 500 and did not create a row.
+- Vercel env audit showed `SUPABASE_SECRET_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` existed, but `NEXT_PUBLIC_SUPABASE_URL` was missing.
+- Added `NEXT_PUBLIC_SUPABASE_URL` to Vercel env for production/preview/development.
+
+Carry-over:
+
+- Push this env follow-up record to trigger a redeploy.
+- Verify the new deployment's `/ja` page and submission write behavior.

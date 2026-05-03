@@ -25,6 +25,7 @@
 - Vercel `dev` deployment `dpl_2WxujWtYG31JEcmm1bcPxU16pN6p` reached `READY`; smoke for `https://honbabseoul-inaopeoep-meggs-projects.vercel.app/ja` returned HTTP 200 with the current UGC form.
 - Supabase legacy JWT keys are disabled and confirmed `enabled: false`.
 - UGC submission writes now use the server-only Supabase admin client because publishable-key REST inserts no longer satisfy the old `to anon` RLS insert policy after legacy JWT disablement.
+- Vercel env now includes `NEXT_PUBLIC_SUPABASE_URL` for production/preview/development after deployed submission verification found the runtime URL env was missing.
 
 ## Active Carry-Over
 
@@ -33,10 +34,10 @@
 
 ## Next Product Work
 
-Deploy and verify the submission admin-client fix on Vercel `dev`.
+Redeploy and verify Vercel `dev` after the `NEXT_PUBLIC_SUPABASE_URL` env follow-up.
 
 ## Open Project Gates
 
-- Deployment verification is pending for the submission admin-client fix.
+- Deployment verification is pending for the Vercel env URL follow-up.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.

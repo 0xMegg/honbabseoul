@@ -23,21 +23,23 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Vercel `dev` deployment `dpl_2WxujWtYG31JEcmm1bcPxU16pN6p` reached `READY`; smoke for `https://honbabseoul-inaopeoep-meggs-projects.vercel.app/ja` returned HTTP 200 with the current UGC form.
 - Supabase legacy JWT keys were disabled through the Management API and confirmed `enabled: false`.
 - Legacy disable verification found that publishable-key REST reads still pass, but unauthenticated REST inserts no longer satisfy the old `to anon` insert policy without a JWT role. `submitPending` now uses the server-only Supabase admin client so the Server Action write path works with `SUPABASE_SECRET_KEY`.
+- Vercel deployment `dpl_AcENcSCQ6W65U7bbN5pxaXGv9Z2P` for commit `b38f2f3` reached `READY`, but deployed form submission returned HTTP 500 because `NEXT_PUBLIC_SUPABASE_URL` was missing from Vercel runtime env.
+- Added Vercel env `NEXT_PUBLIC_SUPABASE_URL` for production/preview/development.
 
 ## Next Action
 
-Deploy the pending submission admin-client fix to `dev`, wait for Vercel `READY`, then smoke `/ja` and submission write behavior against the deployed app.
+Redeploy `dev` so Vercel picks up `NEXT_PUBLIC_SUPABASE_URL`, then smoke `/ja` and submission write behavior against the deployed app.
 
 Candidate next work:
 
-1. Push the submission admin-client fix to `dev`.
+1. Push this Hermes/env follow-up commit to `dev`.
 2. Wait for the Vercel deployment for that commit.
 3. Verify `/ja` read path and submission write behavior on the deployed app.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
-- Deployment verification is still pending for the submission admin-client fix.
+- Deployment verification is pending for the Vercel env URL follow-up.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
