@@ -1,8 +1,14 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { InvalidInputError, SubmissionDatabaseError } from "@/lib/models/submission";
 import { submitPending } from "@/lib/repositories/submissions";
+import {
+  encodePreservedFormValues,
+  preservedValuesFromFormData,
+  UGC_FORM_FLASH_COOKIE,
+} from "./submission-flash";
 
 function formString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -16,8 +22,31 @@ function formBoolean(formData: FormData, key: string): boolean | undefined {
   return undefined;
 }
 
-function redirectWithStatus(locale: string, status: string): never {
-  redirect(`/${locale}?submission=${status}`);
+async function redirectWithStatus(
+  locale: string,
+  status: string,
+  formData?: FormData
+): Promise<never> {
+  const params = new URLSearchParams({ submission: status });
+  const cookieStore = await cookies();
+
+  if (status === "invalid" && formData) {
+    cookieStore.set(
+      UGC_FORM_FLASH_COOKIE,
+      encodePreservedFormValues(preservedValuesFromFormData(formData)),
+      {
+        httpOnly: true,
+        maxAge: 300,
+        path: "/",
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      }
+    );
+  } else {
+    cookieStore.delete(UGC_FORM_FLASH_COOKIE);
+  }
+
+  redirect(`/${locale}?${params.toString()}`);
 }
 
 export async function submitRestaurantAction(locale: string, formData: FormData): Promise<void> {
@@ -36,13 +65,13 @@ export async function submitRestaurantAction(locale: string, formData: FormData)
     });
   } catch (error) {
     if (error instanceof InvalidInputError) {
-      redirectWithStatus(locale, "invalid");
+      await redirectWithStatus(locale, "invalid", formData);
     }
     if (error instanceof SubmissionDatabaseError) {
-      redirectWithStatus(locale, "error");
+      await redirectWithStatus(locale, "error");
     }
     throw error;
   }
 
-  redirectWithStatus(locale, "success");
+  await redirectWithStatus(locale, "success");
 }

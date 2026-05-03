@@ -27,16 +27,17 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Added Vercel env `NEXT_PUBLIC_SUPABASE_URL` for production/preview/development.
 - Vercel deployment `dpl_CBreYYS6RGRKzEBTRYLKdAwV4FM8` for commit `219fc63` reached `READY`.
 - Final protected-deployment smoke passed on `https://honbabseoul-mu25phxbt-meggs-projects.vercel.app/ja`: HTML contained the Japanese home/form surface, browser submission returned POST 303 and `submission=success`, the smoke row was inserted as `pending`, and the smoke row cleanup was verified.
+- UGC invalid form input preservation is implemented with a short-lived server-side flash cookie and locally verified; submitted free-form values are not placed in the redirect URL.
 
 ## Next Action
 
-Resume product work after the Supabase legacy JWT migration. UGC invalid form input preservation remains the next deferred UX task unless priorities change.
+Resume product work after UGC invalid input preservation.
 
 Candidate next work:
 
-1. Preserve invalid UGC form input on validation failure.
-2. Prune merged local branches when convenient.
-3. Address the optional Next.js workspace-root warning when it becomes noisy.
+1. Prune merged local branches when convenient.
+2. Address the optional Next.js workspace-root warning when it becomes noisy.
+3. Continue the next product slice from the project plan.
 
 ## Open Gates
 

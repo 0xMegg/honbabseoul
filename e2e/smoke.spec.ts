@@ -43,4 +43,57 @@ test.describe("locale smoke", () => {
     await expect(main.getByRole("status")).toHaveCount(0);
     await expect(main.getByRole("alert")).toHaveCount(0);
   });
+
+  test("invalid submission preserves entered form values", async ({ page }) => {
+    await page.goto("/ja");
+
+    await page.locator('input[name="name"]').fill("弘大ひとり食堂");
+    await page.locator('input[name="naverUrl"]').fill("https://map.kakao.com/bad-url");
+    await page.locator('input[name="isSolo"][value="true"]').check();
+    await page.locator('input[name="hasJpMenu"][value="false"]').check();
+    await page.locator('input[name="isLateNight"][value="true"]').check();
+    await page.locator('select[name="priceRange"]').selectOption("mid");
+    await page.locator('textarea[name="reason"]').fill("カウンター席がありそう");
+
+    await page.getByRole("button", { name: "投稿する" }).click();
+
+    await expect(page).toHaveURL(/\/ja\?submission=invalid$/);
+    await expect(page.locator("main").getByRole("alert")).toHaveText(
+      "入力内容を確認してください。",
+    );
+    await expect(page.locator('input[name="name"]')).toHaveValue("弘大ひとり食堂");
+    await expect(page.locator('input[name="naverUrl"]')).toHaveValue(
+      "https://map.kakao.com/bad-url",
+    );
+    await expect(page.locator('input[name="isSolo"][value="true"]')).toBeChecked();
+    await expect(page.locator('input[name="hasJpMenu"][value="false"]')).toBeChecked();
+    await expect(page.locator('input[name="isLateNight"][value="true"]')).toBeChecked();
+    await expect(page.locator('select[name="priceRange"]')).toHaveValue("mid");
+    await expect(page.locator('textarea[name="reason"]')).toHaveValue(
+      "カウンター席がありそう",
+    );
+  });
+
+  test("query form values are ignored without flash state", async ({ page }) => {
+    const query = new URLSearchParams({
+      submission: "invalid",
+      name: "test-name",
+      naverUrl: "https://example.invalid/bad-url",
+      isSolo: "true",
+      hasJpMenu: "false",
+      isLateNight: "true",
+      priceRange: "mid",
+      reason: "test reason",
+    });
+
+    await page.goto(`/ja?${query.toString()}`);
+
+    await expect(page.locator('input[name="name"]')).toHaveValue("");
+    await expect(page.locator('input[name="naverUrl"]')).toHaveValue("");
+    await expect(page.locator('input[name="isSolo"]:checked')).toHaveCount(0);
+    await expect(page.locator('input[name="hasJpMenu"]:checked')).toHaveCount(0);
+    await expect(page.locator('input[name="isLateNight"]:checked')).toHaveCount(0);
+    await expect(page.locator('select[name="priceRange"]')).toHaveValue("");
+    await expect(page.locator('textarea[name="reason"]')).toHaveValue("");
+  });
 });

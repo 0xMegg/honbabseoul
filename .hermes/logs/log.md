@@ -352,3 +352,28 @@ Claude review:
 Verification:
 
 - Policy file exists, read order references it, and wiki index/log record the adoption.
+
+## 2026-05-04 — UGC Invalid Input Preservation
+
+Decision:
+
+- Preserved submitted UGC form values when server-side validation fails.
+- Used an invalid-only, short-lived, HTTP-only flash cookie from the Server Action redirect and page-level `defaultValue` / `defaultChecked` rendering.
+- Kept submitted free-form values out of the redirect URL.
+- Added a shared typed form-value key list so the Server Action preservation path and page restoration path do not drift silently.
+
+Reason:
+
+- The current form is a Server Component with a Server Action redirect flow, so flash cookie restoration preserves input without adding client state.
+- Invalid preservation helps users correct server-side validation failures such as a non-Naver URL without retyping every field.
+- Claude review correctly rejected query-string restoration because UGC `reason` is free-form user text and can leak through logs, browser history, and `Referer` headers.
+
+Verification:
+
+- Local `pnpm` was unavailable in the Codex shell PATH, so verification used bundled Node plus local project binaries.
+- `eslint .` passed.
+- `vitest run` passed: 5 files, 46 tests.
+- `next build` passed.
+- `playwright test` passed against a local Next dev server: 6 tests.
+- Claude follow-up review was requested after the initial query-string implementation and returned required fixes for URL privacy, fabricated-query E2E coverage, and key drift; those fixes were applied before final verification.
+- Claude final re-review returned `NO REQUIRED FIXES`; optional note only: cookie-size headroom is thin but within typical per-cookie limits for current field caps.

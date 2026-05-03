@@ -1,5 +1,11 @@
+import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { submitRestaurantAction } from "./actions";
+import {
+  decodePreservedFormValues,
+  EMPTY_PRESERVED_FORM_VALUES,
+  UGC_FORM_FLASH_COOKIE,
+} from "./submission-flash";
 
 type HomeProps = {
   params: Promise<{ locale: string }>;
@@ -26,6 +32,10 @@ export default async function Home({ params, searchParams }: HomeProps) {
   const t = await getTranslations("home");
   const submitAction = submitRestaurantAction.bind(null, locale);
   const submissionStatus = parseSubmissionStatus(query.submission);
+  const preservedFormValues =
+    submissionStatus === "invalid"
+      ? decodePreservedFormValues((await cookies()).get(UGC_FORM_FLASH_COOKIE)?.value)
+      : EMPTY_PRESERVED_FORM_VALUES;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-5 py-8">
@@ -49,6 +59,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
           <span className="text-sm font-semibold">{t("form.name")}</span>
           <input
             className="w-full rounded-md border border-border bg-bg px-3 py-2"
+            defaultValue={preservedFormValues.name}
             maxLength={120}
             name="name"
             required
@@ -60,6 +71,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
           <span className="text-sm font-semibold">{t("form.naverUrl")}</span>
           <input
             className="w-full rounded-md border border-border bg-bg px-3 py-2"
+            defaultValue={preservedFormValues.naverUrl}
             name="naverUrl"
             required
             type="url"
@@ -68,23 +80,39 @@ export default async function Home({ params, searchParams }: HomeProps) {
 
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold">{t("form.isSolo")}</legend>
-          <RadioPair name="isSolo" no={t("form.no")} yes={t("form.yes")} />
+          <RadioPair
+            name="isSolo"
+            no={t("form.no")}
+            value={preservedFormValues.isSolo}
+            yes={t("form.yes")}
+          />
         </fieldset>
 
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold">{t("form.hasJpMenu")}</legend>
-          <RadioPair name="hasJpMenu" no={t("form.no")} yes={t("form.yes")} />
+          <RadioPair
+            name="hasJpMenu"
+            no={t("form.no")}
+            value={preservedFormValues.hasJpMenu}
+            yes={t("form.yes")}
+          />
         </fieldset>
 
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold">{t("form.isLateNight")}</legend>
-          <RadioPair name="isLateNight" no={t("form.no")} yes={t("form.yes")} />
+          <RadioPair
+            name="isLateNight"
+            no={t("form.no")}
+            value={preservedFormValues.isLateNight}
+            yes={t("form.yes")}
+          />
         </fieldset>
 
         <label className="block space-y-2">
           <span className="text-sm font-semibold">{t("form.priceRange")}</span>
           <select
             className="w-full rounded-md border border-border bg-bg px-3 py-2"
+            defaultValue={preservedFormValues.priceRange}
             name="priceRange"
           >
             <option value="">{t("form.priceUnknown")}</option>
@@ -98,6 +126,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
           <span className="text-sm font-semibold">{t("form.reason")}</span>
           <textarea
             className="min-h-28 w-full rounded-md border border-border bg-bg px-3 py-2"
+            defaultValue={preservedFormValues.reason}
             maxLength={500}
             name="reason"
             required
@@ -115,15 +144,37 @@ export default async function Home({ params, searchParams }: HomeProps) {
   );
 }
 
-function RadioPair({ name, no, yes }: { name: string; no: string; yes: string }) {
+function RadioPair({
+  name,
+  no,
+  value,
+  yes,
+}: {
+  name: string;
+  no: string;
+  value: string;
+  yes: string;
+}) {
   return (
     <div className="grid grid-cols-2 gap-2">
       <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-        <input name={name} required type="radio" value="true" />
+        <input
+          defaultChecked={value === "true"}
+          name={name}
+          required
+          type="radio"
+          value="true"
+        />
         <span>{yes}</span>
       </label>
       <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-        <input name={name} required type="radio" value="false" />
+        <input
+          defaultChecked={value === "false"}
+          name={name}
+          required
+          type="radio"
+          value="false"
+        />
         <span>{no}</span>
       </label>
     </div>
