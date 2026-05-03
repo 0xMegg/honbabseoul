@@ -21,6 +21,7 @@
 - Supabase public key env is prepared for `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with legacy fallback; local `.env.local` has the publishable key and verified public RLS read access.
 - Vercel project envs are migrated to the new Supabase keys and a redeploy smoke passed.
 - `harness/hermes-core-cutover-20260503` is pushed and Vercel preview smoke passed with the current key-migration code.
+- Draft PR #5 is open against `dev`: https://github.com/0xMegg/honbabseoul/pull/5
 
 ## Active Carry-Over
 
@@ -29,7 +30,7 @@
 
 ## Next Product Work
 
-Merge the pushed branch into the deployed branch and verify, then decide whether to disable Supabase legacy JWT keys.
+Review/merge PR #5 into the deployed branch and verify, then decide whether to disable Supabase legacy JWT keys.
 
 ## Open Project Gates
 

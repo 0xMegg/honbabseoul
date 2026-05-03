@@ -252,3 +252,7 @@ Carry-over:
 - Open and merge a PR from `harness/hermes-core-cutover-20260503` into `dev`.
 - Verify the deployed branch after merge.
 - Disable Supabase legacy JWT keys only after deployed-branch verification and explicit approval.
+
+Follow-up:
+
+- Opened draft PR #5: https://github.com/0xMegg/honbabseoul/pull/5
