@@ -25,21 +25,23 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Legacy disable verification found that publishable-key REST reads still pass, but unauthenticated REST inserts no longer satisfy the old `to anon` insert policy without a JWT role. `submitPending` now uses the server-only Supabase admin client so the Server Action write path works with `SUPABASE_SECRET_KEY`.
 - Vercel deployment `dpl_AcENcSCQ6W65U7bbN5pxaXGv9Z2P` for commit `b38f2f3` reached `READY`, but deployed form submission returned HTTP 500 because `NEXT_PUBLIC_SUPABASE_URL` was missing from Vercel runtime env.
 - Added Vercel env `NEXT_PUBLIC_SUPABASE_URL` for production/preview/development.
+- Vercel deployment `dpl_CBreYYS6RGRKzEBTRYLKdAwV4FM8` for commit `219fc63` reached `READY`.
+- Final protected-deployment smoke passed on `https://honbabseoul-mu25phxbt-meggs-projects.vercel.app/ja`: HTML contained the Japanese home/form surface, browser submission returned POST 303 and `submission=success`, the smoke row was inserted as `pending`, and the smoke row cleanup was verified.
 
 ## Next Action
 
-Redeploy `dev` so Vercel picks up `NEXT_PUBLIC_SUPABASE_URL`, then smoke `/ja` and submission write behavior against the deployed app.
+Resume product work after the Supabase legacy JWT migration. UGC invalid form input preservation remains the next deferred UX task unless priorities change.
 
 Candidate next work:
 
-1. Push this Hermes/env follow-up commit to `dev`.
-2. Wait for the Vercel deployment for that commit.
-3. Verify `/ja` read path and submission write behavior on the deployed app.
+1. Preserve invalid UGC form input on validation failure.
+2. Prune merged local branches when convenient.
+3. Address the optional Next.js workspace-root warning when it becomes noisy.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
-- Deployment verification is pending for the Vercel env URL follow-up.
+- Supabase legacy JWT migration is complete and verified on deployed `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

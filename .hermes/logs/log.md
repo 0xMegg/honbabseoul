@@ -319,3 +319,36 @@ Carry-over:
 
 - Push this env follow-up record to trigger a redeploy.
 - Verify the new deployment's `/ja` page and submission write behavior.
+
+Follow-up:
+
+- Pushed commit `219fc63` to `dev`; Vercel deployment `dpl_CBreYYS6RGRKzEBTRYLKdAwV4FM8` reached `READY`.
+- Protected deployment share URL smoke for `/ja` passed.
+- Browser submission against `https://honbabseoul-mu25phxbt-meggs-projects.vercel.app/ja` returned POST 303 and redirected to `?submission=success`.
+- Supabase REST check using `SUPABASE_SECRET_KEY` found the smoke row with `status=pending`.
+- Smoke row cleanup returned HTTP 204 and follow-up select confirmed count 0.
+- Final Supabase Management API check confirmed legacy JWT keys remain `enabled: false`.
+
+Decision:
+
+- Supabase legacy JWT migration is complete and verified on deployed `dev`.
+
+## 2026-05-04 — Core Claude CLI Policy Forward Propagation
+
+Decision:
+
+- Adopted Hermes Core `/Users/mero/Dev/13.claude/templates/hermes-essence/policy/claude-cli.md` as local active policy.
+- Added `.hermes/policy/claude-cli.md`, added it to `AGENTS.md` read order, and indexed it in `.hermes/wiki/index.md`.
+
+Reason:
+
+- Honbabseoul previously recorded a Claude-first review attempt where `claude` was unavailable in the current shell PATH.
+- The Core policy separates GUI PATH failures, Claude auth failures, and workspace read-permission failures so future reviews do not collapse them into one generic "Claude unavailable" state.
+
+Claude review:
+
+- Core policy was reviewed by Claude on 2026-05-04; this forward propagation is a scoped adoption of that reviewed policy.
+
+Verification:
+
+- Policy file exists, read order references it, and wiki index/log record the adoption.
