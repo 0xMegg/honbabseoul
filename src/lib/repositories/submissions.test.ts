@@ -119,14 +119,15 @@ describe("submitPending", () => {
     expect(row.is_late_night).toBe(false);
     expect(row.price_range).toBe("mid");
     expect(row.photo_url).toBe("https://example.com/photo.jpg");
+    expect(row.reason).toBe(VALID_BASE.reason);
     expect(Object.keys(row)).not.toContain("status");
   });
 
-  it("should not persist the reason field to the insert row", async () => {
+  it("should persist the reason field to the insert row", async () => {
     const { insert } = buildMockClient({});
     await submitPending({ ...VALID_BASE, reason: "とても良いお店です" });
     const row = (insert as Mock).mock.calls[0]![0] as Record<string, unknown>;
-    expect(Object.keys(row)).not.toContain("reason");
+    expect(row.reason).toBe("とても良いお店です");
   });
 
   it("should forward photoUrl when provided", async () => {

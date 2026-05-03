@@ -45,6 +45,6 @@ and configuration files together. Always verify the included files and permissio
 
 ## Deployment Strategy
 
-- **Small teams**: Keep skills in `./.claude/skills` and version-control together (simple)
+- **Small teams**: Keep project procedures in `.hermes/skills/` and version-control them with the Hermes operating layer.
 - **Growing teams**: Move to an internal marketplace or plugin distribution (curated)
 - **Both**: Follow the flow of experimental folder -> team validation -> public deployment

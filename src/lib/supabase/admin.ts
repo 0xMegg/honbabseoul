@@ -1,11 +1,11 @@
 /**
- * Supabase admin client (service-role).
+ * Supabase admin client (secret/service-role).
  *
  * BYPASSES RLS. Only callable from server-only code (Route Handlers,
  * Server Actions, scripts). The `import "server-only"` directive at the
  * top causes Next.js to fail the build if any module under a `"use client"`
  * boundary tries to import this file — that's the canonical guard against
- * leaking the service-role key into the browser bundle.
+ * leaking the elevated Supabase key into the browser bundle.
  *
  * Uses `@supabase/supabase-js` directly because admin code paths do not
  * deal with auth cookies.
@@ -15,14 +15,15 @@
  * through the cookies-aware server client (`./server.ts`).
  */
 import "server-only";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { publicEnv, serverEnv } from "@/lib/env";
 
-let cached: ReturnType<typeof createClient> | null = null;
+let cached: SupabaseClient<Database> | null = null;
 
-export function createSupabaseAdminClient() {
+export function createSupabaseAdminClient(): SupabaseClient<Database> {
   if (cached) return cached;
-  cached = createClient(publicEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
+  cached = createClient<Database>(publicEnv.supabaseUrl, serverEnv.supabaseAdminKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

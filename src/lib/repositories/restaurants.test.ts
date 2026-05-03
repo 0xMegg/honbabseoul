@@ -88,6 +88,17 @@ describe("listApproved", () => {
     expect(builder._eqCalls).toEqual([["status", "approved"]]);
   });
 
+  it("should not select the private submission reason on the public read path", async () => {
+    const { client, builder } = mockClient({ data: [], error: null });
+    await listApproved(client, {
+      isSolo: false,
+      hasJpMenu: false,
+      isLateNight: false,
+    });
+    const columns = builder.select.mock.calls[0]![0] as string;
+    expect(columns.split(",")).not.toContain("reason");
+  });
+
   it("should apply all four eq filters in order when all filters are on", async () => {
     const { client, builder } = mockClient({ data: [], error: null });
     await listApproved(client, {

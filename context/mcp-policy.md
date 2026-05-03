@@ -44,7 +44,7 @@ Approved MCPs for this project:
 ## New MCP Pre-Connection Checklist
 MCP 서버는 **프로젝트 루트의 `.mcp.json`** (또는 플러그인 설정) 에 정의한다. Claude Code settings.json 스키마는 서버 정의를 허용하지 않는다 — `settings.json` 에는 `enabledMcpjsonServers` / `allowedMcpServers` / `disabledMcpjsonServers` 같은 정책 필드만 둔다. 스캐폴드는 `.mcp.json.example` 로 리포에 동봉되며, 사용자가 `.mcp.json` 으로 복사해 편집한다.
 
-통과 여부는 `bash scripts/mcp-check.sh` 가 자동 검증 (exit 1 on violation).
+통과 여부는 Hermes review checklist로 수동 검증한다. 자동 검사 스크립트는 legacy harness archive로 이동되었으므로 active workflow에서 사용하지 않는다.
 
 1. **Scope** — 이 MCP 가 어떤 디렉토리·레포·리소스에만 접근해야 하는가? `args` 에 구체 경로를 명시했는가? 와일드카드(`/`, `~`)는 피한다.
 2. **Secret handling** — API 키·토큰은 반드시 `env` + `${VAR_NAME}` 형태. 리터럴 값(`ghp_*`, `sk-*`, `xoxb-*`, `gho_*`, `xoxp-*`, `sk-ant-*`)이 `.mcp.json` 에 들어가면 즉시 차단.
@@ -73,8 +73,7 @@ MCP 서버는 **프로젝트 루트의 `.mcp.json`** (또는 플러그인 설정
 사용:
 ```bash
 cp .mcp.json.example .mcp.json
-# edit, then:
-bash scripts/mcp-check.sh
+# edit, then review against the checklist above
 # settings.json 에 허용/차단 목록 갱신:
 #   "enabledMcpjsonServers": ["filesystem", "github"]
 ```

@@ -1,4 +1,4 @@
-# Session Handoff
+# Session Handoff (archived 2026-04-30 by Planner — pre Epic 3 / Slice 2 plan write)
 
 ## Current State
 - Task: Epic 3 — Test infra reinforcement pre-flight cleanup

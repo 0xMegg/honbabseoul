@@ -9,18 +9,20 @@
  * leak `PostgrestError` to the UI; throw a typed error or return a
  * normalized failure shape from the repository layer.
  *
- * NOTE: This factory uses the public anon key — it respects RLS. For
+ * NOTE: This factory uses the public Supabase API key — it respects RLS. For
  * service-role privileges (admin tasks, status transitions), use
  * `src/lib/supabase/admin.ts` instead.
  */
 import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import type { Database } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env";
 
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient(): Promise<SupabaseClient<Database>> {
   const cookieStore = await cookies();
 
-  return createServerClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
+  return createServerClient<Database>(publicEnv.supabaseUrl, publicEnv.supabasePublicKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

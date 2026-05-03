@@ -77,6 +77,8 @@ Format:
 - **Chosen:** A — `import "server-only"`.
 - **Reason:** First-class React/Next.js convention; produces a build-time error with a readable message; zero config; understood by Vercel and the Next.js error overlay.
 - **Trade-off:** Adds one more dependency (`server-only`, ~0.5KB). The package is essentially a marker file Next.js detects.
+- **Rotation prep note (2026-05-04):** The admin client now prefers `SUPABASE_SECRET_KEY` and falls back to legacy `SUPABASE_SERVICE_ROLE_KEY`. This supports Supabase's new Secret API Key path without breaking local environments that have not rotated yet.
+- **Public key migration note (2026-05-04):** Browser/server public clients now prefer `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and fall back to legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`. This lets deployed environments migrate to Supabase publishable keys before legacy JWT keys are disabled.
 
 ## 2026-04-25 — `is_solo_default` is `NOT NULL DEFAULT TRUE` (not nullable)
 - **Context:** Epic 2 plan Slice 3 wrote `listApproved`'s isSolo filter as `is_solo_default=true OR IS NULL`, anticipating that some rows might be unverified (`NULL`). Slice 1 migration instead defines the column as `boolean NOT NULL DEFAULT true`, which makes the `IS NULL` branch dead code.
@@ -92,6 +94,7 @@ Format:
 - **Reason:** Plan adherence — Reviewer's verify §29 enumerated the column set; mutating it after-the-fact would muddle the audit trail. Storing `reason` is genuinely scoped with the UGC UI work, so coupling them in Epic 5 is natural.
 - **Trade-off:** `reason` is currently logged at submission time but lost after the request ends. No production submissions are happening yet, so the data loss is hypothetical until Epic 5 ships.
 - **Renumber note (2026-04-26):** Original entry said "Epic 4". Epic numbering shifted: new Epic 3 = Test infra reinforcement, Epic 4 = Map (read path), Epic 5 = UGC (write path), Epic 6 = Polish.
+- **Resolution note (2026-05-04):** Epic 5 / Slice 1.1 added `supabase/migrations/0002_submission_reason.sql` with nullable `reason text`, persists `reason` from `submitPending`, and changes public restaurant reads to select explicit public columns instead of `*`.
 
 ## 2026-04-25 — Postgres major version is 17 (not 15)
 - **Context:** Slice 1 set `supabase/config.toml [db].major_version = 15` based on a guess. Live `select version()` reports `17.6`.

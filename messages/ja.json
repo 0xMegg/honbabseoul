@@ -1,5 +1,28 @@
 {
-  "common": {
-    "hello": "혼밥서울へようこそ"
+  "home": {
+    "description": "一人でも入りやすいソウルのお店を教えてください。投稿は確認後に地図へ反映されます。",
+    "eyebrow": "ホンバプソウル",
+    "form": {
+      "hasJpMenu": "日本語メニューはありますか？",
+      "isLateNight": "22時以降も営業していますか？",
+      "isSolo": "一人でも入りやすいですか？",
+      "name": "店名",
+      "naverUrl": "Naver Mapリンク",
+      "no": "いいえ",
+      "priceHigh": "高め",
+      "priceLow": "安め",
+      "priceMid": "ふつう",
+      "priceRange": "価格帯",
+      "priceUnknown": "未選択",
+      "reason": "おすすめ理由",
+      "submit": "投稿する",
+      "yes": "はい"
+    },
+    "submissionStatus": {
+      "error": "送信に失敗しました。時間をおいてもう一度お試しください。",
+      "invalid": "入力内容を確認してください。",
+      "success": "投稿を受け付けました。確認後に掲載されます。"
+    },
+    "title": "혼밥서울へようこそ"
   }
 }

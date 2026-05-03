@@ -1,5 +1,5 @@
 {
-  "$schema_comment": "Copy to .mcp.json at project root and edit. Secrets MUST be ${VAR} env placeholders — never inline tokens. Validate with: bash scripts/mcp-check.sh",
+  "$schema_comment": "Copy to .mcp.json at project root and edit. Secrets MUST be ${VAR} env placeholders — never inline tokens. Review manually before enabling.",
   "mcpServers": {
     "filesystem": {
       "command": "npx",

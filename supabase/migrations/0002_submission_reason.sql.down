@@ -1,0 +1,9 @@
+-- Down migration: 0002_submission_reason
+-- Removes the UGC recommendation reason column.
+
+begin;
+
+alter table restaurants
+  drop column if exists reason;
+
+commit;
