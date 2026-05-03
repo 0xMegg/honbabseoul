@@ -256,3 +256,22 @@ Carry-over:
 Follow-up:
 
 - Opened draft PR #5: https://github.com/0xMegg/honbabseoul/pull/5
+
+## 2026-05-04 — Key Migration PR Merge And Dev Smoke
+
+Decision:
+
+- Closed draft PR #5 after the GitHub connector failed to mark the draft ready because of a connector GraphQL field mismatch.
+- Opened non-draft PR #6 and merged it into `dev`: https://github.com/0xMegg/honbabseoul/pull/6
+- Kept Supabase legacy JWT keys enabled because disablement is production-impacting and requires explicit approval.
+
+Verification:
+
+- PR #6 merge commit on `dev`: `32ddb3d4c8eecbd9d07825a802f5b3ae38b01d5c`.
+- Vercel `dev` deployment `dpl_2WxujWtYG31JEcmm1bcPxU16pN6p` reached `READY`.
+- Smoke for `https://honbabseoul-inaopeoep-meggs-projects.vercel.app/ja` returned HTTP 200 and included the current UGC submission form surface.
+
+Carry-over:
+
+- Disable Supabase legacy JWT keys only after explicit approval.
+- After disablement, verify deployed `/ja` and the relevant Supabase read/write path.
