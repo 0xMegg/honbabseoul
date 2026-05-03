@@ -167,3 +167,11 @@ Verification:
 - Node 22.17.0 `pnpm test` passed: 5 files, 45 tests.
 - Node 22.17.0 `pnpm lint` passed.
 - Node 22.17.0 `pnpm build` passed.
+- After `SUPABASE_ACCESS_TOKEN` was added to `.env.local`, Management API access was verified by listing project API keys without printing key values.
+- Existing project Secret API Key was revealed through the Management API and written to `.env.local` as `SUPABASE_SECRET_KEY` without printing the value.
+- Supabase JS query using `SUPABASE_SECRET_KEY` passed: `restaurants_count=20`.
+
+Carry-over:
+
+- Update deployed server environments with `SUPABASE_SECRET_KEY`.
+- Do not disable legacy JWT keys yet: the current public client still uses legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and Supabase legacy disablement affects anon and service_role together.

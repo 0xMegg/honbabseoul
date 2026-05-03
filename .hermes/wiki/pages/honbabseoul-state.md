@@ -17,7 +17,7 @@
 - UGC form entry is committed on `/ja` and `/ko`.
 - UGC cleanup for query robustness and feedback accessibility is committed.
 - Epic 5 / Slice 1.1 reason persistence is implemented locally and applied to the configured `DATABASE_URL` DB; final commit is pending.
-- Supabase admin key env is prepared for `SUPABASE_SECRET_KEY` with legacy fallback; actual key creation/replacement/deletion is pending.
+- Supabase admin key env is prepared for `SUPABASE_SECRET_KEY` with legacy fallback; local `.env.local` has `SUPABASE_SECRET_KEY` and verified Supabase REST access.
 
 ## Active Carry-Over
 
@@ -26,10 +26,11 @@
 
 ## Next Product Work
 
-Finish Supabase secret key rotation, then plan the next product slice with Claude-first workflow.
+Finish deployed Supabase key rotation, then plan the next product slice with Claude-first workflow.
 
 ## Open Project Gates
 
-- Rotate the exposed Supabase elevated key before production deployment.
+- Add `SUPABASE_SECRET_KEY` to deployed server environments before production deployment.
+- Legacy JWT disablement remains blocked until public clients migrate from legacy anon JWT to publishable key.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.

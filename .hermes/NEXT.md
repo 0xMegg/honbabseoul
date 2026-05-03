@@ -15,21 +15,22 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - UGC submission form is committed and reachable on `/ja` and `/ko`, backed by a Server Action that calls `submitPending`.
 - UGC cleanup for query robustness, feedback live-region roles, and price-range intent is committed.
 - Epic 5 / Slice 1.1 reason persistence is implemented locally and applied to the configured `DATABASE_URL` DB via `0002_submission_reason.sql`; final commit is pending.
-- Supabase admin key env is prepared for new `SUPABASE_SECRET_KEY` with legacy `SUPABASE_SERVICE_ROLE_KEY` fallback; final key creation/replacement/deletion is pending.
+- Supabase admin key env is prepared for new `SUPABASE_SECRET_KEY` with legacy `SUPABASE_SERVICE_ROLE_KEY` fallback; local `.env.local` now has `SUPABASE_SECRET_KEY` and verified REST access.
 
 ## Next Action
 
-Finish Supabase secret key rotation: create a new `sb_secret_...` key, update environment values, verify admin access, then delete the exposed legacy elevated key.
+Finish production Supabase key rotation: migrate deployed envs to `SUPABASE_SECRET_KEY`, then migrate public clients to publishable key before disabling legacy JWT keys.
 
 Candidate next work:
 
 1. Commit the admin-key env preparation if review stays clear.
-2. Create/update the real Supabase secret outside git.
-3. Re-check open gates before production deployment.
+2. Update deployed server environments with `SUPABASE_SECRET_KEY`.
+3. Migrate public clients from legacy anon JWT to publishable key before disabling legacy JWT keys.
 
 ## Open Gates
 
-- Actual Supabase elevated key rotation before production deployment: new `SUPABASE_SECRET_KEY` value is not available in this shell, and legacy key deletion requires explicit confirmation because deletion is irreversible.
+- Deployed Supabase elevated key rotation before production deployment: local env is migrated, but deployment envs still need `SUPABASE_SECRET_KEY`.
+- Legacy JWT key disablement is blocked until public clients are migrated from legacy anon JWT to publishable key because Supabase disables legacy anon/service_role together.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
