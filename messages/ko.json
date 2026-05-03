@@ -1,5 +1,28 @@
 {
-  "common": {
-    "hello": "혼밥서울에 오신 것을 환영합니다"
+  "home": {
+    "description": "혼자 들어가기 좋은 서울 식당을 알려주세요. 제보는 확인 후 지도에 반영됩니다.",
+    "eyebrow": "혼밥서울",
+    "form": {
+      "hasJpMenu": "일본어 메뉴가 있나요?",
+      "isLateNight": "22시 이후에도 영업하나요?",
+      "isSolo": "혼자 가기 좋은가요?",
+      "name": "식당 이름",
+      "naverUrl": "네이버 지도 링크",
+      "no": "아니오",
+      "priceHigh": "높음",
+      "priceLow": "낮음",
+      "priceMid": "보통",
+      "priceRange": "가격대",
+      "priceUnknown": "선택 안 함",
+      "reason": "추천 이유",
+      "submit": "제보하기",
+      "yes": "예"
+    },
+    "submissionStatus": {
+      "error": "제보 저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      "invalid": "입력 내용을 다시 확인해주세요.",
+      "success": "제보를 받았습니다. 확인 후 게시됩니다."
+    },
+    "title": "혼밥서울에 오신 것을 환영합니다"
   }
 }

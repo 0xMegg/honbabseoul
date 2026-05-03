@@ -13,6 +13,7 @@
 - Baseline checked during Hermes adoption: `216e9c6`
 - Hermes adoption changed operating-layer files only; no runtime source files changed.
 - Epic 3 / Slice 2 generated remote Supabase types and connected them to the Supabase client type surface.
+- UGC form entry is implemented on `/ja` and `/ko` pending user review/commit.
 
 ## Active Carry-Over
 
@@ -21,7 +22,7 @@
 
 ## Next Product Work
 
-Choose the next runtime/product slice after reviewing the Epic 3 / Slice 2 diff.
+Review the UGC form entry slice in the browser, then decide whether to commit or adjust copy/fields.
 
 ## Open Project Gates
 

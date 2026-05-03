@@ -7,7 +7,10 @@
 
 @theme inline {
   --color-bg: var(--hb-bg);
+  --color-surface: var(--hb-surface);
+  --color-border: var(--hb-border);
   --color-text: var(--hb-text);
+  --color-text-muted: var(--hb-text-muted);
   --color-text-invert: var(--hb-text-invert);
   --color-brand: var(--hb-brand);
   --color-brand-hover: var(--hb-brand-hover);

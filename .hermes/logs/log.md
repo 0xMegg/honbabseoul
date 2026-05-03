@@ -71,3 +71,27 @@ Follow-up verification:
 - `pnpm lint` passed.
 - `pnpm test` passed: 5 files, 40 tests.
 - `pnpm build` passed without the prior Tailwind CSS optimizer warning.
+
+## 2026-05-03 — UGC Form Entry Slice
+
+Decision:
+
+- Added a localized UGC submission form to `/[locale]`.
+- Added a Server Action that converts form data into `submitPending` input and redirects with success, invalid, or error status.
+- Kept `reason` validation in place but did not persist it because the `reason` column remains deferred.
+- Extended JA/KO messages and smoke coverage for the visible submit button.
+
+Reason:
+
+- This connects the existing pending-submission repository to an actual user-facing entry point without changing schema or approval behavior.
+- HTML required fields plus server-side zod validation keep the flow safe without adding extra client state.
+
+Verification:
+
+- `pnpm lint` passed.
+- `pnpm test` passed: 5 files, 40 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 3 tests.
+- Claude final review found no required fixes.
+- Claude optional improvements applied: new color tokens are wired through `@theme inline`, `parseSubmissionStatus` avoids pre-guard enum casting, and the e2e smoke comment now includes the UGC entry surface.
+- Final verification with Node 22.17.0 passed: `pnpm lint`, `pnpm test` (5 files, 40 tests), `pnpm build`, and `pnpm test:e2e` (3 tests).

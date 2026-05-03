@@ -3,7 +3,10 @@
 :root {
   /* Colors */
   --hb-bg: #ffffff;
+  --hb-surface: #f7f7f8;
+  --hb-border: #dedee3;
   --hb-text: #171717;
+  --hb-text-muted: #5f6368;
   --hb-text-invert: #ffffff;
   --hb-brand: #5e6ad2;
   --hb-brand-hover: #4f5bbf;
