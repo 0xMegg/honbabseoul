@@ -21,21 +21,23 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Draft PR #5 was closed after the GitHub connector failed to mark it ready because of a connector GraphQL field mismatch.
 - Non-draft PR #6 was opened and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/6
 - Vercel `dev` deployment `dpl_2WxujWtYG31JEcmm1bcPxU16pN6p` reached `READY`; smoke for `https://honbabseoul-inaopeoep-meggs-projects.vercel.app/ja` returned HTTP 200 with the current UGC form.
+- Supabase legacy JWT keys were disabled through the Management API and confirmed `enabled: false`.
+- Legacy disable verification found that publishable-key REST reads still pass, but unauthenticated REST inserts no longer satisfy the old `to anon` insert policy without a JWT role. `submitPending` now uses the server-only Supabase admin client so the Server Action write path works with `SUPABASE_SECRET_KEY`.
 
 ## Next Action
 
-Decide whether to disable Supabase legacy JWT keys. This is production-impacting and requires explicit approval before execution.
+Deploy the pending submission admin-client fix to `dev`, wait for Vercel `READY`, then smoke `/ja` and submission write behavior against the deployed app.
 
 Candidate next work:
 
-1. Get explicit approval for legacy JWT key disablement.
-2. Disable Supabase legacy JWT keys through the Management API.
-3. Verify `/ja` on the deployed `dev` Vercel deployment and a direct Supabase read/write path after disablement.
+1. Push the submission admin-client fix to `dev`.
+2. Wait for the Vercel deployment for that commit.
+3. Verify `/ja` read path and submission write behavior on the deployed app.
 
 ## Open Gates
 
-- Legacy JWT key disablement is blocked on explicit approval because it is production-impacting.
-- Legacy JWT keys are currently enabled in Supabase.
+- Legacy JWT keys are disabled in Supabase.
+- Deployment verification is still pending for the submission admin-client fix.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

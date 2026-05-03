@@ -1,6 +1,6 @@
 import "server-only";
 import type { TablesInsert } from "@/lib/database.types";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   submissionSchema,
   InvalidInputError,
@@ -35,7 +35,7 @@ export async function submitPending(input: unknown): Promise<{ id: string }> {
     // trigger both coerce to pending. Explicit omission documents intent.
   } satisfies TablesInsert<"restaurants">;
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { data: inserted, error } = await supabase
     .from("restaurants")
     .insert(row)

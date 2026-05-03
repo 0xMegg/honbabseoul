@@ -23,6 +23,8 @@
 - Draft PR #5 was closed after the GitHub connector failed to mark the draft ready because of a connector GraphQL field mismatch.
 - Non-draft PR #6 was opened and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/6
 - Vercel `dev` deployment `dpl_2WxujWtYG31JEcmm1bcPxU16pN6p` reached `READY`; smoke for `https://honbabseoul-inaopeoep-meggs-projects.vercel.app/ja` returned HTTP 200 with the current UGC form.
+- Supabase legacy JWT keys are disabled and confirmed `enabled: false`.
+- UGC submission writes now use the server-only Supabase admin client because publishable-key REST inserts no longer satisfy the old `to anon` RLS insert policy after legacy JWT disablement.
 
 ## Active Carry-Over
 
@@ -31,10 +33,10 @@
 
 ## Next Product Work
 
-Decide whether to disable Supabase legacy JWT keys. This requires explicit approval before execution.
+Deploy and verify the submission admin-client fix on Vercel `dev`.
 
 ## Open Project Gates
 
-- Disable legacy JWT keys only after deployed-branch verification and explicit approval.
+- Deployment verification is pending for the submission admin-client fix.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.

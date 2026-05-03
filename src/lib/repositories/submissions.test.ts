@@ -3,11 +3,11 @@ import type { Mock } from "vitest";
 
 // server-only throws at import time outside Next.js build pipeline — stub it.
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseServerClient: vi.fn(),
+vi.mock("@/lib/supabase/admin", () => ({
+  createSupabaseAdminClient: vi.fn(),
 }));
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { submitPending } from "@/lib/repositories/submissions";
 import {
   InvalidInputError,
@@ -35,7 +35,7 @@ function buildMockClient(opts: {
   const insert: Mock = vi.fn().mockReturnValue({ select });
   const from: Mock = vi.fn().mockReturnValue({ insert });
   const client = { from };
-  (createSupabaseServerClient as Mock).mockResolvedValue(client);
+  (createSupabaseAdminClient as Mock).mockReturnValue(client);
   return { from, insert, select, single };
 }
 

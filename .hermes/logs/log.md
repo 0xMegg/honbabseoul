@@ -275,3 +275,33 @@ Carry-over:
 
 - Disable Supabase legacy JWT keys only after explicit approval.
 - After disablement, verify deployed `/ja` and the relevant Supabase read/write path.
+
+## 2026-05-04 — Legacy JWT Disable And Submission Write Fix
+
+Decision:
+
+- Disabled Supabase legacy JWT keys through the Management API after explicit approval.
+- Kept public read paths on the publishable key.
+- Switched `submitPending` to the server-only Supabase admin client for UGC submission writes.
+
+Reason:
+
+- Management API confirmed legacy JWT keys changed from `enabled: true` to `enabled: false`.
+- After disablement, publishable-key REST reads returned HTTP 200, but REST inserts failed with RLS `42501` because the previous insert policy targeted the JWT `anon` role.
+- `submitPending` is only called from a Server Action, so using `SUPABASE_SECRET_KEY` for this write path keeps the key server-only and avoids relying on legacy JWT role mapping.
+
+Verification:
+
+- Supabase Management API legacy key status confirmed `enabled: false`.
+- Publishable-key read check returned HTTP 200.
+- Publishable-key insert rollback check returned RLS `42501`, confirming the post-disable write gap.
+- `git diff --check` passed.
+- Node 22.17.0 `pnpm test` passed: 5 files, 46 tests.
+- Node 22.17.0 `pnpm lint` passed.
+- Node 22.17.0 `pnpm build` passed.
+- Node 22.17.0 `pnpm test:e2e` passed: 4 tests.
+
+Carry-over:
+
+- Push the submission admin-client fix to `dev`.
+- Wait for the Vercel deployment and smoke `/ja` plus deployed submission behavior.
