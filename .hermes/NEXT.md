@@ -12,16 +12,17 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Baseline checked during migration: `216e9c6`
 - Hermes cutover is active and accepted.
 - Epic 3 / Slice 2 generated remote Supabase types, added `pnpm db:types`, connected the `Database` type to Supabase clients and the public restaurant repository, and passed verification.
-- UGC submission form is now reachable on `/ja` and `/ko`, backed by a Server Action that calls `submitPending` and leaves `reason` persistence deferred.
+- UGC submission form is committed and reachable on `/ja` and `/ko`, backed by a Server Action that calls `submitPending` and leaves `reason` persistence deferred.
+- UGC cleanup for query robustness, feedback live-region roles, and price-range intent is implemented pending Claude final review and commit.
 
 ## Next Action
 
-Review the UGC form behavior in the browser, then decide whether to commit this slice.
+Close UGC cleanup after Claude final review, then choose the next product slice.
 
 Candidate next work:
 
-1. Confirm the UGC form copy, fields, and pending-submit behavior.
-2. Decide whether to commit the UGC form slice.
+1. Commit UGC cleanup if final review stays clear.
+2. Plan the next product slice with Claude-first workflow.
 3. Re-check open gates before Epic 5 or production deployment.
 
 ## Open Gates

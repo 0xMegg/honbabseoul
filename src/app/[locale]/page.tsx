@@ -3,17 +3,22 @@ import { submitRestaurantAction } from "./actions";
 
 type HomeProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ submission?: string }>;
+  searchParams: Promise<{ submission?: string | string[] }>;
 };
 
 const SUBMISSION_STATUSES = ["success", "invalid", "error"] as const;
 type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
-function parseSubmissionStatus(value: string | undefined): SubmissionStatus | null {
+function parseSubmissionStatus(value: string | string[] | undefined): SubmissionStatus | null {
+  if (Array.isArray(value)) return null;
   if (!(SUBMISSION_STATUSES as readonly string[]).includes(value ?? "")) {
     return null;
   }
   return value as SubmissionStatus;
+}
+
+function submissionFeedbackRole(status: SubmissionStatus): "alert" | "status" {
+  return status === "success" ? "status" : "alert";
 }
 
 export default async function Home({ params, searchParams }: HomeProps) {
@@ -31,7 +36,10 @@ export default async function Home({ params, searchParams }: HomeProps) {
       </header>
 
       {submissionStatus ? (
-        <p className="rounded-md border border-border bg-surface p-3 text-sm" role="status">
+        <p
+          className="rounded-md border border-border bg-surface p-3 text-sm"
+          role={submissionFeedbackRole(submissionStatus)}
+        >
           {t(`submissionStatus.${submissionStatus}`)}
         </p>
       ) : null}

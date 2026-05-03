@@ -27,4 +27,20 @@ test.describe("locale smoke", () => {
     expect(response).not.toBeNull();
     expect(page.url()).toMatch(/\/ja\/?$/);
   });
+
+  test("submission query feedback uses the expected live-region roles", async ({ page }) => {
+    const main = page.locator("main");
+
+    await page.goto("/ja?submission=success");
+    await expect(main.getByRole("status")).toHaveText(
+      "投稿を受け付けました。確認後に掲載されます。",
+    );
+
+    await page.goto("/ja?submission=invalid");
+    await expect(main.getByRole("alert")).toHaveText("入力内容を確認してください。");
+
+    await page.goto("/ja?submission=garbage");
+    await expect(main.getByRole("status")).toHaveCount(0);
+    await expect(main.getByRole("alert")).toHaveCount(0);
+  });
 });

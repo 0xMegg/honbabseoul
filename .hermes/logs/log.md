@@ -95,3 +95,28 @@ Verification:
 - Claude final review found no required fixes.
 - Claude optional improvements applied: new color tokens are wired through `@theme inline`, `parseSubmissionStatus` avoids pre-guard enum casting, and the e2e smoke comment now includes the UGC entry surface.
 - Final verification with Node 22.17.0 passed: `pnpm lint`, `pnpm test` (5 files, 40 tests), `pnpm build`, and `pnpm test:e2e` (3 tests).
+
+## 2026-05-04 — UGC Feedback Cleanup
+
+Plan:
+
+- Claude produced the cleanup plan for UGC-1 and UGC-2.
+- Codex accepted the plan with one verification correction: do not submit a real form during manual verification because that could write to Supabase.
+
+Develop:
+
+- Claude develop was attempted but blocked on file-write permissions for `src/app/[locale]/page.tsx` and `src/app/[locale]/actions.ts`.
+- Codex applied the approved scope under the blocked-Claude-execution exception.
+- Changed `searchParams.submission` handling to accept `string | string[] | undefined` and fail closed for array or unknown values.
+- Added the `priceRange` empty-value intent comment.
+- Changed submission feedback so `success` uses `role="status"` and `invalid`/`error` use `role="alert"`.
+- Added e2e coverage for feedback live-region roles and unknown query fail-closed behavior.
+
+Verification:
+
+- `git diff --check` passed.
+- Node 22.17.0 `pnpm lint` passed.
+- Node 22.17.0 `pnpm test` passed: 5 files, 40 tests.
+- Node 22.17.0 `pnpm build` passed.
+- Node 22.17.0 `pnpm test:e2e` passed: 4 tests.
+- Claude final review returned no required fixes.

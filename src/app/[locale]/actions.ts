@@ -31,6 +31,7 @@ export async function submitRestaurantAction(locale: string, formData: FormData)
       hasJpMenu: formBoolean(formData, "hasJpMenu"),
       isLateNight: formBoolean(formData, "isLateNight"),
       reason: formString(formData, "reason"),
+      // Empty select value means "unknown"; submissionSchema validates low/mid/high.
       priceRange: priceRange === "" ? undefined : priceRange,
     });
   } catch (error) {
