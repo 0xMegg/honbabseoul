@@ -225,3 +225,30 @@ Verification:
 Carry-over:
 
 - Disable Supabase legacy JWT keys only after explicit approval and one final audit that no remaining runtime depends on legacy anon/service_role keys.
+
+## 2026-05-04 — Legacy JWT Disable Audit
+
+Findings:
+
+- Supabase Management API reported legacy anon/service_role keys are still enabled.
+- Vercel env list contains only the new Supabase key names among the audited keys:
+  - `SUPABASE_SECRET_KEY`: sensitive, production/preview.
+  - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: plain, production/preview/development.
+- Local `.env.local` still contains legacy keys, but current code prefers the new keys and the legacy values are fallback only.
+- The deployed `dev` redeploy used GitHub commit `e1d7dd8`, which predates the local key-migration code.
+- Pushed `harness/hermes-core-cutover-20260503` to GitHub and Vercel created preview deployment `dpl_7Sz3xjvPZyHLdrkFujSnks1cJwcc`.
+
+Verification:
+
+- Vercel preview deployment for `harness/hermes-core-cutover-20260503` reached `READY`.
+- Preview smoke for `https://honbabseoul-gur43s5qh-meggs-projects.vercel.app/ja` returned HTTP 200 and included the current UGC submission form surface.
+
+Decision:
+
+- Do not disable legacy JWT keys yet. Current key-migration code is verified on preview only, not on the deployed branch.
+
+Carry-over:
+
+- Open and merge a PR from `harness/hermes-core-cutover-20260503` into `dev`.
+- Verify the deployed branch after merge.
+- Disable Supabase legacy JWT keys only after deployed-branch verification and explicit approval.

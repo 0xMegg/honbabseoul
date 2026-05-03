@@ -18,20 +18,22 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Supabase admin key env is prepared for new `SUPABASE_SECRET_KEY` with legacy `SUPABASE_SERVICE_ROLE_KEY` fallback; local `.env.local` now has `SUPABASE_SECRET_KEY` and verified REST access.
 - Supabase public client env is prepared for `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with legacy anon fallback; local `.env.local` now has the publishable key and verified public RLS read access.
 - Vercel `honbabseoul` project now has `SUPABASE_SECRET_KEY` for production/preview and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for production/preview/development; redeploy smoke passed on `https://honbabseoul-4v0m1124i-meggs-projects.vercel.app/ja`.
+- Branch `harness/hermes-core-cutover-20260503` is pushed to GitHub and Vercel preview `https://honbabseoul-gur43s5qh-meggs-projects.vercel.app/ja` passed smoke with the current key-migration code.
 
 ## Next Action
 
-Decide whether to disable Supabase legacy JWT keys after confirming no other environments still depend on legacy anon/service_role keys.
+Open/merge the pushed branch into the deployed branch, verify the deployed branch with the current key-migration code, then decide whether to disable Supabase legacy JWT keys.
 
 Candidate next work:
 
-1. Commit the admin-key env preparation if review stays clear.
-2. Audit remaining environments for legacy anon/service_role key usage.
-3. Disable legacy JWT keys only with explicit approval.
+1. Open a PR from `harness/hermes-core-cutover-20260503` into `dev`.
+2. Merge/deploy the current key-migration code to the deployed branch.
+3. Disable legacy JWT keys only after deployed-branch verification and explicit approval.
 
 ## Open Gates
 
-- Legacy JWT key disablement requires explicit approval after deployed verification because it is irreversible and affects any environment still using legacy anon/service_role JWT keys.
+- Legacy JWT key disablement is blocked until the pushed key-migration code is merged/deployed on the deployed branch; current validation is preview-only.
+- Legacy JWT keys are currently enabled in Supabase.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

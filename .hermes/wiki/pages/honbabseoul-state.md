@@ -20,6 +20,7 @@
 - Supabase admin key env is prepared for `SUPABASE_SECRET_KEY` with legacy fallback; local `.env.local` has `SUPABASE_SECRET_KEY` and verified Supabase REST access.
 - Supabase public key env is prepared for `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with legacy fallback; local `.env.local` has the publishable key and verified public RLS read access.
 - Vercel project envs are migrated to the new Supabase keys and a redeploy smoke passed.
+- `harness/hermes-core-cutover-20260503` is pushed and Vercel preview smoke passed with the current key-migration code.
 
 ## Active Carry-Over
 
@@ -28,10 +29,10 @@
 
 ## Next Product Work
 
-Decide whether to disable Supabase legacy JWT keys, then plan the next product slice with Claude-first workflow.
+Merge the pushed branch into the deployed branch and verify, then decide whether to disable Supabase legacy JWT keys.
 
 ## Open Project Gates
 
-- Disable legacy JWT keys only after deployed verification and explicit approval.
+- Disable legacy JWT keys only after deployed-branch verification and explicit approval.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
