@@ -15,14 +15,15 @@
  * through the cookies-aware server client (`./server.ts`).
  */
 import "server-only";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { publicEnv, serverEnv } from "@/lib/env";
 
-let cached: ReturnType<typeof createClient> | null = null;
+let cached: SupabaseClient<Database> | null = null;
 
-export function createSupabaseAdminClient() {
+export function createSupabaseAdminClient(): SupabaseClient<Database> {
   if (cached) return cached;
-  cached = createClient(publicEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
+  cached = createClient<Database>(publicEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

@@ -10,12 +10,14 @@
  * caller — UI components import the repositories, not this factory.
  */
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 import { publicEnv } from "@/lib/env";
 
-let cached: ReturnType<typeof createBrowserClient> | null = null;
+let cached: SupabaseClient<Database> | null = null;
 
-export function createSupabaseBrowserClient() {
+export function createSupabaseBrowserClient(): SupabaseClient<Database> {
   if (cached) return cached;
-  cached = createBrowserClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey);
+  cached = createBrowserClient<Database>(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey);
   return cached;
 }

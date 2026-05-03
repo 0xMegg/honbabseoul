@@ -10,24 +10,26 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 
 - Branch: `harness/hermes-core-cutover-20260503`
 - Baseline checked during migration: `216e9c6`
-- Last legacy handoff: Epic 3 / Slice 2 — Supabase types autogen was deferred and not started under the old harness.
-- Source implementation was not changed during Hermes adoption.
+- Hermes cutover is active and accepted.
+- Epic 3 / Slice 2 generated remote Supabase types, added `pnpm db:types`, connected the `Database` type to Supabase clients and the public restaurant repository, and passed verification.
 
 ## Next Action
 
-After this migration, re-plan Epic 3 / Slice 2 under Hermes from scratch:
+Pause before runtime/product behavior changes. Next product slice should be chosen by the user after reviewing the current diff.
 
-1. Generate Supabase types.
-2. Add a `db:types` script if still needed.
-3. Record the Supabase generated types decision.
-4. Run the relevant verification.
+Candidate next work:
+
+1. Decide whether to commit Epic 3 / Slice 2 as-is.
+2. Choose the next runtime slice for map/detail/UGC behavior.
+3. Re-check open gates before Epic 5 or production deployment.
 
 ## Open Gates
 
 - `SUPABASE_SERVICE_ROLE_KEY` rotation before Epic 5 / production deployment.
 - `reason` column deferred to Epic 5 / Slice 1.1.
 - Logo SVG placeholder remains.
-- Optional housekeeping: prune merged local branches, address Next.js workspace-root warning, and reword the Tailwind doc sample that scans `bg-[var(--hb-*)]` as a class.
+- Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
+- `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
 
 ## Verification Defaults
 

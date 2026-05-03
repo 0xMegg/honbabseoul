@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
+@source not "../../.hermes/archive";
+@source not "../../context";
+@source not "../../docs";
+
 @theme inline {
   --color-bg: var(--hb-bg);
   --color-text: var(--hb-text);

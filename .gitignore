@@ -51,10 +51,12 @@ next-env.d.ts
 # Harness — Parallel epic worktree scratch (HARVEST_PARALLEL_WORKTREE=1)
 .harvest-wt/
 
+# Supabase CLI local cache
+supabase/.temp/
+
 # Playwright artifacts
 playwright-report/
 test-results/
 
 # macOS
 *.log
-

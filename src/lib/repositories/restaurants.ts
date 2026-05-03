@@ -21,16 +21,14 @@
  * restore the OR-NULL clause here.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  RestaurantSchema,
-  type Restaurant,
-} from "@/lib/models/restaurant";
+import type { Database } from "@/lib/database.types";
+import { RestaurantSchema, type Restaurant } from "@/lib/models/restaurant";
 
 export type RestaurantFilters = {
   /** "혼밥 가능" chip — default ON. true = only solo-friendly, false = drop the filter. */
-  isSolo:      boolean;
+  isSolo: boolean;
   /** 日本語メニュー chip. true = only `has_jp_menu=true`, false = drop. */
-  hasJpMenu:   boolean;
+  hasJpMenu: boolean;
   /** 深夜営業 chip. true = only `is_late_night=true`, false = drop. */
   isLateNight: boolean;
 };
@@ -45,20 +43,20 @@ export class RestaurantRepositoryError extends Error {
 }
 
 export async function listApproved(
-  client: SupabaseClient,
+  client: SupabaseClient<Database>,
   filters: RestaurantFilters,
 ): Promise<Restaurant[]> {
   let query = client.from("restaurants").select("*").eq("status", "approved");
-  if (filters.isSolo)      query = query.eq("is_solo_default", true);
-  if (filters.hasJpMenu)   query = query.eq("has_jp_menu",     true);
-  if (filters.isLateNight) query = query.eq("is_late_night",   true);
+  if (filters.isSolo) query = query.eq("is_solo_default", true);
+  if (filters.hasJpMenu) query = query.eq("has_jp_menu", true);
+  if (filters.isLateNight) query = query.eq("is_late_night", true);
   const { data, error } = await query;
   if (error) throw new RestaurantRepositoryError("listApproved failed", error);
   return (data ?? []).map((row) => RestaurantSchema.parse(row));
 }
 
 export async function getById(
-  client: SupabaseClient,
+  client: SupabaseClient<Database>,
   id: string,
 ): Promise<Restaurant | null> {
   const { data, error } = await client

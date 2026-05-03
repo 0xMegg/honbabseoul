@@ -6,7 +6,7 @@ but to quickly draw the line between what is automated convenience and what requ
 ## Allowed by Default (Automatically Permitted)
 - Read, Edit, Write within approved work folders
 - lint, test, build commands
-- git add, commit, push (after Reviewer APPROVE)
+- git add, commit, push after explicit user approval or accepted review flow
 - approved plugins from managed marketplace
 
 ## Requires Human Approval
@@ -26,12 +26,12 @@ but to quickly draw the line between what is automated convenience and what requ
 
 ## Permission Scope
 - Managed (IT/org-enforced) > Command line > Local > Project > User
-- Team shared: CLAUDE.md + .claude/settings.json
-- Personal local: CLAUDE.local.md + .claude/settings.local.json
+- Team shared: AGENTS.md + `.hermes/` policy and wiki
+- Personal local: tool-specific local settings outside tracked project authority
 - Why this distinction matters: to avoid mixing team standards with personal convenience settings
 
 ## High-Risk Operation Approval Thresholds
-- Tasks modifying 3+ files → Planner must create a plan first
+- Tasks modifying broad behavior or multiple ownership boundaries → plan before implementation
 - Tasks affecting production → must have human approval
 - Accessing sensitive data → test in an isolated environment first
 

@@ -12,24 +12,20 @@
 - Branch: `harness/hermes-core-cutover-20260503`
 - Baseline checked during Hermes adoption: `216e9c6`
 - Hermes adoption changed operating-layer files only; no runtime source files changed.
+- Epic 3 / Slice 2 generated remote Supabase types and connected them to the Supabase client type surface.
 
 ## Active Carry-Over
 
-- Epic 3 / Slice 2 — Supabase types autogen is not started under Hermes.
+- Epic 3 / Slice 2 is implemented pending user review/commit.
 - Prior old-harness planning pass is treated as stale/deferred source material, not active implementation.
 
 ## Next Product Work
 
-Re-plan Epic 3 / Slice 2 under Hermes:
-
-1. Generate Supabase types.
-2. Add `db:types` if still needed.
-3. Append the decision-log entry.
-4. Run the relevant verification.
+Choose the next runtime/product slice after reviewing the Epic 3 / Slice 2 diff.
 
 ## Open Project Gates
 
 - Rotate `SUPABASE_SERVICE_ROLE_KEY` before Epic 5 / production deployment.
 - `reason` column remains deferred to Epic 5 / Slice 1.1.
 - Logo SVG placeholder remains.
-- Optional housekeeping: prune merged local branches, address Next.js workspace-root warning, and reword the Tailwind doc sample that scans `bg-[var(--hb-*)]` as a class.
+- Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.

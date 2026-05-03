@@ -35,3 +35,39 @@ Verification:
 - Claude final review initially returned required fixes for `.harness-manifest`, `docs/assumptions.md`, and `docs/plugin-guide.md`; those legacy harness files were archived and source provenance was corrected.
 - Claude re-review returned required fixes for `.hermes/wiki/pages/honbabseoul-state.md` provenance and branch labels; those lines were corrected.
 - Claude final quick re-review accepted the cutover with no further required fixes.
+
+## 2026-05-03 — Epic 3 / Slice 2 Supabase Types
+
+Decision:
+
+- Generated Supabase TypeScript types from the remote `honbabseoul` project ref `iosqakynywnrwxrexrfh`.
+- Stored the generated output at `src/lib/database.types.ts`.
+- Added `pnpm db:types` as the repeatable regeneration command.
+- Connected the generated `Database` type to Supabase browser, server, admin clients, and the public restaurant repository.
+- Ignored `supabase/.temp/` because the Supabase CLI writes local cache files there.
+
+Reason:
+
+- Remote schema is the operational source for the current project database.
+- A committed generated type file gives repository and Supabase client code a stable type surface without requiring runtime behavior changes in this slice.
+
+Verification:
+
+- `supabase projects list` confirmed `iosqakynywnrwxrexrfh` is the `honbabseoul` project.
+- `supabase gen types typescript --project-id iosqakynywnrwxrexrfh > src/lib/database.types.ts` completed successfully.
+- `pnpm db:types` completed successfully when run with access to the local Supabase CLI login token.
+- `pnpm lint` passed.
+- `pnpm test` passed: 5 files, 40 tests.
+- `pnpm build` passed. Existing Tailwind warning for a wildcard CSS-variable arbitrary-color sample remained a known housekeeping item.
+
+Follow-up safe cleanup:
+
+- Connected UGC submission insert rows to `TablesInsert<"restaurants">`.
+- Updated `context/access-policy.md` to point team-shared authority at `AGENTS.md` and `.hermes/` instead of legacy `.claude/settings.json`.
+- Excluded `.hermes/archive`, `context`, and `docs` from Tailwind source scanning in `src/app/globals.css` so documentation examples do not generate utilities.
+
+Follow-up verification:
+
+- `pnpm lint` passed.
+- `pnpm test` passed: 5 files, 40 tests.
+- `pnpm build` passed without the prior Tailwind CSS optimizer warning.
