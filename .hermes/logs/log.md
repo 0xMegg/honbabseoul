@@ -500,3 +500,35 @@ Follow-up:
 
 - PR #10 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
 - PR #10 was squash-merged into `dev` as `0574addb056afa5681d692b9c0b76fab72990865`.
+
+## 2026-05-04 — Epic 4 Slice 4.2.1 Filter State And Chip UI
+
+Plan:
+
+- Implement URL-synced filter state for `solo`, `jp`, and `late`.
+- Render three filter chips above the map.
+- Exclude restaurant pins, data fetching, and bottom-sheet behavior.
+- Wrap the `useSearchParams` consumer in a `Suspense` boundary.
+
+Decision:
+
+- Added `useFilters` with `?solo=1&jp=0&late=0` serialization and default normalization.
+- Added `FilterBar` with `aria-pressed` chip buttons and `router.replace(..., { scroll: false })`.
+- Mounted the filter bar above the map in the locale home shell.
+
+Reason:
+
+- The filter URL contract should be fixed before the pin layer consumes it.
+- Keeping data fetching out of this slice preserves the Stage 2 boundary between filter state and marker rendering.
+
+Claude review:
+
+- Claude reviewed the plan and required explicit `Suspense` handling for `useSearchParams`.
+- Claude reviewed the implementation and returned `NO REQUIRED FIXES`.
+
+Verification:
+
+- Full Vitest passed: 11 files, 67 tests.
+- `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
+- Browser smoke against local `/ja` toggled Japanese-menu and solo chips, produced `/ja?solo=0&jp=1&late=0`, preserved state after refresh, kept map visible, and captured no console/page errors.
+- Playwright E2E passed: 6 tests.

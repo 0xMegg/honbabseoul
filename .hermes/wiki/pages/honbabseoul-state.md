@@ -31,6 +31,7 @@
 - PR #8 Hermes Claude CLI policy adoption docs-only cleanup is merged into `dev`.
 - PR #9 Epic 4 / Slice 4.1.1 Naver Maps client wrapper is merged into `dev`.
 - PR #10 Epic 4 / Slice 4.1.2 map page shell is merged into `dev`.
+- Epic 4 / Slice 4.2.1 filter state + chip UI is implemented locally and awaiting PR landing.
 
 ## Active Carry-Over
 
@@ -38,7 +39,7 @@
 
 ## Next Product Work
 
-Continue the map read path with Epic 4 / Slice 4.2.1 filter state + chip UI.
+Land Epic 4 / Slice 4.2.1, then continue the map read path with Epic 4 / Slice 4.2.2 restaurant pin layer.
 
 ## Open Project Gates
 
