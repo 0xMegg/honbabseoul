@@ -27,15 +27,17 @@
 - UGC submission writes now use the server-only Supabase admin client because publishable-key REST inserts no longer satisfy the old `to anon` RLS insert policy after legacy JWT disablement.
 - Vercel env now includes `NEXT_PUBLIC_SUPABASE_URL` for production/preview/development after deployed submission verification found the runtime URL env was missing.
 - Vercel deployment `dpl_CBreYYS6RGRKzEBTRYLKdAwV4FM8` for commit `219fc63` is READY and verified: `/ja` HTML smoke passed, browser submission returned `submission=success`, the smoke row inserted as `pending`, and cleanup was verified.
+- PR #7 UGC invalid form input preservation follow-up is merged into `dev`.
+- PR #8 Hermes Claude CLI policy adoption docs-only cleanup is merged into `dev`.
 
 ## Active Carry-Over
 
-- UGC invalid form input preservation remains deferred as a separate UX task.
+- Epic 4 / Slice 4.1.1 Naver Maps client wrapper is implemented locally and awaiting PR landing.
 - Prior old-harness planning pass is treated as stale/deferred source material, not active implementation.
 
 ## Next Product Work
 
-Resume product work after the Supabase legacy JWT migration. UGC invalid form input preservation remains the next deferred UX task unless priorities change.
+Land Epic 4 / Slice 4.1.1, then continue the map read path with the map page shell and filter work.
 
 ## Open Project Gates
 

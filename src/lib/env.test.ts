@@ -131,6 +131,20 @@ describe("env getter facades", () => {
     }
   });
 
+  it("publicEnv.naverMapsClientId reads NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID via requireEnv", () => {
+    const original = process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID;
+    process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID = "naver-client-id";
+    try {
+      expect(publicEnv.naverMapsClientId).toBe("naver-client-id");
+    } finally {
+      if (original === undefined) {
+        delete process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID;
+      } else {
+        process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID = original;
+      }
+    }
+  });
+
   it("serverEnv.supabaseAdminKey prefers SUPABASE_SECRET_KEY over legacy service_role", () => {
     const originalSecret = process.env.SUPABASE_SECRET_KEY;
     const originalServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
