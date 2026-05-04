@@ -430,3 +430,31 @@ Follow-up:
 
 - PR #8 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
 - PR #8 was squash-merged into `dev` as `45247c8d605bd16e77a410396481a3878c13c041`.
+
+## 2026-05-04 — Epic 4 Slice 4.1.1 Naver Maps Client Wrapper
+
+Decision:
+
+- Selected Epic 4 / Slice 4.1.1 as the next product slice after UGC and Hermes docs cleanup landed.
+- Added a client-side Naver Maps SDK loader and `MapClient` wrapper, using `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` from the server page and passing it to the client component as a prop.
+- Mounted the first map surface on `/[locale]` with Seoul City Hall as the default center.
+
+Reason:
+
+- The read-path map is the next MVP product loop after UGC submission.
+- A verified SDK loader lowers the largest external integration risk before pin/filter/bottom-sheet work.
+- The map loading text intentionally does not use `role="status"` so it does not collide with submission feedback live-region semantics.
+
+Claude review:
+
+- Claude selected Slice 4.1.1 as the next product slice.
+- Claude reviewed the implementation and returned `NO REQUIRED FIXES`.
+
+Verification:
+
+- Official Naver Maps JavaScript API v3 docs checked for the SDK URL format: `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=...`.
+- Local `.env.local` contains `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`.
+- Full Vitest passed: 8 files, 57 tests.
+- `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
+- Browser smoke against local `/ja` confirmed the map container rendered, SDK script src was present, `window.naver.maps.Map` existed, and no console/page errors were captured.
+- Playwright E2E passed: 6 tests.

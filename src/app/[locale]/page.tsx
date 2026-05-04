@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
+import { publicEnv } from "@/lib/env";
+import { MapClient } from "@/lib/features/map/MapClient";
 import { submitRestaurantAction } from "./actions";
 import { ClearSubmissionFlashCookie } from "./clear-submission-flash-cookie";
 import {
@@ -36,6 +38,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
   const t = await getTranslations("home");
   const submitAction = submitRestaurantAction.bind(null, locale);
+  const naverMapsClientId = publicEnv.naverMapsClientId;
   const submissionStatus = parseSubmissionStatus(query.submission);
   const preservedFormValues =
     shouldPreserveFormValues(submissionStatus)
@@ -60,6 +63,13 @@ export default async function Home({ params, searchParams }: HomeProps) {
       ) : null}
 
       {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
+
+      <MapClient
+        clientId={naverMapsClientId}
+        label={t("map.label")}
+        loadingLabel={t("map.loading")}
+        errorLabel={t("map.error")}
+      />
 
       <form action={submitAction} className="space-y-5">
         <label className="block space-y-2">
