@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
+import { FilterBar } from "@/lib/features/filters/FilterBar";
 import { Header } from "@/lib/features/layout/Header";
 import { MapClient } from "@/lib/features/map/MapClient";
 import { submitRestaurantAction } from "./actions";
@@ -60,6 +62,16 @@ export default async function Home({ params, searchParams }: HomeProps) {
         ) : null}
 
         {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
+
+        <Suspense fallback={null}>
+          <FilterBar
+            labels={{
+              solo: t("filters.solo"),
+              jp: t("filters.jp"),
+              late: t("filters.late"),
+            }}
+          />
+        </Suspense>
 
         <MapClient
           className="min-h-0 flex-1 space-y-2"
