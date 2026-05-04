@@ -33,23 +33,23 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #10 Epic 4 / Slice 4.1.2 map page shell was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/10
 - PR #11 Epic 4 / Slice 4.2.1 filter state + chip UI was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/11
 - PR #12 Epic 4 / Slice 4.2.2 restaurant pin layer was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/12
-- Epic 4 / Slice 4.3.1 bottom sheet detail is implemented locally on branch `codex/bottom-sheet-detail`, reviewed by Claude with `NO REQUIRED FIXES`, and verified with Vitest, Playwright, build, and browser smoke.
+- PR #13 Epic 4 / Slice 4.3.1 bottom sheet detail was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/13
 
 ## Next Action
 
-Land Epic 4 / Slice 4.3.1 bottom sheet detail, then reassess Epic 4 acceptance gaps.
+Reassess Epic 4 read-path acceptance gaps.
 
 Candidate next work:
 
-1. Push `codex/bottom-sheet-detail` and open/merge a PR after checks pass.
-2. Reassess Epic 4 read-path acceptance gaps, especially seed-data pin visibility, map click E2E, clustering/custom marker scope, and Lighthouse.
-3. Keep optional housekeeping separate unless it blocks product work.
+1. Check seed-data pin visibility and whether production/dev data has enough approved coordinate-bearing restaurants.
+2. Decide whether clustering/custom marker UI remains required for MVP or can be deferred.
+3. Add read-path E2E coverage for pin click to bottom sheet when deterministic seed data is available.
+4. Keep optional housekeeping separate unless it blocks product work.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
-- Epic 4 / Slice 4.3.1 bottom sheet detail is not yet landed on `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

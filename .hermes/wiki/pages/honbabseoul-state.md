@@ -33,7 +33,7 @@
 - PR #10 Epic 4 / Slice 4.1.2 map page shell is merged into `dev`.
 - PR #11 Epic 4 / Slice 4.2.1 filter state + chip UI is merged into `dev`.
 - PR #12 Epic 4 / Slice 4.2.2 restaurant pin layer is merged into `dev`.
-- Epic 4 / Slice 4.3.1 bottom sheet detail is implemented locally and awaiting PR landing.
+- PR #13 Epic 4 / Slice 4.3.1 bottom sheet detail is merged into `dev`.
 
 ## Active Carry-Over
 
@@ -41,7 +41,7 @@
 
 ## Next Product Work
 
-Land Epic 4 / Slice 4.3.1, then reassess Epic 4 read-path acceptance gaps.
+Reassess Epic 4 read-path acceptance gaps.
 
 ## Open Project Gates
 
