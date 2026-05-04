@@ -2,6 +2,18 @@
   "home": {
     "description": "혼자 들어가기 좋은 서울 식당을 알려주세요. 제보는 확인 후 지도에 반영됩니다.",
     "eyebrow": "혼밥서울",
+    "detail": {
+      "address": "주소",
+      "close": "닫기",
+      "copied": "복사됨",
+      "copyAddress": "주소 복사",
+      "error": "식당 상세를 불러오지 못했습니다.",
+      "loading": "식당 상세를 불러오는 중입니다.",
+      "naverLink": "네이버 지도에서 보기",
+      "price": "가격대",
+      "priceUnknown": "선택 안 함",
+      "title": "식당 상세"
+    },
     "form": {
       "hasJpMenu": "일본어 메뉴가 있나요?",
       "isLateNight": "22시 이후에도 영업하나요?",

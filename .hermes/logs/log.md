@@ -575,3 +575,36 @@ Follow-up:
 
 - PR #12 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
 - PR #12 was squash-merged into `dev` as `c5b177471fd8c0a81c9a872b47a9dfeeb68b2efe`.
+
+## 2026-05-04 — Epic 4 Slice 4.3.1 Bottom Sheet Detail
+
+Plan:
+
+- Add marker click selection without expanding clustering or custom marker scope.
+- Manage selected restaurant detail in a client read-path shell and fetch detail through `getById`.
+- Render a fixed bottom sheet with localized restaurant detail, address copy, and a Naver Maps web link.
+- Keep `useSearchParams` consumers inside a `Suspense` boundary and add ja/ko detail copy together.
+
+Decision:
+
+- Added `MapReadPath` as the client shell composing `FilterBar`, `MapClient`, `BottomSheet`, and `RestaurantDetail`.
+- Extended `MapClient` marker lifecycle to emit selected restaurant ids and remove Naver Maps event listeners during cleanup.
+- Added detail rendering with locale fallback, price display as `₩` / `₩₩` / `₩₩₩`, address copy on successful Clipboard API writes, and `https://map.naver.com` external links only.
+
+Reason:
+
+- The bottom sheet composes the filter and pin slices without changing server write paths.
+- Re-fetching selected detail through `getById` keeps the detail read boundary explicit before later richer detail fields or permissions are added.
+
+Claude review:
+
+- Claude reviewed the plan and required Suspense boundary preservation, Naver marker listener cleanup, and synchronized ja/ko i18n keys.
+- Claude reviewed the implementation and returned `NO REQUIRED FIXES`.
+
+Verification:
+
+- Targeted Vitest passed: `MapClient`, `RestaurantDetail`, and `MapReadPath` tests, 13 tests.
+- Full Vitest passed: 13 files, 76 tests.
+- `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
+- Browser smoke against local `/ja?solo=0&jp=1&late=0` confirmed the map rendered, Japanese-menu chip stayed active, no dialog opened by default, and no console/page errors were captured.
+- Playwright E2E passed: 6 tests.

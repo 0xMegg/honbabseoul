@@ -2,6 +2,18 @@
   "home": {
     "description": "一人でも入りやすいソウルのお店を教えてください。投稿は確認後に地図へ反映されます。",
     "eyebrow": "ホンバプソウル",
+    "detail": {
+      "address": "住所",
+      "close": "閉じる",
+      "copied": "コピーしました",
+      "copyAddress": "住所をコピー",
+      "error": "お店の詳細を読み込めませんでした。",
+      "loading": "お店の詳細を読み込んでいます。",
+      "naverLink": "Naver Mapで見る",
+      "price": "価格帯",
+      "priceUnknown": "未選択",
+      "title": "お店の詳細"
+    },
     "form": {
       "hasJpMenu": "日本語メニューはありますか？",
       "isLateNight": "22時以降も営業していますか？",

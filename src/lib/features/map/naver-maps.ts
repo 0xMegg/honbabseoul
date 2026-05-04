@@ -16,6 +16,8 @@ export type NaverMarkerInstance = {
   setMap: (map: NaverMapInstance | null) => void;
 };
 
+export type NaverMapsEventListener = unknown;
+
 export type NaverMapsNamespace = {
   LatLng: new (lat: number, lng: number) => unknown;
   Map: new (
@@ -33,6 +35,14 @@ export type NaverMapsNamespace = {
     position: unknown;
     title?: string;
   }) => NaverMarkerInstance;
+  Event: {
+    addListener: (
+      target: NaverMarkerInstance,
+      eventName: "click",
+      listener: () => void,
+    ) => NaverMapsEventListener;
+    removeListener: (listener: NaverMapsEventListener) => void;
+  };
 };
 
 declare global {
