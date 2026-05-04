@@ -34,19 +34,20 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #11 Epic 4 / Slice 4.2.1 filter state + chip UI was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/11
 - PR #12 Epic 4 / Slice 4.2.2 restaurant pin layer was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/12
 - PR #13 Epic 4 / Slice 4.3.1 bottom sheet detail was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/13
+- PR #14 read-path stability fix was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/14
 - Local read-path stability fixes are implemented: localhost Naver SDK loading is disabled by default unless `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`, map auth/constructor failure now shows the map error fallback, filter chips are disabled until hydration, and headless coverage now asserts fallback + filter transition stability.
 - Verification gap diagnosis is recorded in `.hermes/logs/log.md`; future user-facing tasks need real headless workflow coverage, not only unit/shallow smoke checks.
 
 ## Next Action
 
-Package the current read-path stability fix for review, then decide the next product slice.
+Finish the instant marker-detail slice in `codex/instant-map-detail`, then open a PR.
 
 Candidate next work:
 
-1. Commit or PR the current fixes: Naver SDK `ncpKeyId`, browser-safe `NEXT_PUBLIC_*` env reads, localhost SDK opt-in, auth/fallback hardening, hydration guard, and E2E fallback coverage.
+1. Commit and PR the instant detail change: marker selection should render detail from the current server-provided restaurant list without a browser Supabase re-fetch.
 2. Keep real Naver verification as an explicit manual/headless gate: `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` on local dev, then verify tiles, markers, filter transitions, and marker-to-bottom-sheet detail.
-3. Decide the next product slice only after this fix is reviewed; likely candidates are marker UX polish, clustering/custom marker UI, or seed-data/read-path acceptance work.
-4. Keep optional housekeeping separate unless it blocks the read-path fixes.
+3. After the instant-detail PR, likely next product candidates are marker UX polish, clustering/custom marker UI, or seed-data/read-path acceptance work.
+4. Keep optional housekeeping separate unless it blocks product verification.
 
 ## Open Gates
 
