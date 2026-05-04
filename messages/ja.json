@@ -37,7 +37,8 @@
     "map": {
       "error": "地図を読み込めませんでした。",
       "label": "ソウルの一人ごはんマップ",
-      "loading": "地図を読み込んでいます。"
+      "loading": "地図を読み込んでいます。",
+      "resultCount": "{count}件を表示中"
     },
     "submissionStatus": {
       "error": "送信に失敗しました。時間をおいてもう一度お試しください。",

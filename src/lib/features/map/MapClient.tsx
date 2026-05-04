@@ -41,6 +41,7 @@ export function MapClient({
   const markerListenersRef = useRef<NaverMapsEventListener[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const [mapInitFailed, setMapInitFailed] = useState(false);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const status = useNaverMapsSdk(clientId);
 
   useEffect(() => {
@@ -88,16 +89,24 @@ export function MapClient({
     markerListenersRef.current = [];
 
     for (const restaurant of restaurants.filter(hasCoordinates)) {
+      const title = restaurant.name_ja ?? restaurant.name_ko ?? undefined;
       const marker = new maps.Marker({
+        icon: {
+          content: buildMarkerIconContent(
+            title ?? "혼밥서울",
+            restaurant.id === selectedRestaurantId,
+          ),
+        },
         map: mapRef.current,
         position: new maps.LatLng(restaurant.latitude, restaurant.longitude),
-        title: restaurant.name_ja ?? restaurant.name_ko ?? undefined,
+        title,
       });
       markersRef.current.push(marker);
 
       if (onRestaurantSelect && maps.Event) {
         markerListenersRef.current.push(
           maps.Event.addListener(marker, "click", () => {
+            setSelectedRestaurantId(restaurant.id);
             onRestaurantSelect(restaurant.id);
           }),
         );
@@ -109,7 +118,7 @@ export function MapClient({
       markersRef.current = [];
       markerListenersRef.current = [];
     };
-  }, [mapReady, onRestaurantSelect, restaurants]);
+  }, [mapReady, onRestaurantSelect, restaurants, selectedRestaurantId]);
 
   useEffect(() => {
     if (!mapReady) return;
@@ -120,6 +129,7 @@ export function MapClient({
       clearMarkers(markersRef.current, markerListenersRef.current);
       markersRef.current = [];
       markerListenersRef.current = [];
+      setSelectedRestaurantId(null);
       destroyMap(mapRef.current);
       mapRef.current = null;
       containerRef.current?.replaceChildren();
@@ -175,6 +185,31 @@ function destroyMap(map: NaverMapInstance | null) {
   } catch {
     // Naver can revoke SDK internals after auth failure; cleanup must not crash React.
   }
+}
+
+function buildMarkerIconContent(label: string, selected: boolean): string {
+  const safeLabel = escapeHtml(label);
+  const background = selected ? "var(--hb-brand)" : "var(--hb-bg)";
+  const border = selected ? "var(--hb-brand-hover)" : "var(--hb-brand)";
+  const color = selected ? "var(--hb-text-invert)" : "var(--hb-brand)";
+  const shadow = selected ? "0 8px 18px rgb(94 106 210 / 0.28)" : "0 4px 12px rgb(0 0 0 / 0.18)";
+
+  return [
+    `<div aria-label="${safeLabel}" data-hb-marker="true" data-selected="${selected ? "true" : "false"}" role="button"`,
+    ` style="position:relative;transform:translate(-50%,-100%);display:flex;align-items:center;gap:4px;max-width:112px;padding:6px 9px;border:2px solid ${border};border-radius:999px;background:${background};color:${color};box-shadow:${shadow};font-size:12px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;">`,
+    `<span style="display:block;overflow:hidden;text-overflow:ellipsis;">${safeLabel}</span>`,
+    `<span style="position:absolute;left:50%;bottom:-7px;width:10px;height:10px;transform:translateX(-50%) rotate(45deg);border-bottom:2px solid ${border};border-right:2px solid ${border};background:${background};"></span>`,
+    "</div>",
+  ].join("");
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function hasCoordinates(

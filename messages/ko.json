@@ -37,7 +37,8 @@
     "map": {
       "error": "지도를 불러오지 못했습니다.",
       "label": "서울 혼밥 지도",
-      "loading": "지도를 불러오는 중입니다."
+      "loading": "지도를 불러오는 중입니다.",
+      "resultCount": "{count}개 표시 중"
     },
     "submissionStatus": {
       "error": "제보 저장에 실패했습니다. 잠시 후 다시 시도해주세요.",

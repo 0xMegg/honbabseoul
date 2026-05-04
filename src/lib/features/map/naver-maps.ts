@@ -31,6 +31,9 @@ export type NaverMapsNamespace = {
     },
   ) => NaverMapInstance;
   Marker: new (options: {
+    icon?: {
+      content: string;
+    };
     map: NaverMapInstance;
     position: unknown;
     title?: string;
