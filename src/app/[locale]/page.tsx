@@ -85,7 +85,6 @@ export default async function Home({ params, searchParams }: HomeProps) {
               copied: t("detail.copied"),
               copyAddress: t("detail.copyAddress"),
               error: t("detail.error"),
-              loading: t("detail.loading"),
               naverLink: t("detail.naverLink"),
               price: t("detail.price"),
               priceUnknown: t("detail.priceUnknown"),

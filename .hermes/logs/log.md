@@ -803,3 +803,25 @@ Verification:
 - `next build` completed successfully; the pre-existing missing `eslint-plugin-react-hooks` warning still appears during lint/type check, but build output completed.
 - Real headless map flow with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` passed: SDK URL used `ncpKeyId`, SDK status was `ready`, fallback was absent, 22 marker-like DOM elements were observed, a visible marker click opened the Japanese bottom sheet for `明洞ぼっちラーメン`, and no browser console/page errors were captured.
 - Claude reviewed the current fixes and returned `NO REQUIRED FIXES`.
+
+## 2026-05-04 — Instant Marker Detail Slice
+
+Decision:
+
+- The server read path already passes all public restaurant columns needed by the bottom sheet into `MapReadPath`.
+- Re-fetching the same row from the browser on marker click adds latency and reintroduces a client Supabase/env dependency without adding detail fidelity.
+- Marker selection should resolve the selected restaurant from the current list and render the bottom sheet immediately.
+
+Change:
+
+- `MapReadPath` no longer imports `getById` or `createSupabaseBrowserClient`.
+- The selected marker id is matched against the current `restaurants` prop with `useMemo`.
+- The detail loading label was removed from the client contract and JA/KO messages because marker detail no longer has an async loading state.
+
+Verification:
+
+- Targeted detail tests passed: `MapReadPath` and `RestaurantDetail`, 5 tests.
+- Full Vitest passed: 13 files, 82 tests.
+- Playwright E2E passed: 7 tests.
+- Real headless Naver flow with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` passed: SDK ready, 22 marker-like elements, marker click opened the Japanese bottom sheet, and no browser errors were captured.
+- `next build` completed successfully; the pre-existing missing `eslint-plugin-react-hooks` warning still appears during lint/type validation, but build output completed.

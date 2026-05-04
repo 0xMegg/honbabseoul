@@ -1,9 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Restaurant } from "@/lib/models/restaurant";
-import { getById } from "@/lib/repositories/restaurants";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { FilterBar } from "@/lib/features/filters/FilterBar";
 import type { FilterKey } from "@/lib/features/filters/filter-params";
 import { MapClient } from "@/lib/features/map/MapClient";
@@ -16,7 +14,6 @@ type DetailLabels = {
   copied: string;
   copyAddress: string;
   error: string;
-  loading: string;
   naverLink: string;
   price: string;
   priceUnknown: string;
@@ -47,43 +44,19 @@ export function MapReadPath({
   restaurants,
 }: MapReadPathProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<Restaurant | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!selectedId) {
-      setDetail(null);
-      setStatus("idle");
-      return;
-    }
-
-    let active = true;
-    setStatus("loading");
-    setDetail(null);
-    setCopied(false);
-
-    getById(createSupabaseBrowserClient(), selectedId)
-      .then((restaurant) => {
-        if (!active) return;
-        if (!restaurant) {
-          setStatus("error");
-          return;
-        }
-        setDetail(restaurant);
-        setStatus("idle");
-      })
-      .catch(() => {
-        if (active) setStatus("error");
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [selectedId]);
+  const selectedRestaurant = useMemo(
+    () => restaurants.find((restaurant) => restaurant.id === selectedId) ?? null,
+    [restaurants, selectedId],
+  );
 
   const close = useCallback(() => {
     setSelectedId(null);
+    setCopied(false);
+  }, []);
+
+  const selectRestaurant = useCallback((id: string) => {
+    setSelectedId(id);
     setCopied(false);
   }, []);
 
@@ -104,7 +77,7 @@ export function MapReadPath({
         label={mapLabels.label}
         loadingLabel={mapLabels.loading}
         errorLabel={mapLabels.error}
-        onRestaurantSelect={setSelectedId}
+        onRestaurantSelect={selectRestaurant}
         restaurants={restaurants}
       />
 
@@ -114,15 +87,16 @@ export function MapReadPath({
         open={selectedId !== null}
         title={detailLabels.title}
       >
-        {status === "loading" ? <p className="text-sm text-text-muted">{detailLabels.loading}</p> : null}
-        {status === "error" ? <p className="text-sm text-danger">{detailLabels.error}</p> : null}
-        {detail ? (
+        {selectedId && !selectedRestaurant ? (
+          <p className="text-sm text-danger">{detailLabels.error}</p>
+        ) : null}
+        {selectedRestaurant ? (
           <RestaurantDetail
             copied={copied}
             labels={detailLabels}
             locale={locale}
             onCopyAddress={copyAddress}
-            restaurant={detail}
+            restaurant={selectedRestaurant}
           />
         ) : null}
       </BottomSheet>

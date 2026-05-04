@@ -34,8 +34,11 @@
 - PR #11 Epic 4 / Slice 4.2.1 filter state + chip UI is merged into `dev`.
 - PR #12 Epic 4 / Slice 4.2.2 restaurant pin layer is merged into `dev`.
 - PR #13 Epic 4 / Slice 4.3.1 bottom sheet detail is merged into `dev`.
+- PR #14 read-path stability fix is merged into `dev`.
 - Post-merge headless audit on local `dev` found read-path regressions not covered by the existing smoke suite: Naver Maps local auth fails for `http://localhost:3000/ja`, map constructors stay unavailable, the map container can remain empty without the user-facing error label, and filter chip client transition can crash after URL replacement.
 - Local read-path stability fixes now prevent the broken localhost Naver SDK state from crashing the app: localhost SDK loading is disabled by default, the map error fallback is visible, filter chips wait for hydration before accepting clicks, and E2E covers fallback + filter transition stability.
+- Real Naver Maps local verification now passes when localhost SDK loading is intentionally enabled and the NCP whitelist is configured.
+- In-progress branch `codex/instant-map-detail` removes marker-to-detail browser re-fetching and renders detail from the current server-provided restaurant list.
 - Verification gap diagnosis is logged: future user-facing product work must include real headless workflow coverage, external SDK success/failure checks, route transition checks, and remote smoke data cleanup.
 
 ## Active Carry-Over
@@ -44,7 +47,7 @@
 
 ## Next Product Work
 
-Verify real Naver map tiles, markers, and bottom-sheet selection after NCP URL whitelist setup and `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`.
+Finish and PR `codex/instant-map-detail`: marker click should open detail immediately from the existing list data, with no extra browser Supabase fetch.
 
 ## Open Project Gates
 

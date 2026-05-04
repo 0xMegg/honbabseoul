@@ -1,16 +1,7 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Restaurant } from "@/lib/models/restaurant";
-import { getById } from "@/lib/repositories/restaurants";
 import { MapReadPath } from "./MapReadPath";
-
-vi.mock("@/lib/repositories/restaurants", () => ({
-  getById: vi.fn(),
-}));
-
-vi.mock("@/lib/supabase/browser", () => ({
-  createSupabaseBrowserClient: () => ({}),
-}));
 
 vi.mock("@/lib/features/filters/FilterBar", () => ({
   FilterBar: () => <div data-testid="filter-bar" />,
@@ -18,9 +9,17 @@ vi.mock("@/lib/features/filters/FilterBar", () => ({
 
 vi.mock("@/lib/features/map/MapClient", () => ({
   MapClient: ({ onRestaurantSelect }: { onRestaurantSelect?: (id: string) => void }) => (
-    <button onClick={() => onRestaurantSelect?.(restaurant.id)} type="button">
-      marker
-    </button>
+    <>
+      <button onClick={() => onRestaurantSelect?.(restaurant.id)} type="button">
+        marker
+      </button>
+      <button
+        onClick={() => onRestaurantSelect?.("550e8400-e29b-41d4-a716-446655449999")}
+        type="button"
+      >
+        missing marker
+      </button>
+    </>
   ),
 }));
 
@@ -51,7 +50,6 @@ const props = {
     copied: "コピーしました",
     copyAddress: "住所をコピー",
     error: "お店の詳細を読み込めませんでした。",
-    loading: "お店の詳細を読み込んでいます。",
     naverLink: "Naver Mapで見る",
     price: "価格帯",
     priceUnknown: "未選択",
@@ -73,37 +71,27 @@ const props = {
 
 describe("MapReadPath", () => {
   beforeEach(() => {
-    vi.mocked(getById).mockReset();
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
       value: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
   });
 
-  it("fetches detail when a marker is selected and closes the sheet", async () => {
-    vi.mocked(getById).mockResolvedValue(restaurant);
-
+  it("shows detail from the current restaurant list when a marker is selected", () => {
     render(<MapReadPath {...props} />);
     fireEvent.click(screen.getByRole("button", { name: "marker" }));
 
-    expect(screen.getByText(props.detailLabels.loading)).toBeVisible();
-    await waitFor(() => {
-      expect(screen.getByRole("heading", { name: restaurant.name_ja })).toBeVisible();
-    });
+    expect(screen.getByRole("heading", { name: restaurant.name_ja })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: props.detailLabels.close }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("shows an error when detail fetch fails", async () => {
-    vi.mocked(getById).mockRejectedValue(new Error("failed"));
-
+  it("shows an error when the selected marker id is not in the current list", () => {
     render(<MapReadPath {...props} />);
-    fireEvent.click(screen.getByRole("button", { name: "marker" }));
+    fireEvent.click(screen.getByRole("button", { name: "missing marker" }));
 
-    await waitFor(() => {
-      expect(screen.getByText(props.detailLabels.error)).toBeVisible();
-    });
+    expect(screen.getByText(props.detailLabels.error)).toBeVisible();
   });
 });
