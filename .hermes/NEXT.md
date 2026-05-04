@@ -30,20 +30,23 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #7 UGC invalid form input preservation follow-up was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/7
 - PR #8 Hermes Claude CLI policy adoption docs-only cleanup was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/8
 - PR #9 Epic 4 / Slice 4.1.1 Naver Maps client wrapper was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/9
+- Epic 4 / Slice 4.1.2 map page shell is implemented locally on branch `codex/map-page-shell`, reviewed by Claude with `NO REQUIRED FIXES`, and verified with Vitest, Playwright, build, browser smoke, and CLS 0.
 
 ## Next Action
 
-Continue Epic 4 / Slice 4.1.2 map page shell / filter read path work.
+Land Epic 4 / Slice 4.1.2 map page shell, then continue Epic 4 / Slice 4.2.1 filter state + chip UI.
 
 Candidate next work:
 
-1. Select the narrow Slice 4.1.2 scope against the current root-page UGC form layout.
-2. Keep optional housekeeping separate unless it blocks product work.
+1. Push `codex/map-page-shell` and open/merge a PR after checks pass.
+2. Continue Epic 4 / Slice 4.2.1 filter state + chip UI.
+3. Keep optional housekeeping separate unless it blocks product work.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
+- Epic 4 / Slice 4.1.2 map page shell is not yet landed on `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

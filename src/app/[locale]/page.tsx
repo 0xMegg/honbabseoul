@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
+import { Header } from "@/lib/features/layout/Header";
 import { MapClient } from "@/lib/features/map/MapClient";
 import { submitRestaurantAction } from "./actions";
 import { ClearSubmissionFlashCookie } from "./clear-submission-flash-cookie";
@@ -40,123 +41,124 @@ export default async function Home({ params, searchParams }: HomeProps) {
   const submitAction = submitRestaurantAction.bind(null, locale);
   const naverMapsClientId = publicEnv.naverMapsClientId;
   const submissionStatus = parseSubmissionStatus(query.submission);
-  const preservedFormValues =
-    shouldPreserveFormValues(submissionStatus)
-      ? decodePreservedFormValues((await cookies()).get(UGC_FORM_FLASH_COOKIE)?.value)
-      : EMPTY_PRESERVED_FORM_VALUES;
+  const preservedFormValues = shouldPreserveFormValues(submissionStatus)
+    ? decodePreservedFormValues((await cookies()).get(UGC_FORM_FLASH_COOKIE)?.value)
+    : EMPTY_PRESERVED_FORM_VALUES;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-5 py-8">
-      <header className="space-y-3">
-        <p className="text-sm font-semibold text-brand">{t("eyebrow")}</p>
-        <h1 className="text-2xl font-semibold text-text">{t("title")}</h1>
-        <p className="text-sm leading-6 text-text-muted">{t("description")}</p>
-      </header>
+    <main className="min-h-screen bg-bg">
+      <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-5 px-5 py-5 md:px-8 md:py-8">
+        <Header description={t("description")} eyebrow={t("eyebrow")} title={t("title")} />
 
-      {submissionStatus ? (
-        <p
-          className="rounded-md border border-border bg-surface p-3 text-sm"
-          role={submissionFeedbackRole(submissionStatus)}
-        >
-          {t(`submissionStatus.${submissionStatus}`)}
-        </p>
-      ) : null}
-
-      {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
-
-      <MapClient
-        clientId={naverMapsClientId}
-        label={t("map.label")}
-        loadingLabel={t("map.loading")}
-        errorLabel={t("map.error")}
-      />
-
-      <form action={submitAction} className="space-y-5">
-        <label className="block space-y-2">
-          <span className="text-sm font-semibold">{t("form.name")}</span>
-          <input
-            className="w-full rounded-md border border-border bg-bg px-3 py-2"
-            defaultValue={preservedFormValues.name}
-            maxLength={120}
-            name="name"
-            required
-            type="text"
-          />
-        </label>
-
-        <label className="block space-y-2">
-          <span className="text-sm font-semibold">{t("form.naverUrl")}</span>
-          <input
-            className="w-full rounded-md border border-border bg-bg px-3 py-2"
-            defaultValue={preservedFormValues.naverUrl}
-            name="naverUrl"
-            required
-            type="url"
-          />
-        </label>
-
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-semibold">{t("form.isSolo")}</legend>
-          <RadioPair
-            name="isSolo"
-            no={t("form.no")}
-            value={preservedFormValues.isSolo}
-            yes={t("form.yes")}
-          />
-        </fieldset>
-
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-semibold">{t("form.hasJpMenu")}</legend>
-          <RadioPair
-            name="hasJpMenu"
-            no={t("form.no")}
-            value={preservedFormValues.hasJpMenu}
-            yes={t("form.yes")}
-          />
-        </fieldset>
-
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-semibold">{t("form.isLateNight")}</legend>
-          <RadioPair
-            name="isLateNight"
-            no={t("form.no")}
-            value={preservedFormValues.isLateNight}
-            yes={t("form.yes")}
-          />
-        </fieldset>
-
-        <label className="block space-y-2">
-          <span className="text-sm font-semibold">{t("form.priceRange")}</span>
-          <select
-            className="w-full rounded-md border border-border bg-bg px-3 py-2"
-            defaultValue={preservedFormValues.priceRange}
-            name="priceRange"
+        {submissionStatus ? (
+          <p
+            className="rounded-md border border-border bg-surface p-3 text-sm"
+            role={submissionFeedbackRole(submissionStatus)}
           >
-            <option value="">{t("form.priceUnknown")}</option>
-            <option value="low">{t("form.priceLow")}</option>
-            <option value="mid">{t("form.priceMid")}</option>
-            <option value="high">{t("form.priceHigh")}</option>
-          </select>
-        </label>
+            {t(`submissionStatus.${submissionStatus}`)}
+          </p>
+        ) : null}
 
-        <label className="block space-y-2">
-          <span className="text-sm font-semibold">{t("form.reason")}</span>
-          <textarea
-            className="min-h-28 w-full rounded-md border border-border bg-bg px-3 py-2"
-            defaultValue={preservedFormValues.reason}
-            maxLength={500}
-            name="reason"
-            required
-          />
-        </label>
+        {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
 
-        <button
-          className="w-full rounded-md bg-brand px-4 py-3 font-semibold text-text-invert transition hover:bg-brand-hover"
-          type="submit"
-        >
-          {t("form.submit")}
-        </button>
-      </form>
+        <MapClient
+          className="min-h-0 flex-1 space-y-2"
+          containerClassName="h-[58vh] min-h-[420px] flex-1 md:h-auto"
+          clientId={naverMapsClientId}
+          label={t("map.label")}
+          loadingLabel={t("map.loading")}
+          errorLabel={t("map.error")}
+        />
+      </section>
+
+      <section className="mx-auto w-full max-w-2xl px-5 pb-10 pt-4 md:pb-14">
+        <form action={submitAction} className="space-y-5">
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold">{t("form.name")}</span>
+            <input
+              className="w-full rounded-md border border-border bg-bg px-3 py-2"
+              defaultValue={preservedFormValues.name}
+              maxLength={120}
+              name="name"
+              required
+              type="text"
+            />
+          </label>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold">{t("form.naverUrl")}</span>
+            <input
+              className="w-full rounded-md border border-border bg-bg px-3 py-2"
+              defaultValue={preservedFormValues.naverUrl}
+              name="naverUrl"
+              required
+              type="url"
+            />
+          </label>
+
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-semibold">{t("form.isSolo")}</legend>
+            <RadioPair
+              name="isSolo"
+              no={t("form.no")}
+              value={preservedFormValues.isSolo}
+              yes={t("form.yes")}
+            />
+          </fieldset>
+
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-semibold">{t("form.hasJpMenu")}</legend>
+            <RadioPair
+              name="hasJpMenu"
+              no={t("form.no")}
+              value={preservedFormValues.hasJpMenu}
+              yes={t("form.yes")}
+            />
+          </fieldset>
+
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-semibold">{t("form.isLateNight")}</legend>
+            <RadioPair
+              name="isLateNight"
+              no={t("form.no")}
+              value={preservedFormValues.isLateNight}
+              yes={t("form.yes")}
+            />
+          </fieldset>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold">{t("form.priceRange")}</span>
+            <select
+              className="w-full rounded-md border border-border bg-bg px-3 py-2"
+              defaultValue={preservedFormValues.priceRange}
+              name="priceRange"
+            >
+              <option value="">{t("form.priceUnknown")}</option>
+              <option value="low">{t("form.priceLow")}</option>
+              <option value="mid">{t("form.priceMid")}</option>
+              <option value="high">{t("form.priceHigh")}</option>
+            </select>
+          </label>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold">{t("form.reason")}</span>
+            <textarea
+              className="min-h-28 w-full rounded-md border border-border bg-bg px-3 py-2"
+              defaultValue={preservedFormValues.reason}
+              maxLength={500}
+              name="reason"
+              required
+            />
+          </label>
+
+          <button
+            className="w-full rounded-md bg-brand px-4 py-3 font-semibold text-text-invert transition hover:bg-brand-hover"
+            type="submit"
+          >
+            {t("form.submit")}
+          </button>
+        </form>
+      </section>
     </main>
   );
 }
@@ -175,23 +177,11 @@ function RadioPair({
   return (
     <div className="grid grid-cols-2 gap-2">
       <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-        <input
-          defaultChecked={value === "true"}
-          name={name}
-          required
-          type="radio"
-          value="true"
-        />
+        <input defaultChecked={value === "true"} name={name} required type="radio" value="true" />
         <span>{yes}</span>
       </label>
       <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-        <input
-          defaultChecked={value === "false"}
-          name={name}
-          required
-          type="radio"
-          value="false"
-        />
+        <input defaultChecked={value === "false"} name={name} required type="radio" value="false" />
         <span>{no}</span>
       </label>
     </div>

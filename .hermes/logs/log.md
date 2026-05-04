@@ -463,3 +463,35 @@ Follow-up:
 
 - PR #9 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
 - PR #9 was squash-merged into `dev` as `4289fa3430094390530f5f1938ab99116a390723`.
+
+## 2026-05-04 — Epic 4 Slice 4.1.2 Map Page Shell
+
+Plan:
+
+- Keep the slice scoped to map-first page shell, localized header, and UGC form placement.
+- Exclude pins, filters, bottom sheet, and restaurant data fetching.
+- Let the shell control the inner map container height through `MapClient.containerClassName`.
+
+Decision:
+
+- Added a reusable `Header` component for the logo and localized heading copy.
+- Reworked `/[locale]` into a map-first first viewport while keeping the UGC submission form as a lower page section.
+- Added `MapClient` shell styling props and guarded map-constructor failures so Naver SDK/auth failures do not crash the app.
+
+Reason:
+
+- Slice 4.1.2 should establish the read-path visual shell before filter/pin/bottom-sheet behavior lands.
+- Keeping UGC on the same page preserves the existing working submission flow while moving primary product value toward the map.
+- Map loading/error copy must not reuse submission live-region roles.
+
+Claude review:
+
+- Claude reviewed the plan and required one clarification: apply external height control to the inner map div via `containerClassName`.
+- Claude reviewed the implementation and returned `NO REQUIRED FIXES`.
+
+Verification:
+
+- Full Vitest passed: 9 files, 60 tests.
+- `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
+- Playwright E2E passed: 6 tests.
+- Browser smoke against local mobile `/ja` confirmed heading visible, map box `372x530.6875`, submit button visible, no captured console/page errors, and CLS `0`.
