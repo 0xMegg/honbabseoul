@@ -30,7 +30,7 @@ async function redirectWithStatus(
   const params = new URLSearchParams({ submission: status });
   const cookieStore = await cookies();
 
-  if (status === "invalid" && formData) {
+  if ((status === "invalid" || status === "error") && formData) {
     cookieStore.set(
       UGC_FORM_FLASH_COOKIE,
       encodePreservedFormValues(preservedValuesFromFormData(formData)),
@@ -47,6 +47,10 @@ async function redirectWithStatus(
   }
 
   redirect(`/${locale}?${params.toString()}`);
+}
+
+export async function clearSubmissionFlashCookieAction(): Promise<void> {
+  (await cookies()).delete(UGC_FORM_FLASH_COOKIE);
 }
 
 export async function submitRestaurantAction(locale: string, formData: FormData): Promise<void> {
@@ -68,7 +72,7 @@ export async function submitRestaurantAction(locale: string, formData: FormData)
       await redirectWithStatus(locale, "invalid", formData);
     }
     if (error instanceof SubmissionDatabaseError) {
-      await redirectWithStatus(locale, "error");
+      await redirectWithStatus(locale, "error", formData);
     }
     throw error;
   }

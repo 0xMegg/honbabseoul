@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { submitRestaurantAction } from "./actions";
+import { ClearSubmissionFlashCookie } from "./clear-submission-flash-cookie";
 import {
   decodePreservedFormValues,
   EMPTY_PRESERVED_FORM_VALUES,
@@ -27,13 +28,17 @@ function submissionFeedbackRole(status: SubmissionStatus): "alert" | "status" {
   return status === "success" ? "status" : "alert";
 }
 
+function shouldPreserveFormValues(status: SubmissionStatus | null): boolean {
+  return status === "invalid" || status === "error";
+}
+
 export default async function Home({ params, searchParams }: HomeProps) {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
   const t = await getTranslations("home");
   const submitAction = submitRestaurantAction.bind(null, locale);
   const submissionStatus = parseSubmissionStatus(query.submission);
   const preservedFormValues =
-    submissionStatus === "invalid"
+    shouldPreserveFormValues(submissionStatus)
       ? decodePreservedFormValues((await cookies()).get(UGC_FORM_FLASH_COOKIE)?.value)
       : EMPTY_PRESERVED_FORM_VALUES;
 
@@ -53,6 +58,8 @@ export default async function Home({ params, searchParams }: HomeProps) {
           {t(`submissionStatus.${submissionStatus}`)}
         </p>
       ) : null}
+
+      {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
 
       <form action={submitAction} className="space-y-5">
         <label className="block space-y-2">

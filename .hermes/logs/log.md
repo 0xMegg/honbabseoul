@@ -377,3 +377,25 @@ Verification:
 - `playwright test` passed against a local Next dev server: 6 tests.
 - Claude follow-up review was requested after the initial query-string implementation and returned required fixes for URL privacy, fabricated-query E2E coverage, and key drift; those fixes were applied before final verification.
 - Claude final re-review returned `NO REQUIRED FIXES`; optional note only: cookie-size headroom is thin but within typical per-cookie limits for current field caps.
+
+## 2026-05-04 — UGC Invalid Input Preservation Follow-up
+
+Decision:
+
+- Made `hb_ugc_form` one-shot by rendering a client component on invalid/error feedback pages that calls a Server Action to delete the HTTP-only flash cookie after the first render.
+- Preserved submitted form values for `SubmissionDatabaseError` because the failure is backend-caused, not user-caused.
+- Added focused unit coverage for invalid/error cookie preservation, success/error cleanup, explicit flash-cookie clearing, and `submission-flash.ts` encode/decode normalization.
+
+Reason:
+
+- Server Components can read the flash cookie for first render, while the Server Action preserves HTTP-only deletion semantics without exposing submitted free-form values to the browser URL.
+- DB-write failures should let the user retry without retyping, while success must clear any stale preserved values.
+
+Verification:
+
+- Local `pnpm` was unavailable in the Codex shell PATH, so verification used bundled Node plus local project binaries.
+- Targeted Vitest passed: `src/app/[locale]/submission-flash.test.ts` and `src/app/[locale]/actions.test.ts`, 7 tests.
+- Full Vitest passed: 7 files, 53 tests.
+- `next build` completed successfully.
+- Standalone `eslint .` failed before linting source because the current install cannot resolve `eslint-plugin-react-hooks` from `eslint-config-next/core-web-vitals`; `next build` printed the same ESLint plugin failure but still completed type/build output.
+- Claude review was attempted with full working-tree inspection but the default invocation produced no output and was killed after repeated waits; `claude auth status` reported logged in, and a lower-effort `sonnet` review completed with `NO REQUIRED FIXES`.
