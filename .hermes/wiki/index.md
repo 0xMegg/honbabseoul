@@ -20,6 +20,7 @@ Every durable wiki page must cite its source material.
 | `../policy/automation.md` | Change classification and automation boundary |
 | `../policy/promotion.md` | Core/project operating-rule promotion and propagation |
 | `../policy/harness-review.md` | Adopted Core incubating review policy for Hermes operating-layer changes |
+| `../policy/claude-cli.md` | Adopted Core Claude CLI invocation boundary |
 
 ## Raw Sources
 

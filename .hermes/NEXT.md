@@ -27,26 +27,24 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Added Vercel env `NEXT_PUBLIC_SUPABASE_URL` for production/preview/development.
 - Vercel deployment `dpl_CBreYYS6RGRKzEBTRYLKdAwV4FM8` for commit `219fc63` reached `READY`.
 - Final protected-deployment smoke passed on `https://honbabseoul-mu25phxbt-meggs-projects.vercel.app/ja`: HTML contained the Japanese home/form surface, browser submission returned POST 303 and `submission=success`, the smoke row was inserted as `pending`, and the smoke row cleanup was verified.
-- UGC invalid form input preservation follow-up is implemented locally on branch `codex/ugc-invalid-input-preservation`: `hb_ugc_form` is cleared by a client-triggered Server Action after invalid/error render, `SubmissionDatabaseError` preserves submitted values, and focused Vitest coverage was added.
-- Hermes Claude CLI policy adoption files exist locally but are not landed on `dev`; `.hermes/logs/log.md` already records adoption, so durable state needs a follow-up docs-only cleanup after the UGC runtime fix.
+- PR #7 UGC invalid form input preservation follow-up was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/7
+- Hermes Claude CLI policy adoption docs-only cleanup is implemented locally on branch `codex/hermes-claude-cli-policy` and reviewed by Claude with `NO REQUIRED FIXES`.
 
 ## Next Action
 
-Review and land the UGC invalid input preservation fix, then clean up the Hermes Claude CLI policy adoption state as a separate docs-only follow-up.
+Land the Hermes Claude CLI policy adoption docs-only cleanup, then continue the next product slice from the project plan.
 
 Candidate next work:
 
-1. Run PR review for the local UGC follow-up and address any required fixes.
-2. Land PR #7 when review and verification are clean.
-3. Land or correct the Hermes Claude CLI policy adoption state as a separate docs-only cleanup.
-4. Then continue the next product slice from the project plan.
+1. Commit and push `codex/hermes-claude-cli-policy`.
+2. Open/merge a docs-only PR after checks pass.
+3. Then continue the next product slice from the project plan.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
-- PR #7 UGC invalid input preservation has local follow-up fixes and needs review before merge.
-- Hermes Claude CLI policy adoption is partially recorded but not fully landed on `dev`.
+- Hermes Claude CLI policy adoption docs-only cleanup is not yet landed on `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
