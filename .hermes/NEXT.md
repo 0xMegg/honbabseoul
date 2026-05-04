@@ -28,23 +28,21 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Vercel deployment `dpl_CBreYYS6RGRKzEBTRYLKdAwV4FM8` for commit `219fc63` reached `READY`.
 - Final protected-deployment smoke passed on `https://honbabseoul-mu25phxbt-meggs-projects.vercel.app/ja`: HTML contained the Japanese home/form surface, browser submission returned POST 303 and `submission=success`, the smoke row was inserted as `pending`, and the smoke row cleanup was verified.
 - PR #7 UGC invalid form input preservation follow-up was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/7
-- Hermes Claude CLI policy adoption docs-only cleanup is implemented locally on branch `codex/hermes-claude-cli-policy` and reviewed by Claude with `NO REQUIRED FIXES`.
+- PR #8 Hermes Claude CLI policy adoption docs-only cleanup was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/8
 
 ## Next Action
 
-Land the Hermes Claude CLI policy adoption docs-only cleanup, then continue the next product slice from the project plan.
+Continue the next product slice from the project plan.
 
 Candidate next work:
 
-1. Commit and push `codex/hermes-claude-cli-policy`.
-2. Open/merge a docs-only PR after checks pass.
-3. Then continue the next product slice from the project plan.
+1. Select the next product slice from the project plan.
+2. Keep optional housekeeping separate unless it blocks product work.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
-- Hermes Claude CLI policy adoption docs-only cleanup is not yet landed on `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

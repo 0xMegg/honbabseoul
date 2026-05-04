@@ -425,3 +425,8 @@ Claude review:
 Verification:
 
 - Diff is limited to `AGENTS.md`, `.hermes/policy/claude-cli.md`, `.hermes/wiki/index.md`, `.hermes/wiki/log.md`, `.hermes/NEXT.md`, and `.hermes/logs/log.md`.
+
+Follow-up:
+
+- PR #8 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
+- PR #8 was squash-merged into `dev` as `45247c8d605bd16e77a410396481a3878c13c041`.
