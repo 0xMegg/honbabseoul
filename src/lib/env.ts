@@ -24,6 +24,10 @@ export class MissingEnvError extends Error {
 
 export function requireEnv(key: string): string {
   const value = process.env[key];
+  return requireEnvValue(key, value);
+}
+
+function requireEnvValue(key: string, value: string | undefined): string {
   if (value === undefined || value === "") {
     throw new MissingEnvError(key);
   }
@@ -45,19 +49,31 @@ export function requireFirstEnv(keys: readonly string[]): string {
  */
 export const publicEnv = {
   get supabaseUrl(): string {
-    return requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+    return requireEnvValue(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    );
   },
   get supabasePublicKey(): string {
-    return requireFirstEnv([
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    if (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+      return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    }
+    return requireEnvValue(
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    ]);
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    );
   },
   get supabaseAnonKey(): string {
-    return requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    return requireEnvValue(
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    );
   },
   get naverMapsClientId(): string {
-    return requireEnv("NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID");
+    return requireEnvValue(
+      "NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID",
+      process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID,
+    );
   },
 } as const;
 

@@ -34,17 +34,19 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #11 Epic 4 / Slice 4.2.1 filter state + chip UI was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/11
 - PR #12 Epic 4 / Slice 4.2.2 restaurant pin layer was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/12
 - PR #13 Epic 4 / Slice 4.3.1 bottom sheet detail was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/13
+- Local read-path stability fixes are implemented: localhost Naver SDK loading is disabled by default unless `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`, map auth/constructor failure now shows the map error fallback, filter chips are disabled until hydration, and headless coverage now asserts fallback + filter transition stability.
+- Verification gap diagnosis is recorded in `.hermes/logs/log.md`; future user-facing tasks need real headless workflow coverage, not only unit/shallow smoke checks.
 
 ## Next Action
 
-Reassess Epic 4 read-path acceptance gaps.
+Package the current read-path stability fix for review, then decide the next product slice.
 
 Candidate next work:
 
-1. Check seed-data pin visibility and whether production/dev data has enough approved coordinate-bearing restaurants.
-2. Decide whether clustering/custom marker UI remains required for MVP or can be deferred.
-3. Add read-path E2E coverage for pin click to bottom sheet when deterministic seed data is available.
-4. Keep optional housekeeping separate unless it blocks product work.
+1. Commit or PR the current fixes: Naver SDK `ncpKeyId`, browser-safe `NEXT_PUBLIC_*` env reads, localhost SDK opt-in, auth/fallback hardening, hydration guard, and E2E fallback coverage.
+2. Keep real Naver verification as an explicit manual/headless gate: `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` on local dev, then verify tiles, markers, filter transitions, and marker-to-bottom-sheet detail.
+3. Decide the next product slice only after this fix is reviewed; likely candidates are marker UX polish, clustering/custom marker UI, or seed-data/read-path acceptance work.
+4. Keep optional housekeeping separate unless it blocks the read-path fixes.
 
 ## Open Gates
 
@@ -53,6 +55,7 @@ Candidate next work:
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
+- Real Naver Maps local verification succeeds when localhost SDK loading is intentionally enabled and the NCP whitelist is configured. Default localhost SDK loading remains disabled so routine local sessions do not depend on NCP/network availability.
 
 ## Verification Defaults
 

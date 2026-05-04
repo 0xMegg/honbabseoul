@@ -452,7 +452,7 @@ Claude review:
 
 Verification:
 
-- Official Naver Maps JavaScript API v3 docs checked for the SDK URL format: `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=...`.
+- Later rechecked on 2026-05-04: the NCP JavaScript API docs now state that the SDK query parameter changed from `ncpClientId` to `ncpKeyId`. The old line below was stale and caused a local auth false-negative.
 - Local `.env.local` contains `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`.
 - Full Vitest passed: 8 files, 57 tests.
 - `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
@@ -613,3 +613,193 @@ Follow-up:
 
 - PR #13 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
 - PR #13 was squash-merged into `dev` as `a98975995805435682a83d0b73985fe8144bd7dd`.
+
+## 2026-05-04 — Headless Read Path Audit
+
+Plan:
+
+- Verify the merged `dev` branch through a real headless browser rather than relying only on the existing smoke suite.
+- Cover locale routing, Japanese/Korean render, filter chip interaction, Naver Maps SDK readiness, invalid submission preservation, and valid submission success.
+- Clean up any smoke submission row created during the valid submission scenario.
+
+Findings:
+
+- Existing Playwright smoke passed: 6 tests.
+- `/` redirected to `/ja`; `/ja` and `/ko` primary text and form surfaces rendered.
+- Invalid submission preserved entered values and valid submission reached `submission=success`.
+- Naver Maps SDK script loaded, but Naver validation reported `Authentication Failed` for `http://localhost:3000/ja`; `window.naver.maps.Map` and `window.naver.maps.Marker` stayed unavailable.
+- The map container remained empty in the headless audit, and the user-facing map error label did not appear in the observed body text.
+- Clicking the `日本語メニューあり` filter chip changed the URL to `/ja?solo=1&jp=1&late=0`, then the page showed a client-side application error. Directly opening the same URL rendered normally with the expected filter state.
+
+Decision:
+
+- Treat these as the next product task before clustering, custom marker UI, or broader read-path enhancements.
+- Next work should fix Naver Maps local/dev auth, add a visible SDK-auth failure fallback, isolate the filter client-transition crash, and expand E2E coverage to include map/error/filter behavior.
+
+Verification:
+
+- Headless audit ran against local `dev` with a `Pixel 7` Chromium profile.
+- The generated valid-submission smoke row `Codex smoke 1777885680099` was deleted from Supabase after verification.
+
+## 2026-05-04 — Local Read Path Stability Fix
+
+Plan:
+
+- Prevent Naver Maps localhost auth failure from leaving the app in a partially initialized SDK state.
+- Keep filter chip transitions stable under map failure and under very fast post-render clicks.
+- Add regression coverage for the visible map fallback and filter URL transition.
+
+Decision:
+
+- `useNaverMapsSdk` now marks loaded/failed SDK scripts with dataset state, treats already-failed SDK scripts as `error`, and disables SDK loading on localhost by default unless `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`.
+- `.env.local.example` documents the opt-in flag and ties it to NCP web service URL whitelist setup.
+- `MapClient` now detects the case where Naver auth removes map constructors after initial map creation, clears map-owned DOM/marker state, and shows the map error fallback.
+- `FilterBar` disables chip buttons until hydration so very fast clicks do not get lost before React event handlers attach.
+- Playwright smoke now mocks an auth-failed Naver SDK and asserts that the fallback appears, filter URL transition completes, and no `Application error` is shown.
+
+Verification:
+
+- Targeted Vitest passed: `FilterBar` and `MapClient`, 14 tests.
+- Full Vitest passed: 13 files, 79 tests.
+- Playwright E2E passed: 7 tests.
+- Real headless audit against local `dev` passed all 7 scenarios after the fix; filter chips reached `/ja?solo=1&jp=1&late=1`, fallback text appeared, and no page errors were captured.
+- `next build` completed successfully.
+- Supabase smoke rows created during valid-submission verification were cleaned up: 3 rows deleted.
+
+## 2026-05-04 — Verification Gap Diagnosis
+
+Diagnosis:
+
+- Prior Epic 4 completion claims were too dependent on unit tests, shallow Playwright smoke, and limited browser smoke.
+- The existing smoke suite confirmed locale rendering and form basics, but it did not prove the core user read path: real SDK readiness/failure, filter click transitions, marker visibility, marker click, or bottom-sheet selection.
+- Naver Maps created a misleading success signal: the SDK script returned HTTP 200, but Naver validation failed with `Authentication Failed`, leaving the browser in a partial SDK state. Previous checks did not assert `window.naver.maps.Map`, visible fallback, or marker DOM behavior.
+- The filter bug was timing-sensitive: direct loading `?solo=1&jp=1&late=0` rendered correctly, while a real click transition after SDK auth failure could show a client-side application error. Previous verification did not exercise that transition under failure conditions.
+- Fast user interaction also exposed a hydration gap: filter buttons could be clicked before React handlers were attached. Previous tests clicked after test-render hydration and did not represent that user timing.
+
+Policy for future Hermes work:
+
+- User-facing product tasks are not done until at least one real headless scenario exercises the primary workflow, not just component tests or route render smoke.
+- External SDK features require both success-path and failure-path verification. For maps, assert at minimum one of: usable `Map`/`Marker` constructors with tiles/markers, or a visible user-facing fallback.
+- Route/query UI changes must be verified through real click transitions and direct URL loads.
+- Form flows that write remote data must include cleanup verification for smoke rows.
+- Completion logs must record what was actually observed, not just which commands passed.
+
+Carry-over:
+
+- After NCP web service URL whitelist is configured, re-enable local Naver SDK loading with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` and verify real tiles, markers, marker click, and bottom-sheet detail.
+
+## 2026-05-04 — Claude Review of Local Read Path Stability Fix
+
+Plan:
+
+- Ask Claude CLI to review the current uncommitted map/filter stability changes without editing files.
+- Focus the review on required fixes in `useNaverMapsSdk.ts`, `MapClient.tsx`, `FilterBar.tsx`, and `e2e/smoke.spec.ts`.
+
+Invocation notes:
+
+- `claude auth status` failed in the GUI shell because `claude` was not on PATH.
+- `/opt/homebrew/bin/claude auth status` succeeded with Claude.ai auth.
+- Initial non-TTY and broad review invocations hung without output and were stopped.
+- The successful invocation used `/opt/homebrew/bin/claude -p` with TTY, `--model sonnet`, `--effort low`, `--tools Read,Grep`, `--permission-mode dontAsk`, and `--no-session-persistence`.
+
+Claude result:
+
+- `NO REQUIRED FIXES`.
+- Claude found the SDK status handling, map cleanup/watchdog, filter hydration guard, and Naver auth-failure E2E stub to be safe.
+
+Residual risk:
+
+- Real Naver tile/marker/bottom-sheet verification still depends on NCP URL whitelist setup and `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`.
+
+## 2026-05-04 — Claude Plan for Real Naver Maps Verification
+
+Plan source:
+
+- Claude CLI was asked to plan the next task without editing files.
+- Invocation used `/opt/homebrew/bin/claude -p` with TTY, `--model sonnet`, `--effort low`, `--tools Read,Grep`, `--permission-mode dontAsk`, and `--no-session-persistence`.
+
+Claude plan summary:
+
+- Treat the next task as human-gated verification after NCP URL whitelist setup, not as a new feature slice.
+- Prerequisites: add `http://localhost:3000` to the NCP Maps web service URL whitelist, set `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` locally, confirm `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`, and confirm at least one approved restaurant has non-null coordinates.
+- Verification scope: real map tiles render, approved coordinate-bearing restaurant markers appear, marker click opens the bottom sheet, filter chips still update URL without crashing, and the fallback path still works when localhost SDK loading is disabled.
+- Existing fallback E2E should remain stubbed; any real Naver SDK E2E should be a separate explicit suite so default CI does not depend on NCP/network availability.
+- Out of scope: custom markers, clustering, production deployment verification, Supabase migrations, broad seed tooling, and changing the default `.env.local.example` value from `false`.
+
+Codex correction:
+
+- Claude's draft SQL used placeholder column names `name`, `lat`, and `lng`; the actual `restaurants` columns are `name_ja`, `name_ko`, `latitude`, and `longitude`.
+
+## 2026-05-04 — Codex/Claude Progress on Real Naver Verification Gate
+
+Plan:
+
+- Use Codex to check the concrete prerequisites and run real headless verification.
+- Use Claude to validate the next fix direction when real SDK behavior exposes additional failure modes.
+
+Codex findings:
+
+- `.env.local` has `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=5xcs9i2c5v`.
+- `.env.local` does not currently set `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`; the local default remains SDK-disabled.
+- Supabase has enough marker data for a meaningful map demo: at least 10 `approved` restaurants with non-null `latitude` and `longitude`.
+- When the dev server is started with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`, Naver still returns `Authentication Failed` for `http://localhost:3000/ja`, so the NCP web service URL whitelist is still not configured for local verification.
+
+Claude-guided fix:
+
+- Claude diagnosed a two-phase Naver auth failure: the SDK can expose constructors after script load, then revoke them after async auth validation.
+- Claude required two defenses: post-load auth validation in `useNaverMapsSdk`, and constructor-safe marker usage in `MapClient`.
+- Codex implemented post-load validation before marking the SDK `ready`, added `LatLng`/`Marker` constructor guards, and wrapped Naver cleanup calls (`removeListener`, `marker.setMap(null)`, `map.destroy()`) because auth failure can make Naver cleanup APIs throw.
+
+Verification:
+
+- Targeted `MapClient` Vitest passed: 14 tests.
+- Full Vitest passed: 13 files, 82 tests.
+- Playwright E2E passed: 7 tests.
+- Real headless auth-failure stack check with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` and missing NCP whitelist reached `/ja?solo=1&jp=1&late=1`, showed the Japanese map fallback, and captured no page errors after cleanup hardening.
+- `next build` completed successfully.
+- Claude reviewed the final hardening and returned `NO REQUIRED FIXES`.
+
+Carry-over:
+
+- The only remaining gate for real map tiles/markers is external NCP configuration: add `http://localhost:3000` to the Naver Maps web service URL whitelist, then rerun the real SDK verification.
+
+## 2026-05-04 — NCP Console Access Attempt
+
+Codex check:
+
+- Opened NCP from the Codex in-app browser and navigated to `https://console.ncloud.com/`.
+- NCP redirected to `https://auth.ncloud.com/login`.
+- No NCP CLI/API credentials or local NCP command-line tools were found in the project environment.
+
+Gate:
+
+- NCP web service URL whitelist configuration requires user login/authentication in the NCP console.
+- This is a human gate; Codex should resume after the user logs in and adds `http://localhost:3000` to the Naver Maps web service URL whitelist, or after the user confirms a logged-in browser session is available for this task.
+
+## 2026-05-04 — Real Naver Verification After User NCP Confirmation
+
+Trigger:
+
+- User confirmed the NCP application id `5xcs9i2c5v`, `Dynamic Map` selection, and local service URLs including `http://localhost:3000/ja`.
+
+Codex findings:
+
+- Official Naver Maps NCP documentation was rechecked. The current NCP JavaScript SDK load parameter is `ncpKeyId`; older docs/examples still mention `ncpClientId`, which caused the local auth false-negative.
+- The app was still generating `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=...`; Naver returned `Authentication Failed` even with the user's whitelist configuration.
+- After changing the SDK URL to `ncpKeyId`, real headless verification showed `window.naver.maps.Map`, `Marker`, and `LatLng` available and the SDK script status `ready`.
+- Marker click then exposed a separate browser-only env bug: `publicEnv` used dynamic `process.env[key]` lookup, so `NEXT_PUBLIC_SUPABASE_URL` was not inlined into the Next client bundle. Server render had restaurant data, but marker-to-detail failed when the browser tried to create a Supabase client.
+
+Fix:
+
+- `buildNaverMapsSdkUrl` now emits `ncpKeyId`.
+- `.env.local.example` documents that the NCP key/client id is authenticated through `ncpKeyId`.
+- `publicEnv` now reads `process.env.NEXT_PUBLIC_*` through direct property access so Next can inline browser public env values.
+
+Verification:
+
+- Targeted `MapClient` Vitest passed: 14 tests.
+- Full Vitest passed: 13 files, 82 tests.
+- Playwright E2E passed: 7 tests.
+- `next build` completed successfully; the pre-existing missing `eslint-plugin-react-hooks` warning still appears during lint/type check, but build output completed.
+- Real headless map flow with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` passed: SDK URL used `ncpKeyId`, SDK status was `ready`, fallback was absent, 22 marker-like DOM elements were observed, a visible marker click opened the Japanese bottom sheet for `明洞ぼっちラーメン`, and no browser console/page errors were captured.
+- Claude reviewed the current fixes and returned `NO REQUIRED FIXES`.

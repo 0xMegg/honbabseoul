@@ -8,6 +8,15 @@ import { expect, test } from "@playwright/test";
  * or the first submission surface regressed.
  */
 test.describe("locale smoke", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("https://oapi.map.naver.com/openapi/v3/maps.js**", async (route) => {
+      await route.fulfill({
+        contentType: "application/javascript",
+        body: "window.naver = { maps: {} };",
+      });
+    });
+  });
+
   test("/ja renders the Japanese greeting", async ({ page }) => {
     await page.goto("/ja");
     const heading = page.getByRole("heading", { level: 1 });
@@ -95,5 +104,22 @@ test.describe("locale smoke", () => {
     await expect(page.locator('input[name="isLateNight"]:checked')).toHaveCount(0);
     await expect(page.locator('select[name="priceRange"]')).toHaveValue("");
     await expect(page.locator('textarea[name="reason"]')).toHaveValue("");
+  });
+
+  test("map auth failure shows a fallback and filter transitions stay stable", async ({ page }) => {
+    await page.goto("/ja");
+
+    await expect(page.getByText("地図を読み込めませんでした。")).toBeVisible();
+
+    await page.getByRole("button", { name: "日本語メニューあり" }).click();
+
+    await expect(page).toHaveURL(/\/ja\?solo=1&jp=1&late=0$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("혼밥서울へようこそ");
+    await expect(page.getByRole("button", { name: "日本語メニューあり" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.getByText("地図を読み込めませんでした。")).toBeVisible();
+    await expect(page.getByText("Application error")).toHaveCount(0);
   });
 });

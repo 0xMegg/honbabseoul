@@ -44,7 +44,14 @@ export function MapClient({
   const status = useNaverMapsSdk(clientId);
 
   useEffect(() => {
-    if (status !== "ready" || !containerRef.current || !window.naver?.maps) return;
+    if (
+      status !== "ready" ||
+      !containerRef.current ||
+      !window.naver?.maps?.Map ||
+      !window.naver.maps.LatLng
+    ) {
+      return;
+    }
     if (mapRef.current) return;
 
     try {
@@ -67,29 +74,30 @@ export function MapClient({
       markersRef.current = [];
       markerListenersRef.current = [];
       setMapReady(false);
-      mapRef.current?.destroy?.();
+      destroyMap(mapRef.current);
       mapRef.current = null;
     };
   }, [center.lat, center.lng, status, zoom]);
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !window.naver?.maps?.Marker) return;
+    const maps = window.naver?.maps;
+    if (!mapReady || !mapRef.current || !maps?.Marker || !maps.LatLng) return;
 
     clearMarkers(markersRef.current, markerListenersRef.current);
     markersRef.current = [];
     markerListenersRef.current = [];
 
     for (const restaurant of restaurants.filter(hasCoordinates)) {
-      const marker = new window.naver.maps.Marker({
+      const marker = new maps.Marker({
         map: mapRef.current,
-        position: new window.naver.maps.LatLng(restaurant.latitude, restaurant.longitude),
+        position: new maps.LatLng(restaurant.latitude, restaurant.longitude),
         title: restaurant.name_ja ?? restaurant.name_ko ?? undefined,
       });
       markersRef.current.push(marker);
 
-      if (onRestaurantSelect && window.naver.maps.Event) {
+      if (onRestaurantSelect && maps.Event) {
         markerListenersRef.current.push(
-          window.naver.maps.Event.addListener(marker, "click", () => {
+          maps.Event.addListener(marker, "click", () => {
             onRestaurantSelect(restaurant.id);
           }),
         );
@@ -102,6 +110,27 @@ export function MapClient({
       markerListenersRef.current = [];
     };
   }, [mapReady, onRestaurantSelect, restaurants]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+
+    const intervalId = window.setInterval(() => {
+      if (window.naver?.maps?.Map) return;
+
+      clearMarkers(markersRef.current, markerListenersRef.current);
+      markersRef.current = [];
+      markerListenersRef.current = [];
+      destroyMap(mapRef.current);
+      mapRef.current = null;
+      containerRef.current?.replaceChildren();
+      setMapReady(false);
+      setMapInitFailed(true);
+    }, 500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [mapReady]);
 
   return (
     <section className={className} aria-label={label}>
@@ -123,12 +152,28 @@ export function MapClient({
 function clearMarkers(markers: NaverMarkerInstance[], listeners: NaverMapsEventListener[]) {
   if (window.naver?.maps?.Event) {
     for (const listener of listeners) {
-      window.naver.maps.Event.removeListener(listener);
+      try {
+        window.naver.maps.Event.removeListener(listener);
+      } catch {
+        // Naver can revoke SDK internals after auth failure; cleanup must not crash React.
+      }
     }
   }
 
   for (const marker of markers) {
-    marker.setMap(null);
+    try {
+      marker.setMap(null);
+    } catch {
+      // Naver can revoke SDK internals after auth failure; cleanup must not crash React.
+    }
+  }
+}
+
+function destroyMap(map: NaverMapInstance | null) {
+  try {
+    map?.destroy?.();
+  } catch {
+    // Naver can revoke SDK internals after auth failure; cleanup must not crash React.
   }
 }
 
