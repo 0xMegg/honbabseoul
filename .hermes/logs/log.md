@@ -570,3 +570,8 @@ Verification:
 - `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
 - Browser smoke against local `/ja?solo=0&jp=1&late=0` confirmed the map rendered, Japanese-menu chip stayed active after reload, and no console/page errors were captured.
 - Playwright E2E passed: 6 tests.
+
+Follow-up:
+
+- PR #12 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
+- PR #12 was squash-merged into `dev` as `c5b177471fd8c0a81c9a872b47a9dfeeb68b2efe`.
