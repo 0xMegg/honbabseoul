@@ -3,9 +3,8 @@ import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
 import { parseFiltersFromSearchParams } from "@/lib/features/filters/filter-params";
-import { FilterBar } from "@/lib/features/filters/FilterBar";
+import { MapReadPath } from "@/lib/features/detail/MapReadPath";
 import { Header } from "@/lib/features/layout/Header";
-import { MapClient } from "@/lib/features/map/MapClient";
 import { listApproved } from "@/lib/repositories/restaurants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { submitRestaurantAction } from "./actions";
@@ -78,24 +77,34 @@ export default async function Home({ params, searchParams }: HomeProps) {
         {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
 
         <Suspense fallback={null}>
-          <FilterBar
-            labels={{
+          <MapReadPath
+            clientId={naverMapsClientId}
+            detailLabels={{
+              address: t("detail.address"),
+              close: t("detail.close"),
+              copied: t("detail.copied"),
+              copyAddress: t("detail.copyAddress"),
+              error: t("detail.error"),
+              loading: t("detail.loading"),
+              naverLink: t("detail.naverLink"),
+              price: t("detail.price"),
+              priceUnknown: t("detail.priceUnknown"),
+              title: t("detail.title"),
+            }}
+            filterLabels={{
               solo: t("filters.solo"),
               jp: t("filters.jp"),
               late: t("filters.late"),
             }}
+            locale={locale}
+            mapLabels={{
+              label: t("map.label"),
+              loading: t("map.loading"),
+              error: t("map.error"),
+            }}
+            restaurants={restaurants}
           />
         </Suspense>
-
-        <MapClient
-          className="min-h-0 flex-1 space-y-2"
-          containerClassName="h-[58vh] min-h-[420px] flex-1 md:h-auto"
-          clientId={naverMapsClientId}
-          label={t("map.label")}
-          loadingLabel={t("map.loading")}
-          errorLabel={t("map.error")}
-          restaurants={restaurants}
-        />
       </section>
 
       <section className="mx-auto w-full max-w-2xl px-5 pb-10 pt-4 md:pb-14">

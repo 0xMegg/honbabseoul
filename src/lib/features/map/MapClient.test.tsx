@@ -185,4 +185,44 @@ describe("MapClient", () => {
       expect(setMap).toHaveBeenCalledWith(null);
     });
   });
+
+  it("emits the restaurant id and removes marker listeners on marker click cleanup", async () => {
+    const listenerHandle = {};
+    const addListener = vi.fn((_target, _eventName, listener: () => void) => {
+      listener();
+      return listenerHandle;
+    });
+    const removeListener = vi.fn();
+    const onRestaurantSelect = vi.fn();
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {},
+        Marker: class {
+          setMap() {}
+        },
+        Event: {
+          addListener,
+          removeListener,
+        },
+      },
+    };
+
+    const { unmount } = render(
+      <MapClient
+        {...labels}
+        onRestaurantSelect={onRestaurantSelect}
+        restaurants={[restaurant]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(onRestaurantSelect).toHaveBeenCalledWith(restaurant.id);
+    });
+
+    unmount();
+
+    expect(addListener).toHaveBeenCalledWith(expect.anything(), "click", expect.any(Function));
+    expect(removeListener).toHaveBeenCalledWith(listenerHandle);
+  });
 });
