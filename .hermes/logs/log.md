@@ -537,3 +537,36 @@ Follow-up:
 
 - PR #11 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
 - PR #11 was squash-merged into `dev` as `c16213f4e0e75b26763440f58eae35b5cffda8ab`.
+
+## 2026-05-04 — Epic 4 Slice 4.2.2 Restaurant Pin Layer
+
+Plan:
+
+- Fetch approved restaurants in the existing locale Home server component using URL filter state.
+- Map `{ solo, jp, late }` to repository filters `{ isSolo, hasJpMenu, isLateNight }` explicitly.
+- Render only latitude/longitude-bearing restaurants as Naver Maps markers inside `MapClient`.
+- Exclude bottom sheet detail UI, clustering, and custom marker UI from this slice.
+
+Decision:
+
+- Split filter parsing into a server/client-safe `filter-params.ts` module.
+- Added server-side `listApproved(await createSupabaseServerClient(), filters)` to `/[locale]`.
+- Added `restaurants` support to `MapClient`, plus Naver `Marker` typings and marker cleanup through `setMap(null)`.
+
+Reason:
+
+- The pin layer should consume the filter URL contract fixed in Slice 4.2.1 before bottom-sheet interaction is added.
+- Keeping marker lifecycle inside `MapClient` avoids exposing an imperative map API before a real second consumer exists.
+
+Claude review:
+
+- Claude reviewed the plan and required explicit page file scope, filter mapping, server searchParams parsing, Naver `Marker` typing, marker lifecycle synchronization, and repository error behavior.
+- Claude reviewed the implementation and returned `NO REQUIRED FIXES`.
+
+Verification:
+
+- Targeted Vitest passed: filter params and `MapClient` marker tests, 12 tests.
+- Full Vitest passed: 11 files, 70 tests.
+- `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
+- Browser smoke against local `/ja?solo=0&jp=1&late=0` confirmed the map rendered, Japanese-menu chip stayed active after reload, and no console/page errors were captured.
+- Playwright E2E passed: 6 tests.

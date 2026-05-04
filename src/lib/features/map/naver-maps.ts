@@ -12,6 +12,10 @@ export type NaverMapInstance = {
   destroy?: () => void;
 };
 
+export type NaverMarkerInstance = {
+  setMap: (map: NaverMapInstance | null) => void;
+};
+
 export type NaverMapsNamespace = {
   LatLng: new (lat: number, lng: number) => unknown;
   Map: new (
@@ -24,6 +28,11 @@ export type NaverMapsNamespace = {
       zoomControl?: boolean;
     },
   ) => NaverMapInstance;
+  Marker: new (options: {
+    map: NaverMapInstance;
+    position: unknown;
+    title?: string;
+  }) => NaverMarkerInstance;
 };
 
 declare global {
