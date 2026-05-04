@@ -30,7 +30,7 @@
 - PR #7 UGC invalid form input preservation follow-up is merged into `dev`.
 - PR #8 Hermes Claude CLI policy adoption docs-only cleanup is merged into `dev`.
 - PR #9 Epic 4 / Slice 4.1.1 Naver Maps client wrapper is merged into `dev`.
-- Epic 4 / Slice 4.1.2 map page shell is implemented locally and awaiting PR landing.
+- PR #10 Epic 4 / Slice 4.1.2 map page shell is merged into `dev`.
 
 ## Active Carry-Over
 
@@ -38,7 +38,7 @@
 
 ## Next Product Work
 
-Land Epic 4 / Slice 4.1.2, then continue the map read path with Epic 4 / Slice 4.2.1 filter state + chip UI.
+Continue the map read path with Epic 4 / Slice 4.2.1 filter state + chip UI.
 
 ## Open Project Gates
 

@@ -495,3 +495,8 @@ Verification:
 - `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
 - Playwright E2E passed: 6 tests.
 - Browser smoke against local mobile `/ja` confirmed heading visible, map box `372x530.6875`, submit button visible, no captured console/page errors, and CLS `0`.
+
+Follow-up:
+
+- PR #10 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
+- PR #10 was squash-merged into `dev` as `0574addb056afa5681d692b9c0b76fab72990865`.
