@@ -36,26 +36,28 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #13 Epic 4 / Slice 4.3.1 bottom sheet detail was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/13
 - PR #14 read-path stability fix was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/14
 - PR #15 instant marker detail was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/15
+- PR #16 marker UX polish was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/16
 - Local read-path stability fixes are implemented: localhost Naver SDK loading is disabled by default unless `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`, map auth/constructor failure now shows the map error fallback, filter chips are disabled until hydration, and headless coverage now asserts fallback + filter transition stability.
+- Merged PR branch refs were pruned locally and remotely on 2026-05-04 after confirming PR #1-#16 merge state; `snapshot/pre-hermes-cutover-20260503` was preserved as an archive pointer.
 - Verification gap diagnosis is recorded in `.hermes/logs/log.md`; future user-facing tasks need real headless workflow coverage, not only unit/shallow smoke checks.
 
 ## Next Action
 
-Finish the marker UX polish slice in `codex/marker-ux-polish`, then open a PR.
+Pick the next product slice from the post-marker read-path backlog.
 
 Candidate next work:
 
-1. Commit and PR the marker UX polish: custom marker content, selected marker state, and visible result count.
-2. Keep real Naver verification as an explicit manual/headless gate: `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` on local dev, then verify tiles, custom markers, selection state, and marker-to-bottom-sheet detail.
-3. After the marker UX PR, likely next product candidates are clustering/overlap handling, seed-data/read-path acceptance work, or deployed preview smoke for the full read path.
-4. Keep optional housekeeping separate unless it blocks product verification.
+1. Clustering/overlap handling for dense marker areas.
+2. Seed-data/read-path acceptance work.
+3. Deployed preview smoke for the full read path.
+4. Keep real Naver verification as an explicit manual/headless gate when map behavior changes: `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` on local dev, then verify tiles, custom markers, selection state, and marker-to-bottom-sheet detail.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
 - Logo SVG placeholder remains.
-- Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
+- Optional housekeeping: address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
 - Real Naver Maps local verification succeeds when localhost SDK loading is intentionally enabled and the NCP whitelist is configured. Default localhost SDK loading remains disabled so routine local sessions do not depend on NCP/network availability.
 

@@ -847,3 +847,25 @@ Verification:
 - Playwright E2E passed: 7 tests.
 - `next build` completed successfully; the pre-existing missing `eslint-plugin-react-hooks` warning still appears during lint/type validation, but build output completed.
 - Real headless custom marker flow with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` passed: SDK ready, visible result count, 16 custom marker elements, selected marker state after click, Japanese bottom sheet opened, and no browser errors were captured.
+
+## 2026-05-04 — Branch Merge State Cleanup
+
+### Context
+
+- `git branch --no-merged dev` showed old `codex/*` branches even though their PRs were merged.
+- GitHub PR state confirmed PR #1-#16 were merged into `dev`; PR #7-#16 used squash-style merge commits, so their original branch tips were not ancestors of `dev`.
+- Tree diffs from `dev` to the stale branch tips showed that merging them now would revert current product code rather than add missing work.
+
+### Actions
+
+- Deleted local merged/stale branch refs for PR #1-#3, PR #6, and PR #7-#13.
+- Deleted remote merged/stale branch refs for PR #1-#4, PR #6, and PR #7-#13.
+- Preserved `snapshot/pre-hermes-cutover-20260503` as an archive pointer.
+- Updated `.hermes/NEXT.md` and `.hermes/wiki/pages/honbabseoul-state.md` to record PR #16 as merged and remove the stale marker UX handoff.
+
+### Verification
+
+- `gh pr list --state all --limit 40 --json number,state,headRefName,baseRefName,mergedAt,mergeCommit,title`
+- `git branch --all --verbose --no-abbrev`
+- `git branch --no-merged dev`
+- `git status --short --branch`
