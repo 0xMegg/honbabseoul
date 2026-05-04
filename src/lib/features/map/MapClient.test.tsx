@@ -34,6 +34,12 @@ describe("MapClient", () => {
     expect(screen.getByText(labels.loadingLabel)).toBeVisible();
   });
 
+  it("allows the shell to control the inner map container height", () => {
+    render(<MapClient {...labels} containerClassName="h-[58vh] min-h-[420px]" />);
+
+    expect(screen.getByTestId("naver-map")).toHaveClass("h-[58vh]", "min-h-[420px]");
+  });
+
   it("initializes a map when the SDK is ready", async () => {
     const map = vi.fn();
     const latLng = vi.fn();
@@ -66,10 +72,29 @@ describe("MapClient", () => {
     });
   });
 
-  it("shows an alert when the SDK fails to load", () => {
+  it("shows an inline error when the SDK fails to load", () => {
     render(<MapClient {...labels} />);
     dispatchScriptEvent("error");
 
-    expect(screen.getByRole("alert")).toHaveTextContent(labels.errorLabel);
+    expect(screen.getByText(labels.errorLabel)).toBeVisible();
+  });
+
+  it("shows an inline error when map initialization fails", async () => {
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {
+          constructor() {
+            throw new Error("auth failed");
+          }
+        },
+      },
+    };
+
+    render(<MapClient {...labels} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(labels.errorLabel)).toBeVisible();
+    });
   });
 });
