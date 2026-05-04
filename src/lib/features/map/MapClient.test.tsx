@@ -237,6 +237,11 @@ describe("MapClient", () => {
       map: mapInstance,
       title: restaurant.name_ja,
     });
+    expect(marker.mock.calls[0]?.[0]).toMatchObject({
+      icon: {
+        content: expect.stringContaining(restaurant.name_ja),
+      },
+    });
   });
 
   it("clears old markers when restaurant props change", async () => {
@@ -257,7 +262,12 @@ describe("MapClient", () => {
       expect(setMap).not.toHaveBeenCalled();
     });
 
-    rerender(<MapClient {...labels} restaurants={[{ ...restaurant, id: "550e8400-e29b-41d4-a716-446655440002" }]} />);
+    rerender(
+      <MapClient
+        {...labels}
+        restaurants={[{ ...restaurant, id: "550e8400-e29b-41d4-a716-446655440002" }]}
+      />,
+    );
 
     await waitFor(() => {
       expect(setMap).toHaveBeenCalledWith(null);
@@ -344,11 +354,7 @@ describe("MapClient", () => {
     };
 
     const { unmount } = render(
-      <MapClient
-        {...labels}
-        onRestaurantSelect={onRestaurantSelect}
-        restaurants={[restaurant]}
-      />,
+      <MapClient {...labels} onRestaurantSelect={onRestaurantSelect} restaurants={[restaurant]} />,
     );
 
     await waitFor(() => {
@@ -359,5 +365,53 @@ describe("MapClient", () => {
 
     expect(addListener).toHaveBeenCalledWith(expect.anything(), "click", expect.any(Function));
     expect(removeListener).toHaveBeenCalledWith(listenerHandle);
+  });
+
+  it("uses selected marker styling after a marker is clicked", async () => {
+    const marker = vi.fn();
+    let clickListener: (() => void) | null = null;
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {},
+        Marker: class {
+          constructor(options: unknown) {
+            marker(options);
+          }
+          setMap() {}
+        },
+        Event: {
+          addListener: vi.fn((_target, _eventName, listener: () => void) => {
+            clickListener = listener;
+            return {};
+          }),
+          removeListener: vi.fn(),
+        },
+      },
+    };
+
+    render(<MapClient {...labels} onRestaurantSelect={vi.fn()} restaurants={[restaurant]} />);
+
+    await waitFor(() => {
+      expect(marker).toHaveBeenCalledOnce();
+    });
+    expect(marker.mock.calls[0]?.[0]).toMatchObject({
+      icon: {
+        content: expect.stringContaining("background:var(--hb-bg)"),
+      },
+    });
+
+    act(() => {
+      clickListener?.();
+    });
+
+    await waitFor(() => {
+      expect(marker).toHaveBeenCalledTimes(2);
+    });
+    expect(marker.mock.calls[1]?.[0]).toMatchObject({
+      icon: {
+        content: expect.stringContaining("background:var(--hb-brand)"),
+      },
+    });
   });
 });

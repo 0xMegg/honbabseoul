@@ -825,3 +825,25 @@ Verification:
 - Playwright E2E passed: 7 tests.
 - Real headless Naver flow with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` passed: SDK ready, 22 marker-like elements, marker click opened the Japanese bottom sheet, and no browser errors were captured.
 - `next build` completed successfully; the pre-existing missing `eslint-plugin-react-hooks` warning still appears during lint/type validation, but build output completed.
+
+## 2026-05-04 — Marker UX Polish Slice
+
+Decision:
+
+- After PR #15, marker click and detail rendering are stable. The next MVP usability gap is recognition: default Naver pins do not communicate the restaurant identity or selected state clearly.
+- Clustering remains deferred; the current slice should improve marker readability and selection feedback without changing map data contracts.
+
+Change:
+
+- `MapClient` now renders custom marker HTML through the Naver marker `icon.content` option.
+- Custom marker content uses Honbabseoul design tokens, includes the localized restaurant name, and escapes HTML before injection.
+- Marker click stores the selected restaurant id, redraws markers, and marks the selected marker with filled brand styling.
+- `MapReadPath` shows the current server-filtered result count below the filter chips.
+
+Verification:
+
+- Targeted marker/read-path tests passed: 17 tests.
+- Full Vitest passed: 13 files, 83 tests.
+- Playwright E2E passed: 7 tests.
+- `next build` completed successfully; the pre-existing missing `eslint-plugin-react-hooks` warning still appears during lint/type validation, but build output completed.
+- Real headless custom marker flow with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` passed: SDK ready, visible result count, 16 custom marker elements, selected marker state after click, Japanese bottom sheet opened, and no browser errors were captured.

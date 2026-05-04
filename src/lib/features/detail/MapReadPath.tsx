@@ -24,6 +24,7 @@ type MapLabels = {
   error: string;
   label: string;
   loading: string;
+  resultCount: string;
 };
 
 type MapReadPathProps = {
@@ -69,6 +70,8 @@ export function MapReadPath({
   return (
     <>
       <FilterBar labels={filterLabels} />
+
+      <p className="text-sm font-semibold text-text-muted">{mapLabels.resultCount}</p>
 
       <MapClient
         className="min-h-0 flex-1 space-y-2"

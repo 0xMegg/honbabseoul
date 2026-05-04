@@ -65,6 +65,7 @@ const props = {
     error: "地図を読み込めませんでした。",
     label: "ソウルの一人ごはんマップ",
     loading: "地図を読み込んでいます。",
+    resultCount: "1件を表示中",
   },
   restaurants: [restaurant],
 };
@@ -79,6 +80,9 @@ describe("MapReadPath", () => {
 
   it("shows detail from the current restaurant list when a marker is selected", () => {
     render(<MapReadPath {...props} />);
+
+    expect(screen.getByText(props.mapLabels.resultCount)).toBeVisible();
+
     fireEvent.click(screen.getByRole("button", { name: "marker" }));
 
     expect(screen.getByRole("heading", { name: restaurant.name_ja })).toBeVisible();

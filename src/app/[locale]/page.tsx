@@ -100,6 +100,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
               label: t("map.label"),
               loading: t("map.loading"),
               error: t("map.error"),
+              resultCount: t("map.resultCount", { count: restaurants.length }),
             }}
             restaurants={restaurants}
           />
