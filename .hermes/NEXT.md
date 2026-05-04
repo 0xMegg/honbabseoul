@@ -32,21 +32,23 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #9 Epic 4 / Slice 4.1.1 Naver Maps client wrapper was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/9
 - PR #10 Epic 4 / Slice 4.1.2 map page shell was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/10
 - PR #11 Epic 4 / Slice 4.2.1 filter state + chip UI was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/11
+- Epic 4 / Slice 4.2.2 restaurant pin layer is implemented locally on branch `codex/restaurant-pin-layer`, reviewed by Claude with `NO REQUIRED FIXES`, and verified with Vitest, Playwright, build, and browser smoke.
 
 ## Next Action
 
-Continue Epic 4 / Slice 4.2.2 restaurant pin layer.
+Land Epic 4 / Slice 4.2.2 restaurant pin layer, then continue Epic 4 / Slice 4.3.1 bottom sheet detail.
 
 Candidate next work:
 
-1. Plan how `RestaurantPins` consumes `useFilters` / URL state and `listApproved`.
-2. Implement the marker layer without bottom-sheet detail UI.
+1. Push `codex/restaurant-pin-layer` and open/merge a PR after checks pass.
+2. Continue Epic 4 / Slice 4.3.1 bottom sheet detail and pin selection wiring.
 3. Keep optional housekeeping separate unless it blocks product work.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
+- Epic 4 / Slice 4.2.2 restaurant pin layer is not yet landed on `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { Restaurant } from "@/lib/models/restaurant";
 import { MapClient } from "./MapClient";
 import { buildNaverMapsSdkUrl, NAVER_MAPS_SCRIPT_ID, SEOUL_CITY_HALL } from "./naver-maps";
 
@@ -9,6 +10,25 @@ const labels = {
   loadingLabel: "Loading map",
   errorLabel: "Could not load map",
 };
+
+const restaurant = {
+  id: "550e8400-e29b-41d4-a716-446655440001",
+  name_ja: "テスト食堂",
+  name_ko: "테스트 식당",
+  address_ja: null,
+  address_ko: null,
+  latitude: 37.5667,
+  longitude: 126.9784,
+  price_range: "mid",
+  status: "approved",
+  is_solo_default: true,
+  has_jp_menu: false,
+  is_late_night: false,
+  naver_url: null,
+  photo_url: null,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+} satisfies Restaurant;
 
 function dispatchScriptEvent(type: "load" | "error") {
   const script = document.getElementById(NAVER_MAPS_SCRIPT_ID);
@@ -55,6 +75,9 @@ describe("MapClient", () => {
             map(element, options);
           }
         },
+        Marker: class {
+          setMap() {}
+        },
       },
     };
 
@@ -88,6 +111,9 @@ describe("MapClient", () => {
             throw new Error("auth failed");
           }
         },
+        Marker: class {
+          setMap() {}
+        },
       },
     };
 
@@ -95,6 +121,68 @@ describe("MapClient", () => {
 
     await waitFor(() => {
       expect(screen.getByText(labels.errorLabel)).toBeVisible();
+    });
+  });
+
+  it("creates one marker per restaurant with coordinates", async () => {
+    const marker = vi.fn();
+    const latLng = vi.fn();
+    const mapInstance = {};
+    window.naver = {
+      maps: {
+        LatLng: class {
+          constructor(lat: number, lng: number) {
+            latLng(lat, lng);
+          }
+        },
+        Map: class {
+          constructor() {
+            return mapInstance;
+          }
+        },
+        Marker: class {
+          constructor(options: unknown) {
+            marker(options);
+          }
+          setMap() {}
+        },
+      },
+    };
+
+    render(<MapClient {...labels} restaurants={[restaurant, { ...restaurant, latitude: null }]} />);
+
+    await waitFor(() => {
+      expect(marker).toHaveBeenCalledOnce();
+    });
+    expect(latLng).toHaveBeenCalledWith(restaurant.latitude, restaurant.longitude);
+    expect(marker.mock.calls[0]?.[0]).toMatchObject({
+      map: mapInstance,
+      title: restaurant.name_ja,
+    });
+  });
+
+  it("clears old markers when restaurant props change", async () => {
+    const setMap = vi.fn();
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {},
+        Marker: class {
+          setMap = setMap;
+        },
+      },
+    };
+
+    const { rerender } = render(<MapClient {...labels} restaurants={[restaurant]} />);
+
+    await waitFor(() => {
+      expect(setMap).not.toHaveBeenCalled();
+    });
+
+    rerender(<MapClient {...labels} restaurants={[{ ...restaurant, id: "550e8400-e29b-41d4-a716-446655440002" }]} />);
+
+    await waitFor(() => {
+      expect(setMap).toHaveBeenCalledWith(null);
     });
   });
 });

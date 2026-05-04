@@ -1,7 +1,7 @@
 "use client";
 
-import type { FilterKey } from "./useFilters";
-import { FILTER_KEYS, useFilters } from "./useFilters";
+import { FILTER_KEYS, type FilterKey } from "./filter-params";
+import { useFilters } from "./useFilters";
 
 type FilterBarLabels = Record<FilterKey, string>;
 

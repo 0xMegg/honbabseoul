@@ -2,9 +2,12 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
+import { parseFiltersFromSearchParams } from "@/lib/features/filters/filter-params";
 import { FilterBar } from "@/lib/features/filters/FilterBar";
 import { Header } from "@/lib/features/layout/Header";
 import { MapClient } from "@/lib/features/map/MapClient";
+import { listApproved } from "@/lib/repositories/restaurants";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { submitRestaurantAction } from "./actions";
 import { ClearSubmissionFlashCookie } from "./clear-submission-flash-cookie";
 import {
@@ -15,7 +18,12 @@ import {
 
 type HomeProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ submission?: string | string[] }>;
+  searchParams: Promise<{
+    submission?: string | string[];
+    solo?: string | string[];
+    jp?: string | string[];
+    late?: string | string[];
+  }>;
 };
 
 const SUBMISSION_STATUSES = ["success", "invalid", "error"] as const;
@@ -43,6 +51,12 @@ export default async function Home({ params, searchParams }: HomeProps) {
   const submitAction = submitRestaurantAction.bind(null, locale);
   const naverMapsClientId = publicEnv.naverMapsClientId;
   const submissionStatus = parseSubmissionStatus(query.submission);
+  const filters = parseFiltersFromSearchParams(query);
+  const restaurants = await listApproved(await createSupabaseServerClient(), {
+    isSolo: filters.solo,
+    hasJpMenu: filters.jp,
+    isLateNight: filters.late,
+  });
   const preservedFormValues = shouldPreserveFormValues(submissionStatus)
     ? decodePreservedFormValues((await cookies()).get(UGC_FORM_FLASH_COOKIE)?.value)
     : EMPTY_PRESERVED_FORM_VALUES;
@@ -80,6 +94,7 @@ export default async function Home({ params, searchParams }: HomeProps) {
           label={t("map.label")}
           loadingLabel={t("map.loading")}
           errorLabel={t("map.error")}
+          restaurants={restaurants}
         />
       </section>
 

@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_FILTERS,
   parseFilters,
+  parseFiltersFromSearchParams,
   writeFiltersToSearchParams,
   type Filters,
-} from "./useFilters";
+} from "./filter-params";
 
 describe("filter URL state", () => {
   it("uses product defaults when query params are absent", () => {
@@ -22,6 +23,14 @@ describe("filter URL state", () => {
       solo: false,
       jp: true,
       late: true,
+    });
+  });
+
+  it("parses server searchParams objects and ignores array values", () => {
+    expect(parseFiltersFromSearchParams({ solo: "0", jp: "1", late: ["1"] })).toEqual({
+      solo: false,
+      jp: true,
+      late: DEFAULT_FILTERS.late,
     });
   });
 
