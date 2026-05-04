@@ -869,3 +869,22 @@ Verification:
 - `git branch --all --verbose --no-abbrev`
 - `git branch --no-merged dev`
 - `git status --short --branch`
+
+## 2026-05-04 — Vercel Naver Env Fix
+
+### Context
+
+- The `dev` branch preview `https://honbabseoul-66ty48zw5-meggs-projects.vercel.app` showed a Next.js server-side exception with digest `4089574995`.
+- Vercel env listing showed Supabase envs were present, but `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` was missing.
+- The server page reads `publicEnv.naverMapsClientId` during render, so missing env fails before the map fallback can render.
+
+### Actions
+
+- Added `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` to Vercel production, development, and `dev` preview envs.
+- Created a local preview deployment `dpl_28rgpEyM2o8FXeUQfH2G4dr7DKN8`.
+- Redeployed the Git `dev` preview deployment so `https://honbabseoul-git-dev-meggs-projects.vercel.app` points at `dpl_G9SwTGkXVyXGCcPBhbFDttRuv1u7`.
+
+### Verification
+
+- `vercel env ls` shows `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` for Production, Development, and Preview (`dev`).
+- `vercel inspect https://honbabseoul-2pwg1tgs8-meggs-projects.vercel.app` reports `READY` and the `honbabseoul-git-dev` alias.

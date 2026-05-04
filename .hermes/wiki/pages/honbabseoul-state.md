@@ -43,6 +43,7 @@
 - Instant marker detail removes marker-to-detail browser re-fetching and renders detail from the current server-provided restaurant list.
 - Marker UX polish adds custom marker content, selected marker state, and visible result count.
 - Merged PR branch refs were pruned locally and remotely on 2026-05-04 after confirming PR #1-#16 merge state; `snapshot/pre-hermes-cutover-20260503` remains as an archive pointer.
+- Vercel `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` is configured for production, development, and `dev` preview; redeploy `dpl_G9SwTGkXVyXGCcPBhbFDttRuv1u7` owns the `dev` branch preview alias.
 - Verification gap diagnosis is logged: future user-facing product work must include real headless workflow coverage, external SDK success/failure checks, route transition checks, and remote smoke data cleanup.
 
 ## Active Carry-Over

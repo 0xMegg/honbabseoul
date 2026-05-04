@@ -39,6 +39,7 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #16 marker UX polish was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/16
 - Local read-path stability fixes are implemented: localhost Naver SDK loading is disabled by default unless `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`, map auth/constructor failure now shows the map error fallback, filter chips are disabled until hydration, and headless coverage now asserts fallback + filter transition stability.
 - Merged PR branch refs were pruned locally and remotely on 2026-05-04 after confirming PR #1-#16 merge state; `snapshot/pre-hermes-cutover-20260503` was preserved as an archive pointer.
+- Vercel `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` was added for production, development, and `dev` preview after the branch preview showed a server-side exception; redeploy `dpl_G9SwTGkXVyXGCcPBhbFDttRuv1u7` reached `READY` and owns `https://honbabseoul-git-dev-meggs-projects.vercel.app`.
 - Verification gap diagnosis is recorded in `.hermes/logs/log.md`; future user-facing tasks need real headless workflow coverage, not only unit/shallow smoke checks.
 
 ## Next Action
