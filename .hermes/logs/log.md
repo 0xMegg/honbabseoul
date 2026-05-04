@@ -399,3 +399,29 @@ Verification:
 - `next build` completed successfully.
 - Standalone `eslint .` failed before linting source because the current install cannot resolve `eslint-plugin-react-hooks` from `eslint-config-next/core-web-vitals`; `next build` printed the same ESLint plugin failure but still completed type/build output.
 - Claude review was attempted with full working-tree inspection but the default invocation produced no output and was killed after repeated waits; `claude auth status` reported logged in, and a lower-effort `sonnet` review completed with `NO REQUIRED FIXES`.
+
+Follow-up:
+
+- Commit `a55d90c` was pushed to PR #7.
+- PR #7 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
+- PR #7 was squash-merged into `dev` as `daaea6427585e30f3f05948f011d19d16bdd899d`.
+
+## 2026-05-04 — Claude CLI Policy Docs Cleanup
+
+Decision:
+
+- Kept the Hermes Claude CLI policy adoption as a docs-only cleanup separate from PR #7 runtime work.
+- Added `.hermes/policy/claude-cli.md` to active read order and wiki policy index.
+
+Reason:
+
+- The policy affects agent invocation judgment, not product runtime behavior.
+- Separating it from the UGC runtime PR keeps review scope and git history clear.
+
+Claude review:
+
+- Claude reviewed the docs-only cleanup and returned `NO REQUIRED FIXES`.
+
+Verification:
+
+- Diff is limited to `AGENTS.md`, `.hermes/policy/claude-cli.md`, `.hermes/wiki/index.md`, `.hermes/wiki/log.md`, `.hermes/NEXT.md`, and `.hermes/logs/log.md`.
