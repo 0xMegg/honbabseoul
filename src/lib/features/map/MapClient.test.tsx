@@ -102,6 +102,52 @@ describe("MapClient", () => {
     expect(screen.getByText(labels.errorLabel)).toBeVisible();
   });
 
+  it("shows an inline error when the SDK loads without map constructors", () => {
+    window.naver = { maps: {} as never };
+
+    render(<MapClient {...labels} />);
+    dispatchScriptEvent("load");
+
+    expect(screen.getByText(labels.errorLabel)).toBeVisible();
+  });
+
+  it("shows an inline error when auth removes constructors right after SDK load", async () => {
+    const map = vi.fn();
+
+    render(<MapClient {...labels} />);
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {
+          constructor() {
+            map();
+          }
+        },
+        Marker: class {
+          setMap() {}
+        },
+      },
+    };
+    dispatchScriptEvent("load");
+    delete (window.naver.maps as Partial<typeof window.naver.maps>).Map;
+
+    await waitFor(() => {
+      expect(screen.getByText(labels.errorLabel)).toBeVisible();
+    });
+    expect(map).not.toHaveBeenCalled();
+  });
+
+  it("shows an inline error when an existing SDK script already failed auth", () => {
+    const script = document.createElement("script");
+    script.id = NAVER_MAPS_SCRIPT_ID;
+    document.head.appendChild(script);
+    window.naver = { maps: {} as never };
+
+    render(<MapClient {...labels} />);
+
+    expect(screen.getByText(labels.errorLabel)).toBeVisible();
+  });
+
   it("shows an inline error when map initialization fails", async () => {
     window.naver = {
       maps: {
@@ -122,6 +168,38 @@ describe("MapClient", () => {
     await waitFor(() => {
       expect(screen.getByText(labels.errorLabel)).toBeVisible();
     });
+  });
+
+  it("shows an inline error when Naver auth removes map constructors after init", async () => {
+    const map = vi.fn();
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {
+          constructor() {
+            map();
+          }
+        },
+        Marker: class {
+          setMap() {}
+        },
+      },
+    };
+
+    render(<MapClient {...labels} />);
+
+    await waitFor(() => {
+      expect(map).toHaveBeenCalledOnce();
+    });
+
+    delete (window.naver.maps as Partial<typeof window.naver.maps>).Map;
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(labels.errorLabel)).toBeVisible();
+      },
+      { timeout: 1000 },
+    );
   });
 
   it("creates one marker per restaurant with coordinates", async () => {
@@ -184,6 +262,63 @@ describe("MapClient", () => {
     await waitFor(() => {
       expect(setMap).toHaveBeenCalledWith(null);
     });
+  });
+
+  it("does not crash when Naver marker cleanup throws after auth failure", async () => {
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {},
+        Marker: class {
+          setMap() {
+            throw new Error("auth revoked");
+          }
+        },
+      },
+    };
+
+    const { rerender } = render(<MapClient {...labels} restaurants={[restaurant]} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText(labels.errorLabel)).not.toBeInTheDocument();
+    });
+
+    expect(() => {
+      rerender(
+        <MapClient
+          {...labels}
+          restaurants={[{ ...restaurant, id: "550e8400-e29b-41d4-a716-446655440002" }]}
+        />,
+      );
+    }).not.toThrow();
+  });
+
+  it("does not crash when Naver map destroy throws after auth failure", async () => {
+    const destroy = vi.fn(() => {
+      throw new Error("auth revoked");
+    });
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {
+          destroy = destroy;
+        },
+        Marker: class {
+          setMap() {}
+        },
+      },
+    };
+
+    const { unmount } = render(<MapClient {...labels} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText(labels.errorLabel)).not.toBeInTheDocument();
+    });
+
+    expect(() => {
+      unmount();
+    }).not.toThrow();
+    expect(destroy).toHaveBeenCalled();
   });
 
   it("emits the restaurant id and removes marker listeners on marker click cleanup", async () => {

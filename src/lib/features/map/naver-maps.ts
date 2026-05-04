@@ -35,7 +35,7 @@ export type NaverMapsNamespace = {
     position: unknown;
     title?: string;
   }) => NaverMarkerInstance;
-  Event: {
+  Event?: {
     addListener: (
       target: NaverMarkerInstance,
       eventName: "click",
@@ -54,6 +54,6 @@ declare global {
 }
 
 export function buildNaverMapsSdkUrl(clientId: string): string {
-  const params = new URLSearchParams({ ncpClientId: clientId });
+  const params = new URLSearchParams({ ncpKeyId: clientId });
   return `${NAVER_MAPS_SDK_BASE_URL}?${params.toString()}`;
 }
