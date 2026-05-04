@@ -29,23 +29,21 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Final protected-deployment smoke passed on `https://honbabseoul-mu25phxbt-meggs-projects.vercel.app/ja`: HTML contained the Japanese home/form surface, browser submission returned POST 303 and `submission=success`, the smoke row was inserted as `pending`, and the smoke row cleanup was verified.
 - PR #7 UGC invalid form input preservation follow-up was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/7
 - PR #8 Hermes Claude CLI policy adoption docs-only cleanup was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/8
-- Epic 4 / Slice 4.1.1 Naver Maps client wrapper is implemented locally on branch `codex/naver-map-client-wrapper`, reviewed by Claude with `NO REQUIRED FIXES`, and verified with Vitest, Playwright, build, and browser smoke.
+- PR #9 Epic 4 / Slice 4.1.1 Naver Maps client wrapper was reviewed, passed checks, and merged into `dev`: https://github.com/0xMegg/honbabseoul/pull/9
 
 ## Next Action
 
-Land Epic 4 / Slice 4.1.1 Naver Maps client wrapper, then continue Map page shell / filter read path work.
+Continue Epic 4 / Slice 4.1.2 map page shell / filter read path work.
 
 Candidate next work:
 
-1. Push `codex/naver-map-client-wrapper` and open/merge a PR after checks pass.
-2. Continue Epic 4 / Slice 4.1.2 map page shell.
-3. Keep optional housekeeping separate unless it blocks product work.
+1. Select the narrow Slice 4.1.2 scope against the current root-page UGC form layout.
+2. Keep optional housekeeping separate unless it blocks product work.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
-- Epic 4 / Slice 4.1.1 Naver Maps client wrapper is not yet landed on `dev`.
 - Logo SVG placeholder remains.
 - Optional housekeeping: prune merged local branches and address Next.js workspace-root warning.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.

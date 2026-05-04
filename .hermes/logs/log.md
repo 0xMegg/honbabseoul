@@ -458,3 +458,8 @@ Verification:
 - `next build` completed successfully; the existing `eslint-plugin-react-hooks` resolution warning still appears during the lint phase.
 - Browser smoke against local `/ja` confirmed the map container rendered, SDK script src was present, `window.naver.maps.Map` existed, and no console/page errors were captured.
 - Playwright E2E passed: 6 tests.
+
+Follow-up:
+
+- PR #9 checks passed: GitGuardian, Vercel Preview Comments, and Vercel.
+- PR #9 was squash-merged into `dev` as `4289fa3430094390530f5f1938ab99116a390723`.
