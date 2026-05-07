@@ -2,6 +2,34 @@
 
 Append important decisions, execution traces, and verification results here.
 
+## 2026-05-07 — Production UGC Client Exception Guard
+
+Decision:
+
+- Hardened Naver Maps marker rendering so marker constructor failures become
+  the existing inline map error instead of an uncaught client exception.
+- This keeps the UGC success redirect and submission form usable even if the
+  Naver Maps SDK behaves differently in a user browser.
+
+Execution Trace:
+
+- User reported repeated production client-side exception after `제보하기`,
+  including in an incognito window.
+- Codex could not reproduce on `https://honbabseoul.vercel.app/ko` with public
+  alias browser smoke, photo smoke, or Naver enrichment smoke; all reached
+  `?submission=success` and cleaned up smoke rows.
+- The remaining high-risk surface was the map marker effect, which previously
+  did not catch `new maps.Marker(...)` failures.
+
+Verification:
+
+- Added marker-construction failure coverage.
+- `pnpm test -- src/lib/features/map/MapClient.test.tsx` passed: 17 files,
+  113 tests.
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm build` passed.
+- `git diff --check` passed.
+
 ## 2026-05-07 — UGC Naver Local Search Enrichment
 
 Decision:

@@ -303,6 +303,27 @@ describe("MapClient", () => {
     }).not.toThrow();
   });
 
+  it("shows an inline error when Naver marker construction fails", async () => {
+    window.naver = {
+      maps: {
+        LatLng: class {},
+        Map: class {},
+        Marker: class {
+          constructor() {
+            throw new Error("marker construction failed");
+          }
+          setMap() {}
+        },
+      },
+    };
+
+    render(<MapClient {...labels} restaurants={[restaurant]} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(labels.errorLabel)).toBeVisible();
+    });
+  });
+
   it("does not crash when Naver map destroy throws after auth failure", async () => {
     const destroy = vi.fn(() => {
       throw new Error("auth revoked");
