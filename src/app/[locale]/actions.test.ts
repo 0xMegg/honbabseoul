@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
     throw new Error(`NEXT_REDIRECT:${url}`);
   }),
   uploadSubmissionPhoto: vi.fn(),
+  cleanupSubmissionPhoto: vi.fn(),
   SubmissionPhotoRejectedError: class SubmissionPhotoRejectedError extends Error {
     constructor() {
       super("photo rejected");
@@ -43,6 +44,7 @@ vi.mock("@/lib/repositories/submissions", () => ({
 
 vi.mock("@/lib/supabase/storage-server", () => ({
   uploadSubmissionPhoto: mocks.uploadSubmissionPhoto,
+  cleanupSubmissionPhoto: mocks.cleanupSubmissionPhoto,
   SubmissionPhotoRejectedError: mocks.SubmissionPhotoRejectedError,
   SubmissionPhotoUploadError: mocks.SubmissionPhotoUploadError,
 }));
@@ -129,7 +131,10 @@ describe("submitRestaurantAction", () => {
 
   it("uploads an optional photo and forwards its public URL to submitPending", async () => {
     (submitPending as Mock).mockResolvedValue({ id: "restaurant-id" });
-    mocks.uploadSubmissionPhoto.mockResolvedValue("https://cdn.example.com/photo.jpg");
+    mocks.uploadSubmissionPhoto.mockResolvedValue({
+      path: "submissions/photo.jpg",
+      publicUrl: "https://cdn.example.com/photo.jpg",
+    });
     const formData = buildFormData();
     const photo = makePhoto();
     formData.set("photo", photo);
@@ -176,6 +181,24 @@ describe("submitRestaurantAction", () => {
     expect(redirectError.message).toBe("NEXT_REDIRECT:/ko?submission=error");
     expect(submitPending).not.toHaveBeenCalled();
     expect(mocks.cookieSet).toHaveBeenCalledOnce();
+  });
+
+  it("cleans up the uploaded photo when the database write fails", async () => {
+    (submitPending as Mock).mockRejectedValue(
+      new SubmissionDatabaseError("23502", "submission failed"),
+    );
+    mocks.uploadSubmissionPhoto.mockResolvedValue({
+      path: "submissions/photo.jpg",
+      publicUrl: "https://cdn.example.com/photo.jpg",
+    });
+    const formData = buildFormData();
+    formData.set("photo", makePhoto());
+
+    const redirectError = await captureRedirect(() => submitRestaurantAction("ko", formData));
+
+    expect(redirectError.message).toBe("NEXT_REDIRECT:/ko?submission=error");
+    expect(mocks.cleanupSubmissionPhoto).toHaveBeenCalledWith("submissions/photo.jpg");
+    expect(submitPending).toHaveBeenCalledOnce();
   });
 });
 

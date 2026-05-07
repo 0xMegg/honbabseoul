@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { InvalidInputError, SubmissionDatabaseError } from "@/lib/models/submission";
 import { submitPending } from "@/lib/repositories/submissions";
 import {
+  cleanupSubmissionPhoto,
   SubmissionPhotoRejectedError,
   SubmissionPhotoUploadError,
   uploadSubmissionPhoto,
@@ -68,19 +69,30 @@ export async function submitRestaurantAction(locale: string, formData: FormData)
 
   try {
     const photo = formFile(formData, "photo");
-    const photoUrl = photo ? await uploadSubmissionPhoto(photo) : undefined;
+    const uploaded = photo ? await uploadSubmissionPhoto(photo) : undefined;
 
-    await submitPending({
-      name: formString(formData, "name"),
-      naverUrl: formString(formData, "naverUrl"),
-      isSolo: formBoolean(formData, "isSolo"),
-      hasJpMenu: formBoolean(formData, "hasJpMenu"),
-      isLateNight: formBoolean(formData, "isLateNight"),
-      reason: formString(formData, "reason"),
-      // Empty select value means "unknown"; submissionSchema validates low/mid/high.
-      priceRange: priceRange === "" ? undefined : priceRange,
-      photoUrl,
-    });
+    try {
+      await submitPending({
+        name: formString(formData, "name"),
+        naverUrl: formString(formData, "naverUrl"),
+        isSolo: formBoolean(formData, "isSolo"),
+        hasJpMenu: formBoolean(formData, "hasJpMenu"),
+        isLateNight: formBoolean(formData, "isLateNight"),
+        reason: formString(formData, "reason"),
+        // Empty select value means "unknown"; submissionSchema validates low/mid/high.
+        priceRange: priceRange === "" ? undefined : priceRange,
+        photoUrl: uploaded?.publicUrl,
+      });
+    } catch (submitError) {
+      if (uploaded) {
+        try {
+          await cleanupSubmissionPhoto(uploaded.path);
+        } catch {
+          // Best-effort cleanup; surface the original submit error.
+        }
+      }
+      throw submitError;
+    }
   } catch (error) {
     if (error instanceof InvalidInputError || error instanceof SubmissionPhotoRejectedError) {
       await redirectWithStatus(locale, "invalid", formData);

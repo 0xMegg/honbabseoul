@@ -29,7 +29,9 @@ const MIME_TO_EXT: Record<string, string> = {
   "image/png": "png",
 };
 
-export async function uploadSubmissionPhoto(file: File): Promise<string> {
+export async function uploadSubmissionPhoto(
+  file: File,
+): Promise<{ path: string; publicUrl: string }> {
   if (!ALLOWED_PHOTO_MIME.includes(file.type as (typeof ALLOWED_PHOTO_MIME)[number])) {
     throw new SubmissionPhotoRejectedError("mime", `Unsupported photo MIME: ${file.type}`);
   }
@@ -59,8 +61,14 @@ export async function uploadSubmissionPhoto(file: File): Promise<string> {
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
   if (!data?.publicUrl) {
+    await cleanupSubmissionPhoto(path).catch(() => {});
     throw new SubmissionPhotoUploadError("publicUrl");
   }
 
-  return data.publicUrl;
+  return { path, publicUrl: data.publicUrl };
+}
+
+export async function cleanupSubmissionPhoto(path: string): Promise<void> {
+  const supabase = createSupabaseAdminClient();
+  await supabase.storage.from(BUCKET).remove([path]);
 }

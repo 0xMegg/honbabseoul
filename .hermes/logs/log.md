@@ -1533,3 +1533,58 @@ Verification:
 - `vercel inspect https://honbabseoul-eqdum8l17-meggs-projects.vercel.app` reported deployment `dpl_Ap87ZHfsSAaxUUuDNPzNtCnH1dr9` as `READY`.
 - Protected preview share URL was created for the redeploy; it expires on 2026-05-08 01:53:01 KST.
 - `DEPLOYED_BASE_URL=... VERCEL_SHARE_URL=... pnpm exec playwright test e2e/deployed-read-path.spec.ts e2e/smoke.spec.ts -g 'deployed read path smoke|locale metadata and generated OG image are available'` passed the metadata smoke and failed the read-path smoke at marker visibility because the deployed map rendered the expected fallback instead of Naver markers.
+
+## 2026-05-07 — PR #17 Recent Implementation Review
+
+Decision:
+
+- Reviewed PR #17 recent implementation bundle from branch `codex/product-admin-readiness` against `dev`.
+- Attempted Claude CLI peer review twice from the Honbabseoul project root with `/opt/homebrew/bin/claude -p`; both invocations started but returned no output and were terminated after waiting.
+- Continued with Codex direct review and verification rather than leaving a stuck Claude process running.
+- Follow-up Claude retry confirmed CLI health with a minimal `ping`, then showed that broad review prompts and unescaped `src/app/[locale]/...` paths can hang. Escaping the bracketed route segment and asking narrow verification questions returned output.
+- Claude confirmed the concrete residual risk that photo upload precedes `submitPending`, so a later validation/database failure can leave an orphaned Supabase Storage object because `uploadSubmissionPhoto` returns only `publicUrl`.
+
+Findings:
+
+- No blocking regression was found in local verification.
+- Residual risk: photo upload happens before the pending restaurant insert. If storage upload succeeds and the later database insert fails, the uploaded object can be orphaned because there is no compensating storage cleanup in the Server Action.
+- Residual risk: deployed full Naver read-path smoke remains branch-host gated by the Naver Maps hostname whitelist; it should be rerun on the whitelisted `dev` preview after PR #17 merge/redeploy.
+
+Verification:
+
+- `git diff --check dev...HEAD` passed.
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 101 tests.
+- `pnpm build` passed and generated `/ja`, `/ko`, `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- `pnpm test:e2e` passed: 8 local specs passed, 3 deployed-only specs skipped.
+- Follow-up cross-check after Claude retry:
+  - Claude confirmed the UGC photo orphan risk at `src/app/[locale]/actions.ts:71-83` and `src/lib/supabase/storage-server.ts:45-65`.
+  - Codex confirmed the same risk by reading the implementation: upload precedes `submitPending`, catch handling redirects without storage cleanup, and the upload helper returns only `publicUrl`.
+  - Claude confirmed the deployed read-path smoke intentionally fails on Naver fallback text and requires marker/cluster elements.
+  - Codex confirmed the same deployed smoke gate at `e2e/deployed-read-path.spec.ts`.
+  - Claude confirmed middleware excludes discoverability static routes; Codex confirmed `src/middleware.ts` and `src/app/layout.tsx` line-level behavior.
+  - `pnpm test 'src/app/[locale]/SubmissionForm.test.tsx' src/lib/supabase/storage-server.test.ts 'src/app/[locale]/actions.test.ts'` passed: 3 files, 14 tests.
+
+## 2026-05-07 — UGC Photo Orphan Cleanup Implemented
+
+Decision:
+
+- Fixed the residual UGC photo orphan risk with Claude-generated patches and Codex verification.
+- `uploadSubmissionPhoto` now returns both the storage `path` and `publicUrl`.
+- Added `cleanupSubmissionPhoto(path)` for server-side storage cleanup.
+- `submitRestaurantAction` now passes `uploaded.publicUrl` to `submitPending` and attempts best-effort cleanup with `uploaded.path` if `submitPending` fails after upload.
+- If `getPublicUrl` fails after a successful upload, the upload helper now attempts cleanup before throwing `SubmissionPhotoUploadError("publicUrl")`.
+
+Reason:
+
+- Claude and Codex both confirmed that upload-before-insert could leave a Supabase Storage object orphaned when validation/database failure happens after upload.
+- Returning the path keeps the existing upload-first flow while giving the Server Action a concrete cleanup handle.
+
+Verification:
+
+- `pnpm test 'src/app/[locale]/actions.test.ts' src/lib/supabase/storage-server.test.ts` passed: 2 files, 13 tests.
+- `pnpm lint` passed.
+- `pnpm build` passed.
+- `pnpm test` passed: 16 files, 103 tests.
+- `git diff --check` passed.
+- `pnpm exec prettier --check 'src/app/[locale]/actions.ts' 'src/app/[locale]/actions.test.ts' src/lib/supabase/storage-server.ts src/lib/supabase/storage-server.test.ts .hermes/logs/log.md` passed after formatting `src/lib/supabase/storage-server.ts`.

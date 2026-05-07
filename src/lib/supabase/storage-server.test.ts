@@ -11,6 +11,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   SubmissionPhotoRejectedError,
   SubmissionPhotoUploadError,
+  cleanupSubmissionPhoto,
   uploadSubmissionPhoto,
 } from "./storage-server";
 
@@ -29,10 +30,11 @@ function buildMockStorageClient(opts: {
   const upload: Mock = vi.fn().mockResolvedValue({
     error: opts.uploadError ?? null,
   });
-  const fromStorage: Mock = vi.fn().mockReturnValue({ upload, getPublicUrl });
+  const remove: Mock = vi.fn().mockResolvedValue({ data: null, error: null });
+  const fromStorage: Mock = vi.fn().mockReturnValue({ upload, getPublicUrl, remove });
   const client = { storage: { from: fromStorage } };
   (createSupabaseAdminClient as Mock).mockReturnValue(client);
-  return { fromStorage, upload, getPublicUrl };
+  return { fromStorage, upload, getPublicUrl, remove };
 }
 
 describe("uploadSubmissionPhoto", () => {
@@ -44,13 +46,13 @@ describe("uploadSubmissionPhoto", () => {
     const { fromStorage, upload } = buildMockStorageClient({});
     const file = makeFile(1024, "image/jpeg", "secret-name.jpg");
 
-    await expect(uploadSubmissionPhoto(file)).resolves.toBe(
-      "https://cdn.example.com/submission.jpg",
-    );
+    const result = await uploadSubmissionPhoto(file);
+    expect(result.publicUrl).toBe("https://cdn.example.com/submission.jpg");
+    expect(result.path).toMatch(/^\d{4}\/\d{2}\/.+\.jpg$/);
 
     expect(fromStorage).toHaveBeenCalledWith("restaurant-photos");
     const [path, uploadedFile, options] = upload.mock.calls[0]!;
-    expect(path).toMatch(/^\d{4}\/\d{2}\/.+\.jpg$/);
+    expect(path).toBe(result.path);
     expect(path).not.toContain("secret-name");
     expect(uploadedFile).toBe(file);
     expect(options).toMatchObject({ contentType: "image/jpeg", upsert: false });
@@ -67,7 +69,7 @@ describe("uploadSubmissionPhoto", () => {
     ).rejects.toBeInstanceOf(SubmissionPhotoRejectedError);
   });
 
-  it("surfaces storage upload and public URL failures", async () => {
+  it("surfaces storage upload and public URL failures and cleans up on missing publicUrl", async () => {
     buildMockStorageClient({ uploadError: { statusCode: "413" } });
     const uploadError = await uploadSubmissionPhoto(makeFile(1024, "image/png")).catch(
       (error) => error,
@@ -76,11 +78,29 @@ describe("uploadSubmissionPhoto", () => {
     expect((uploadError as SubmissionPhotoUploadError).stage).toBe("upload");
     expect((uploadError as SubmissionPhotoUploadError).code).toBe("413");
 
-    buildMockStorageClient({ publicUrl: "" });
+    const { upload, remove } = buildMockStorageClient({ publicUrl: "" });
     const publicUrlError = await uploadSubmissionPhoto(makeFile(1024, "image/png")).catch(
       (error) => error,
     );
     expect(publicUrlError).toBeInstanceOf(SubmissionPhotoUploadError);
     expect((publicUrlError as SubmissionPhotoUploadError).stage).toBe("publicUrl");
+    const uploadedPath = upload.mock.calls[0]![0] as string;
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(remove).toHaveBeenCalledWith([uploadedPath]);
+  });
+});
+
+describe("cleanupSubmissionPhoto", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("removes the given path from the restaurant-photos bucket", async () => {
+    const { fromStorage, remove } = buildMockStorageClient({});
+
+    await cleanupSubmissionPhoto("2026/05/abc.jpg");
+
+    expect(fromStorage).toHaveBeenCalledWith("restaurant-photos");
+    expect(remove).toHaveBeenCalledWith(["2026/05/abc.jpg"]);
   });
 });
