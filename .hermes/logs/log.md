@@ -1509,3 +1509,26 @@ Reason:
 Verification:
 
 - Staged file list contained source, docs, e2e, audit, and Hermes state files only; generated `.next` output was not staged.
+
+## 2026-05-07 — PR #17 Preview Verification
+
+Decision:
+
+- Pushed `codex/product-admin-readiness` and opened draft PR #17 against `dev`: https://github.com/0xMegg/honbabseoul/pull/17
+- Added branch-scoped Vercel Preview env `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` for `codex/product-admin-readiness` after the first preview returned `/ja` 500.
+- Redeployed the PR preview after the env fix.
+
+Result:
+
+- GitHub/Vercel checks are green and PR merge state is `CLEAN`.
+- First protected deployed smoke found `/ja` server-side exception digest `903459998`; Vercel runtime logs showed missing `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`.
+- After adding the branch Preview env and redeploying, protected `/ja` returned HTTP 200.
+- Deployed metadata/discoverability smoke passed on the PR preview.
+- Deployed full read-path smoke still does not pass on the PR branch alias because Naver Maps falls back and renders `地図を読み込めませんでした。`; the branch alias is not part of the known Naver-whitelisted host gate.
+
+Verification:
+
+- `gh pr checks 17` passed: GitGuardian, Vercel, Vercel Preview Comments.
+- `vercel inspect https://honbabseoul-eqdum8l17-meggs-projects.vercel.app` reported deployment `dpl_Ap87ZHfsSAaxUUuDNPzNtCnH1dr9` as `READY`.
+- Protected preview share URL was created for the redeploy; it expires on 2026-05-08 01:53:01 KST.
+- `DEPLOYED_BASE_URL=... VERCEL_SHARE_URL=... pnpm exec playwright test e2e/deployed-read-path.spec.ts e2e/smoke.spec.ts -g 'deployed read path smoke|locale metadata and generated OG image are available'` passed the metadata smoke and failed the read-path smoke at marker visibility because the deployed map rendered the expected fallback instead of Naver markers.

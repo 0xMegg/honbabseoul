@@ -97,6 +97,9 @@
 - Deployment document Current Preview Trace now points to the latest verified locale-lang preview and its smoke scope.
 - UGC duplicate submit guard is implemented locally: the submission form disables its submit button immediately after submit while preserving required-field gating, and local lint/test/e2e verification passed.
 - The current product/admin readiness bundle is packaged in local branch `codex/product-admin-readiness` as `Package product admin readiness bundle`.
+- Draft PR #17 is open against `dev`, checks are green, and merge state is clean.
+- PR #17 preview redeploy is READY after adding branch-scoped `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`; protected `/ja` returns HTTP 200 and deployed metadata/discoverability smoke passed.
+- PR #17 full deployed read-path smoke remains blocked by the Naver hostname whitelist because the PR branch alias renders the expected map fallback instead of Naver markers.
 
 ## Active Carry-Over
 
@@ -104,7 +107,7 @@
 
 ## Next Product Work
 
-Push `codex/product-admin-readiness` and open a draft PR when publish is requested.
+Decide whether to mark PR #17 ready or first run full Naver read-path smoke on a Naver-whitelisted host after merge/redeploy.
 
 ## Open Project Gates
 

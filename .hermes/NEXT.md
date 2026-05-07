@@ -70,15 +70,19 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - `docs/deployment.md` Current Preview Trace now points to the latest verified locale-lang preview and its smoke scope.
 - UGC duplicate submit guard is implemented locally: the submission form disables its submit button immediately after submit while preserving the existing required-field gate. Local lint, unit/component tests, and e2e passed.
 - Local review package commit created on branch `codex/product-admin-readiness`: `Package product admin readiness bundle`.
+- Draft PR #17 is open against `dev`: https://github.com/0xMegg/honbabseoul/pull/17
+- PR #17 checks are green and merge state is clean.
+- PR #17 preview needed branch-scoped `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`; after adding it and redeploying, protected `/ja` returned HTTP 200 and metadata/discoverability smoke passed.
+- PR #17 full deployed read-path smoke remains blocked by the Naver hostname whitelist: the PR branch alias renders the expected map fallback instead of Naver markers.
 
 ## Next Action
 
-Pick the next product/admin slice.
+Decide whether to mark PR #17 ready or first run full Naver read-path smoke on a Naver-whitelisted host after merge/redeploy.
 
 Candidate next work:
 
-1. Push `codex/product-admin-readiness` and open a draft PR when publish is requested.
-2. Keep real Naver verification as an explicit manual/headless gate when map behavior changes: `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` on local dev, then verify tiles, custom markers, selection state, and marker-to-bottom-sheet detail.
+1. Mark PR #17 ready if the known branch-host Naver whitelist gap is acceptable for review.
+2. Keep real Naver verification as an explicit manual/headless gate when map behavior changes: verify on the Naver-whitelisted `dev` preview after merge/redeploy, or run local dev with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` and configured localhost whitelist.
 
 ## Open Gates
 
