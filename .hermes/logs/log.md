@@ -2,6 +2,31 @@
 
 Append important decisions, execution traces, and verification results here.
 
+## 2026-05-07 — UGC Naver Place URL Fix
+
+Decision:
+
+- Expanded accepted UGC Naver URL hosts from only `map.naver.com` and
+  `naver.me` to include common Naver Place copy targets:
+  `m.place.naver.com`, `pcmap.place.naver.com`, and `place.map.naver.com`.
+- Kept exact-host matching so suffix-injection lookalikes remain rejected.
+- Reused the same allowlist for restaurant detail outbound links.
+
+Execution Trace:
+
+- Production `main` deployment `dpl_9wpMVYZVyrTneVZbRdq5t2e25oLw` reached
+  `READY` and basic UGC runtime checks passed on `/ja` and `/ko`.
+- The likely user-facing failure was validation rejection of real Naver Place
+  URLs copied from mobile/desktop place pages.
+
+Verification:
+
+- Production `/ja` deployed UGC photo smoke passed.
+- Production `/ko` direct `제보하기` smoke passed and inserted a `pending` row.
+- `pnpm test` passed: 16 files, 105 tests.
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm build` passed.
+
 ## 2026-05-07 — Claude/Codex Workflow Adoption
 
 Decision:

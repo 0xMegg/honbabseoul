@@ -1,6 +1,7 @@
 "use client";
 
 import type { Restaurant } from "@/lib/models/restaurant";
+import { mapNaverUrl } from "@/lib/naver-url";
 
 type Locale = "ja" | "ko";
 
@@ -144,17 +145,6 @@ function localizedValue(
   return locale === "ja"
     ? (restaurant.address_ja ?? restaurant.address_ko)
     : (restaurant.address_ko ?? restaurant.address_ja);
-}
-
-function mapNaverUrl(value: string | null): string | null {
-  if (!value) return null;
-
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === "map.naver.com" ? url.toString() : null;
-  } catch {
-    return null;
-  }
 }
 
 function mapPhotoUrl(value: string | null): string | null {

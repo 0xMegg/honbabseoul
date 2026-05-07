@@ -1,18 +1,15 @@
 import { z } from "zod";
+import { isAllowedNaverUrlHost, NAVER_URL_HOSTS } from "@/lib/naver-url";
 
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 export const ALLOWED_PHOTO_MIME = ["image/jpeg", "image/png"] as const;
-export const NAVER_URL_HOSTS = ["map.naver.com", "naver.me"] as const;
 
 export const naverUrlSchema = z
   .string()
   .url()
   .refine(
-    (value) =>
-      (NAVER_URL_HOSTS as readonly string[]).includes(
-        new URL(value).hostname.toLowerCase()
-      ),
-    { message: "URL must be from map.naver.com or naver.me" }
+    (value) => isAllowedNaverUrlHost(new URL(value).hostname),
+    { message: `URL must be from ${NAVER_URL_HOSTS.join(", ")}` }
   );
 
 export const priceRangeSchema = z.enum(["low", "mid", "high"]);

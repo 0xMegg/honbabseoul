@@ -94,6 +94,18 @@ describe("submitPending", () => {
     expect(result).toEqual({ id: "uuid-abc-123" });
   });
 
+  it("should accept common Naver Place URLs copied from mobile and desktop", async () => {
+    for (const naverUrl of [
+      "https://m.place.naver.com/restaurant/12345678",
+      "https://pcmap.place.naver.com/restaurant/12345678",
+      "https://place.map.naver.com/restaurant/12345678",
+    ]) {
+      await expect(submitPending({ ...VALID_BASE, naverUrl })).resolves.toEqual({
+        id: "uuid-abc-123",
+      });
+    }
+  });
+
   it("should reject unknown extra keys (strict mode blocks status: approved)", async () => {
     const err = await submitPending({
       ...VALID_BASE,
