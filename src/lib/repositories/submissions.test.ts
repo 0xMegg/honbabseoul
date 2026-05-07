@@ -6,8 +6,12 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
   createSupabaseAdminClient: vi.fn(),
 }));
+vi.mock("@/lib/naver-local-search", () => ({
+  enrichSubmissionFromNaverLocal: vi.fn(),
+}));
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { enrichSubmissionFromNaverLocal } from "@/lib/naver-local-search";
 import { submitPending } from "@/lib/repositories/submissions";
 import {
   InvalidInputError,
@@ -42,6 +46,7 @@ function buildMockClient(opts: {
 describe("submitPending", () => {
   beforeEach(() => {
     buildMockClient({});
+    (enrichSubmissionFromNaverLocal as Mock).mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -125,6 +130,9 @@ describe("submitPending", () => {
     const row = (insert as Mock).mock.calls[0]![0] as Record<string, unknown>;
     expect(row.name_ja).toBe(VALID_BASE.name);
     expect(row.name_ko).toBeNull();
+    expect(row.address_ko).toBeNull();
+    expect(row.latitude).toBeNull();
+    expect(row.longitude).toBeNull();
     expect(row.naver_url).toBe(VALID_BASE.naverUrl);
     expect(row.is_solo_default).toBe(true);
     expect(row.has_jp_menu).toBe(true);
@@ -140,6 +148,43 @@ describe("submitPending", () => {
     await submitPending({ ...VALID_BASE, reason: "とても良いお店です" });
     const row = (insert as Mock).mock.calls[0]![0] as Record<string, unknown>;
     expect(row.reason).toBe("とても良いお店です");
+  });
+
+  it("should enrich pending rows with confident Naver Local Search data", async () => {
+    (enrichSubmissionFromNaverLocal as Mock).mockResolvedValue({
+      addressKo: "서울특별시 중구 을지로15길 6-5",
+      latitude: 37.5612345,
+      longitude: 126.9912345,
+      nameKo: "조선옥",
+    });
+    const { insert } = buildMockClient({});
+
+    await submitPending({ ...VALID_BASE, name: "조선옥" });
+
+    expect(enrichSubmissionFromNaverLocal).toHaveBeenCalledWith("조선옥");
+    const row = (insert as Mock).mock.calls[0]![0] as Record<string, unknown>;
+    expect(row).toMatchObject({
+      address_ko: "서울특별시 중구 을지로15길 6-5",
+      latitude: 37.5612345,
+      longitude: 126.9912345,
+      name_ko: "조선옥",
+    });
+  });
+
+  it("should still submit when Naver Local Search enrichment fails", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    (enrichSubmissionFromNaverLocal as Mock).mockRejectedValue(new Error("naver timeout"));
+    const { insert } = buildMockClient({});
+
+    await submitPending({ ...VALID_BASE });
+
+    const row = (insert as Mock).mock.calls[0]![0] as Record<string, unknown>;
+    expect(row.name_ko).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      "[submitPending:enrichment]",
+      expect.objectContaining({ reason: "Error" }),
+    );
+    warn.mockRestore();
   });
 
   it("should forward photoUrl when provided", async () => {

@@ -44,6 +44,11 @@ export function requireFirstEnv(keys: readonly string[]): string {
   throw new MissingEnvError(keys.join(" or "));
 }
 
+export function optionalEnv(key: string): string | undefined {
+  const value = process.env[key];
+  return value === undefined || value === "" ? undefined : value;
+}
+
 /**
  * Public envs — fine to read on either side of the client/server boundary.
  */
@@ -92,5 +97,11 @@ export const serverEnv = {
   },
   get supabaseProjectRef(): string {
     return requireEnv("SUPABASE_PROJECT_REF");
+  },
+  get naverSearchClientId(): string | undefined {
+    return optionalEnv("NAVER_SEARCH_CLIENT_ID");
+  },
+  get naverSearchClientSecret(): string | undefined {
+    return optionalEnv("NAVER_SEARCH_CLIENT_SECRET");
   },
 } as const;

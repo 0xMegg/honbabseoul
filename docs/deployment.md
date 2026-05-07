@@ -18,6 +18,16 @@ Configure these in Vercel for production and preview:
 - `SUPABASE_SECRET_KEY`
 - `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`
 
+Optional server-only enrichment envs:
+
+- `NAVER_SEARCH_CLIENT_ID`
+- `NAVER_SEARCH_CLIENT_SECRET`
+
+When present, UGC submissions use Naver Local Search to prefill Korean name,
+Korean address, latitude, and longitude for confident restaurant-name matches.
+When missing or ambiguous, submission still succeeds without auto-filled
+location fields.
+
 Legacy fallback keys are still supported locally but should not be preferred for new Vercel environments:
 
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -58,6 +68,11 @@ Vercel Production must point at the production Supabase project:
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY`
 - `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`
+
+For production UGC auto-enrichment, also set:
+
+- `NAVER_SEARCH_CLIENT_ID`
+- `NAVER_SEARCH_CLIENT_SECRET`
 
 Preview and development scopes may continue to point at non-production
 Supabase projects, but production scope must not reuse dev credentials for

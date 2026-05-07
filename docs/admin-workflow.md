@@ -23,6 +23,9 @@ In Supabase, open the `restaurants` table and filter:
 Review these fields before approval:
 
 - `name_ja`: user-submitted restaurant name.
+- `name_ko`: may be auto-filled from Naver Local Search when the match is confident.
+- `address_ko`: may be auto-filled from Naver Local Search when the match is confident.
+- `latitude` / `longitude`: may be auto-filled from Naver Local Search when the match is confident.
 - `naver_url`: must be a real Naver Maps place URL.
 - `is_solo_default`: confirm whether solo dining is actually acceptable.
 - `has_jp_menu`: confirm Japanese menu or Japanese-friendly support.
@@ -57,6 +60,8 @@ Approve only after the row is complete enough for the public map:
 - Fill `name_ko` when a Korean display name is known.
 - Fill `address_ja` and `address_ko` when available.
 - Fill `latitude` and `longitude` so the row can appear as a map marker.
+- Treat auto-filled Naver Local Search values as review assistance, not final
+  approval authority. Confirm the row still matches the submitted Naver URL.
 - Keep `naver_url` as a web URL that opens in the browser.
 - Set `status` to `approved`.
 

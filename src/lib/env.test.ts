@@ -165,4 +165,31 @@ describe("env getter facades", () => {
       }
     }
   });
+
+  it("serverEnv Naver Search credentials are optional", () => {
+    const originalId = process.env.NAVER_SEARCH_CLIENT_ID;
+    const originalSecret = process.env.NAVER_SEARCH_CLIENT_SECRET;
+    delete process.env.NAVER_SEARCH_CLIENT_ID;
+    delete process.env.NAVER_SEARCH_CLIENT_SECRET;
+    try {
+      expect(serverEnv.naverSearchClientId).toBeUndefined();
+      expect(serverEnv.naverSearchClientSecret).toBeUndefined();
+
+      process.env.NAVER_SEARCH_CLIENT_ID = "search-client-id";
+      process.env.NAVER_SEARCH_CLIENT_SECRET = "search-client-secret";
+      expect(serverEnv.naverSearchClientId).toBe("search-client-id");
+      expect(serverEnv.naverSearchClientSecret).toBe("search-client-secret");
+    } finally {
+      if (originalId === undefined) {
+        delete process.env.NAVER_SEARCH_CLIENT_ID;
+      } else {
+        process.env.NAVER_SEARCH_CLIENT_ID = originalId;
+      }
+      if (originalSecret === undefined) {
+        delete process.env.NAVER_SEARCH_CLIENT_SECRET;
+      } else {
+        process.env.NAVER_SEARCH_CLIENT_SECRET = originalSecret;
+      }
+    }
+  });
 });

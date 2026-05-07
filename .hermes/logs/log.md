@@ -2,6 +2,36 @@
 
 Append important decisions, execution traces, and verification results here.
 
+## 2026-05-07 — UGC Naver Local Search Enrichment
+
+Decision:
+
+- UGC submissions now attempt server-side Naver Local Search enrichment before
+  inserting a pending row.
+- If Naver Search credentials are configured and the restaurant-name match is
+  confident, the pending row is prefilled with `name_ko`, `address_ko`,
+  `latitude`, and `longitude`.
+- If credentials are missing, the API fails, or the match is ambiguous,
+  submission still succeeds without auto-filled location fields.
+- Auto-filled values are review assistance only; operators must still confirm
+  the row before setting `status = approved`.
+
+Execution Trace:
+
+- Added optional server-only envs:
+  `NAVER_SEARCH_CLIENT_ID` and `NAVER_SEARCH_CLIENT_SECRET`.
+- Added exact-match/containment-based candidate selection and Korea-bounds
+  coordinate validation.
+- Updated admin and deployment docs to describe the optional enrichment path.
+- Vercel env audit showed the Naver Search envs are not currently configured.
+
+Verification:
+
+- `pnpm test` passed: 17 files, 112 tests.
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm build` passed.
+- `git diff --check` passed.
+
 ## 2026-05-07 — UGC Naver Place URL Fix
 
 Decision:

@@ -1,6 +1,7 @@
 import "server-only";
 import type { TablesInsert } from "@/lib/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { enrichSubmissionFromNaverLocal } from "@/lib/naver-local-search";
 import {
   submissionSchema,
   InvalidInputError,
@@ -20,10 +21,20 @@ export async function submitPending(input: unknown): Promise<{ id: string }> {
   }
 
   const { data } = parsed;
+  const enrichment = await enrichSubmissionFromNaverLocal(data.name).catch((error: unknown) => {
+    console.warn("[submitPending:enrichment]", {
+      scope: "submitPending",
+      reason: error instanceof Error ? error.name : "unknown",
+    });
+    return null;
+  });
 
   const row = {
     name_ja: data.name,
-    name_ko: null,
+    name_ko: enrichment?.nameKo ?? null,
+    address_ko: enrichment?.addressKo ?? null,
+    latitude: enrichment?.latitude ?? null,
+    longitude: enrichment?.longitude ?? null,
     naver_url: data.naverUrl,
     is_solo_default: data.isSolo,
     has_jp_menu: data.hasJpMenu,
