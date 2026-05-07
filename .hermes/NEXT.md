@@ -74,15 +74,16 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - PR #17 checks are green and merge state is clean.
 - PR #17 preview needed branch-scoped `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`; after adding it and redeploying, protected `/ja` returned HTTP 200 and metadata/discoverability smoke passed.
 - PR #17 full deployed read-path smoke remains blocked by the Naver hostname whitelist: the PR branch alias renders the expected map fallback instead of Naver markers.
+- PR #17 was marked ready for review after checks passed and the branch-host Naver whitelist gap was documented.
 
 ## Next Action
 
-Decide whether to mark PR #17 ready or first run full Naver read-path smoke on a Naver-whitelisted host after merge/redeploy.
+Wait for PR #17 review/merge, then run full Naver read-path smoke on the Naver-whitelisted `dev` preview after merge/redeploy.
 
 Candidate next work:
 
-1. Mark PR #17 ready if the known branch-host Naver whitelist gap is acceptable for review.
-2. Keep real Naver verification as an explicit manual/headless gate when map behavior changes: verify on the Naver-whitelisted `dev` preview after merge/redeploy, or run local dev with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true` and configured localhost whitelist.
+1. Address PR #17 review comments or failing checks if they appear.
+2. After PR #17 merge, verify on the Naver-whitelisted `dev` preview: Japanese page, Naver tiles, custom markers/clusters, marker-to-bottom-sheet detail, close, and filter transition.
 
 ## Open Gates
 

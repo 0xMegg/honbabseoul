@@ -100,6 +100,7 @@
 - Draft PR #17 is open against `dev`, checks are green, and merge state is clean.
 - PR #17 preview redeploy is READY after adding branch-scoped `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`; protected `/ja` returns HTTP 200 and deployed metadata/discoverability smoke passed.
 - PR #17 full deployed read-path smoke remains blocked by the Naver hostname whitelist because the PR branch alias renders the expected map fallback instead of Naver markers.
+- PR #17 is marked ready for review.
 
 ## Active Carry-Over
 
@@ -107,7 +108,7 @@
 
 ## Next Product Work
 
-Decide whether to mark PR #17 ready or first run full Naver read-path smoke on a Naver-whitelisted host after merge/redeploy.
+Wait for PR #17 review/merge, then run full Naver read-path smoke on the Naver-whitelisted `dev` preview after merge/redeploy.
 
 ## Open Project Gates
 

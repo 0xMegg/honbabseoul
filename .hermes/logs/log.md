@@ -1517,6 +1517,7 @@ Decision:
 - Pushed `codex/product-admin-readiness` and opened draft PR #17 against `dev`: https://github.com/0xMegg/honbabseoul/pull/17
 - Added branch-scoped Vercel Preview env `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` for `codex/product-admin-readiness` after the first preview returned `/ja` 500.
 - Redeployed the PR preview after the env fix.
+- Marked PR #17 ready for review after checks passed and the branch-host Naver whitelist gap was documented.
 
 Result:
 
