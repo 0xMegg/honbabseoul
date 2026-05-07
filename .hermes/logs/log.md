@@ -8,6 +8,9 @@ Decision:
 
 - Hardened Naver Maps marker rendering so marker constructor failures become
   the existing inline map error instead of an uncaught client exception.
+- Added a route-level client error boundary around the map/read-path surface
+  so unexpected map/detail client errors cannot replace the entire page with
+  the Next.js application error screen.
 - This keeps the UGC success redirect and submission form usable even if the
   Naver Maps SDK behaves differently in a user browser.
 
@@ -26,6 +29,8 @@ Verification:
 - Added marker-construction failure coverage.
 - `pnpm test -- src/lib/features/map/MapClient.test.tsx` passed: 17 files,
   113 tests.
+- Boundary follow-up: `pnpm test -- src/lib/features/map/MapClient.test.tsx
+  'src/app/[locale]/SubmissionForm.test.tsx'` passed: 17 files, 113 tests.
 - `pnpm lint` passed with no warnings or errors.
 - `pnpm build` passed.
 - `git diff --check` passed.
