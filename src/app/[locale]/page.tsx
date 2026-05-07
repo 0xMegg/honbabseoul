@@ -136,6 +136,8 @@ export default async function Home({ params, searchParams }: HomeProps) {
             no: t("form.no"),
             photo: t("form.photo"),
             photoHint: t("form.photoHint"),
+            photoInvalid: t("form.photoInvalid"),
+            photoTooLarge: t("form.photoTooLarge"),
             priceHigh: t("form.priceHigh"),
             priceLow: t("form.priceLow"),
             priceMid: t("form.priceMid"),

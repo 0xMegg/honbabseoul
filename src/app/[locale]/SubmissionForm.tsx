@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ALLOWED_PHOTO_MIME, MAX_PHOTO_BYTES } from "@/lib/photo-constraints";
 import type { PreservedFormValues } from "./submission-flash";
 
 type SubmissionFormLabels = {
@@ -12,6 +13,8 @@ type SubmissionFormLabels = {
   no: string;
   photo: string;
   photoHint: string;
+  photoInvalid: string;
+  photoTooLarge: string;
   priceHigh: string;
   priceLow: string;
   priceMid: string;
@@ -35,6 +38,7 @@ type RequiredValues = Pick<
 
 export function SubmissionForm({ action, labels, preservedValues }: SubmissionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [requiredValues, setRequiredValues] = useState<RequiredValues>({
     hasJpMenu: preservedValues.hasJpMenu,
     isLateNight: preservedValues.isLateNight,
@@ -53,10 +57,26 @@ export function SubmissionForm({ action, labels, preservedValues }: SubmissionFo
       requiredValues.isLateNight !== "",
     [requiredValues],
   );
-  const isSubmitDisabled = !canSubmit || isSubmitting;
+  const isSubmitDisabled = !canSubmit || photoError !== null || isSubmitting;
 
   function setRequiredValue(key: keyof RequiredValues, value: string) {
     setRequiredValues((current) => ({ ...current, [key]: value }));
+  }
+
+  function validatePhoto(file: File | undefined) {
+    if (!file) {
+      setPhotoError(null);
+      return;
+    }
+    if (!ALLOWED_PHOTO_MIME.includes(file.type as (typeof ALLOWED_PHOTO_MIME)[number])) {
+      setPhotoError(labels.photoInvalid);
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhotoError(labels.photoTooLarge);
+      return;
+    }
+    setPhotoError(null);
   }
 
   return (
@@ -149,11 +169,21 @@ export function SubmissionForm({ action, labels, preservedValues }: SubmissionFo
         <span className="text-sm font-semibold">{labels.photo}</span>
         <input
           accept="image/jpeg,image/png"
+          aria-describedby="submission-photo-hint"
+          aria-invalid={photoError ? "true" : undefined}
           className="w-full rounded-md border border-border bg-bg px-3 py-2"
           name="photo"
+          onChange={(event) => validatePhoto(event.currentTarget.files?.[0])}
           type="file"
         />
-        <span className="block text-xs text-text-muted">{labels.photoHint}</span>
+        <span className="block text-xs text-text-muted" id="submission-photo-hint">
+          {labels.photoHint}
+        </span>
+        {photoError ? (
+          <span className="block text-xs font-semibold text-danger" role="alert">
+            {photoError}
+          </span>
+        ) : null}
       </label>
 
       <button

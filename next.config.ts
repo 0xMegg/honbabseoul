@@ -7,6 +7,11 @@ const withNextIntl = createNextIntlPlugin();
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "4mb",
+    },
+  },
   outputFileTracingRoot: projectRoot,
   turbopack: {
     root: projectRoot,

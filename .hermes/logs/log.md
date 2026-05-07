@@ -35,6 +35,22 @@ Verification:
 - `pnpm build` passed.
 - `git diff --check` passed.
 
+Follow-up:
+
+- User confirmed the error only occurs when submitting with a photo.
+- Root cause: app-level photo limit was 2MB, but Next.js Server Action default
+  multipart body limit is 1MB. Tiny PNG smoke passed while real browser photos
+  commonly exceeded 1MB and failed before application validation could handle
+  the file.
+- Set `experimental.serverActions.bodySizeLimit` to `4mb`.
+- Added client-side photo validation so unsupported files and files over 2MB
+  block submission with localized inline feedback instead of hitting the
+  Server Action transport limit.
+- Moved photo constraints to a client-safe module to avoid pulling server
+  validation dependencies into the client bundle.
+- Verification: `pnpm test` passed: 17 files, 114 tests; `pnpm lint`,
+  `pnpm build`, and `git diff --check` passed.
+
 ## 2026-05-07 — UGC Naver Local Search Enrichment
 
 Decision:

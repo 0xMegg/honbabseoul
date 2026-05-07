@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { isAllowedNaverUrlHost, NAVER_URL_HOSTS } from "@/lib/naver-url";
+import { ALLOWED_PHOTO_MIME, MAX_PHOTO_BYTES } from "@/lib/photo-constraints";
 
-export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
-export const ALLOWED_PHOTO_MIME = ["image/jpeg", "image/png"] as const;
+export { ALLOWED_PHOTO_MIME, MAX_PHOTO_BYTES };
 
 export const naverUrlSchema = z
   .string()
