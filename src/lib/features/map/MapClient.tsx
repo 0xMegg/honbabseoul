@@ -23,6 +23,29 @@ type MapClientProps = {
   onRestaurantSelect?: (id: string) => void;
 };
 
+type CoordinateRestaurant = Restaurant & { latitude: number; longitude: number };
+
+type MarkerDescriptor =
+  | {
+      key: string;
+      kind: "restaurant";
+      label: string;
+      latitude: number;
+      longitude: number;
+      restaurant: CoordinateRestaurant;
+    }
+  | {
+      key: string;
+      kind: "cluster";
+      label: string;
+      latitude: number;
+      longitude: number;
+      restaurants: CoordinateRestaurant[];
+    };
+
+const CLUSTER_GRID_SIZE = 0.003;
+const EXPANDED_MARKER_OFFSET = 0.00035;
+
 export function MapClient({
   clientId,
   containerClassName = "h-[360px]",
@@ -42,6 +65,7 @@ export function MapClient({
   const [mapReady, setMapReady] = useState(false);
   const [mapInitFailed, setMapInitFailed] = useState(false);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [expandedClusterKey, setExpandedClusterKey] = useState<string | null>(null);
   const status = useNaverMapsSdk(clientId);
 
   useEffect(() => {
@@ -88,26 +112,36 @@ export function MapClient({
     markersRef.current = [];
     markerListenersRef.current = [];
 
-    for (const restaurant of restaurants.filter(hasCoordinates)) {
-      const title = restaurant.name_ja ?? restaurant.name_ko ?? undefined;
+    for (const descriptor of buildMarkerDescriptors(
+      restaurants.filter(hasCoordinates),
+      expandedClusterKey,
+    )) {
+      const selected =
+        descriptor.kind === "restaurant" && descriptor.restaurant.id === selectedRestaurantId;
       const marker = new maps.Marker({
         icon: {
-          content: buildMarkerIconContent(
-            title ?? "혼밥서울",
-            restaurant.id === selectedRestaurantId,
-          ),
+          content:
+            descriptor.kind === "cluster"
+              ? buildClusterIconContent(descriptor.restaurants.length)
+              : buildMarkerIconContent(descriptor.label, selected),
         },
         map: mapRef.current,
-        position: new maps.LatLng(restaurant.latitude, restaurant.longitude),
-        title,
+        position: new maps.LatLng(descriptor.latitude, descriptor.longitude),
+        title: descriptor.label,
       });
       markersRef.current.push(marker);
 
       if (onRestaurantSelect && maps.Event) {
         markerListenersRef.current.push(
           maps.Event.addListener(marker, "click", () => {
-            setSelectedRestaurantId(restaurant.id);
-            onRestaurantSelect(restaurant.id);
+            if (descriptor.kind === "cluster") {
+              setExpandedClusterKey(descriptor.key);
+              setSelectedRestaurantId(null);
+              return;
+            }
+
+            setSelectedRestaurantId(descriptor.restaurant.id);
+            onRestaurantSelect(descriptor.restaurant.id);
           }),
         );
       }
@@ -118,7 +152,15 @@ export function MapClient({
       markersRef.current = [];
       markerListenersRef.current = [];
     };
-  }, [mapReady, onRestaurantSelect, restaurants, selectedRestaurantId]);
+  }, [expandedClusterKey, mapReady, onRestaurantSelect, restaurants, selectedRestaurantId]);
+
+  useEffect(() => {
+    if (!expandedClusterKey) return;
+    const clusterKeys = buildCoordinateClusters(restaurants.filter(hasCoordinates)).map(
+      (cluster) => cluster.key,
+    );
+    if (!clusterKeys.includes(expandedClusterKey)) setExpandedClusterKey(null);
+  }, [expandedClusterKey, restaurants]);
 
   useEffect(() => {
     if (!mapReady) return;
@@ -130,6 +172,7 @@ export function MapClient({
       markersRef.current = [];
       markerListenersRef.current = [];
       setSelectedRestaurantId(null);
+      setExpandedClusterKey(null);
       destroyMap(mapRef.current);
       mapRef.current = null;
       containerRef.current?.replaceChildren();
@@ -187,6 +230,103 @@ function destroyMap(map: NaverMapInstance | null) {
   }
 }
 
+function buildMarkerDescriptors(
+  restaurants: CoordinateRestaurant[],
+  expandedClusterKey: string | null,
+): MarkerDescriptor[] {
+  const descriptors: MarkerDescriptor[] = [];
+
+  for (const cluster of buildCoordinateClusters(restaurants)) {
+    if (cluster.restaurants.length === 1) {
+      const restaurant = cluster.restaurants[0];
+      if (!restaurant) continue;
+      descriptors.push(
+        buildRestaurantDescriptor(restaurant, restaurant.latitude, restaurant.longitude),
+      );
+      continue;
+    }
+
+    if (cluster.key !== expandedClusterKey) {
+      descriptors.push({
+        key: cluster.key,
+        kind: "cluster",
+        label: `${cluster.restaurants.length} restaurants`,
+        latitude: cluster.latitude,
+        longitude: cluster.longitude,
+        restaurants: cluster.restaurants,
+      });
+      continue;
+    }
+
+    cluster.restaurants.forEach((restaurant, index) => {
+      const angle = (2 * Math.PI * index) / cluster.restaurants.length;
+      descriptors.push(
+        buildRestaurantDescriptor(
+          restaurant,
+          restaurant.latitude + Math.sin(angle) * EXPANDED_MARKER_OFFSET,
+          restaurant.longitude + Math.cos(angle) * EXPANDED_MARKER_OFFSET,
+        ),
+      );
+    });
+  }
+
+  return descriptors;
+}
+
+function buildCoordinateClusters(restaurants: CoordinateRestaurant[]) {
+  const clusters = new Map<
+    string,
+    { key: string; latitude: number; longitude: number; restaurants: CoordinateRestaurant[] }
+  >();
+
+  for (const restaurant of restaurants) {
+    const key = coordinateClusterKey(restaurant);
+    const cluster = clusters.get(key);
+
+    if (cluster) {
+      cluster.restaurants.push(restaurant);
+      cluster.latitude =
+        cluster.restaurants.reduce((sum, item) => sum + item.latitude, 0) /
+        cluster.restaurants.length;
+      cluster.longitude =
+        cluster.restaurants.reduce((sum, item) => sum + item.longitude, 0) /
+        cluster.restaurants.length;
+      continue;
+    }
+
+    clusters.set(key, {
+      key,
+      latitude: restaurant.latitude,
+      longitude: restaurant.longitude,
+      restaurants: [restaurant],
+    });
+  }
+
+  return Array.from(clusters.values());
+}
+
+function coordinateClusterKey(restaurant: CoordinateRestaurant): string {
+  return [
+    Math.round(restaurant.latitude / CLUSTER_GRID_SIZE),
+    Math.round(restaurant.longitude / CLUSTER_GRID_SIZE),
+  ].join(":");
+}
+
+function buildRestaurantDescriptor(
+  restaurant: CoordinateRestaurant,
+  latitude: number,
+  longitude: number,
+): MarkerDescriptor {
+  return {
+    key: restaurant.id,
+    kind: "restaurant",
+    label: restaurant.name_ja ?? restaurant.name_ko ?? "혼밥서울",
+    latitude,
+    longitude,
+    restaurant,
+  };
+}
+
 function buildMarkerIconContent(label: string, selected: boolean): string {
   const safeLabel = escapeHtml(label);
   const background = selected ? "var(--hb-brand)" : "var(--hb-bg)";
@@ -199,6 +339,15 @@ function buildMarkerIconContent(label: string, selected: boolean): string {
     ` style="position:relative;transform:translate(-50%,-100%);display:flex;align-items:center;gap:4px;max-width:112px;padding:6px 9px;border:2px solid ${border};border-radius:999px;background:${background};color:${color};box-shadow:${shadow};font-size:12px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;">`,
     `<span style="display:block;overflow:hidden;text-overflow:ellipsis;">${safeLabel}</span>`,
     `<span style="position:absolute;left:50%;bottom:-7px;width:10px;height:10px;transform:translateX(-50%) rotate(45deg);border-bottom:2px solid ${border};border-right:2px solid ${border};background:${background};"></span>`,
+    "</div>",
+  ].join("");
+}
+
+function buildClusterIconContent(count: number): string {
+  return [
+    `<div aria-label="${count} restaurants" data-hb-cluster="true" role="button"`,
+    ` style="position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid var(--hb-brand-hover);border-radius:999px;background:var(--hb-brand);color:var(--hb-text-invert);box-shadow:0 8px 20px rgb(94 106 210 / 0.32);font-size:14px;font-weight:800;line-height:1;cursor:pointer;">`,
+    `${count}`,
     "</div>",
   ].join("");
 }

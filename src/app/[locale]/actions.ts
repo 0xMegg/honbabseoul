@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { InvalidInputError, SubmissionDatabaseError } from "@/lib/models/submission";
 import { submitPending } from "@/lib/repositories/submissions";
 import {
+  SubmissionPhotoRejectedError,
+  SubmissionPhotoUploadError,
+  uploadSubmissionPhoto,
+} from "@/lib/supabase/storage-server";
+import {
   encodePreservedFormValues,
   preservedValuesFromFormData,
   UGC_FORM_FLASH_COOKIE,
@@ -22,10 +27,15 @@ function formBoolean(formData: FormData, key: string): boolean | undefined {
   return undefined;
 }
 
+function formFile(formData: FormData, key: string): File | null {
+  const value = formData.get(key);
+  return value instanceof File && value.size > 0 ? value : null;
+}
+
 async function redirectWithStatus(
   locale: string,
   status: string,
-  formData?: FormData
+  formData?: FormData,
 ): Promise<never> {
   const params = new URLSearchParams({ submission: status });
   const cookieStore = await cookies();
@@ -40,7 +50,7 @@ async function redirectWithStatus(
         path: "/",
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
-      }
+      },
     );
   } else {
     cookieStore.delete(UGC_FORM_FLASH_COOKIE);
@@ -57,6 +67,9 @@ export async function submitRestaurantAction(locale: string, formData: FormData)
   const priceRange = formString(formData, "priceRange");
 
   try {
+    const photo = formFile(formData, "photo");
+    const photoUrl = photo ? await uploadSubmissionPhoto(photo) : undefined;
+
     await submitPending({
       name: formString(formData, "name"),
       naverUrl: formString(formData, "naverUrl"),
@@ -66,12 +79,13 @@ export async function submitRestaurantAction(locale: string, formData: FormData)
       reason: formString(formData, "reason"),
       // Empty select value means "unknown"; submissionSchema validates low/mid/high.
       priceRange: priceRange === "" ? undefined : priceRange,
+      photoUrl,
     });
   } catch (error) {
-    if (error instanceof InvalidInputError) {
+    if (error instanceof InvalidInputError || error instanceof SubmissionPhotoRejectedError) {
       await redirectWithStatus(locale, "invalid", formData);
     }
-    if (error instanceof SubmissionDatabaseError) {
+    if (error instanceof SubmissionDatabaseError || error instanceof SubmissionPhotoUploadError) {
       await redirectWithStatus(locale, "error", formData);
     }
     throw error;

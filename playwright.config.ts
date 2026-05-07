@@ -18,7 +18,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.DEPLOYED_BASE_URL ?? "http://localhost:3000",
     trace: "on-first-retry",
     locale: "ja-JP",
     timezoneId: "Asia/Tokyo",
@@ -33,12 +33,14 @@ export default defineConfig({
       use: { ...devices["Pixel 7"] },
     },
   ],
-  webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    stdout: "ignore",
-    stderr: "pipe",
-  },
+  webServer: process.env.DEPLOYED_BASE_URL
+    ? undefined
+    : {
+        command: "pnpm dev",
+        url: "http://localhost:3000",
+        reuseExistingServer: false,
+        timeout: 120_000,
+        stdout: "ignore",
+        stderr: "pipe",
+      },
 });

@@ -10,11 +10,17 @@ import { RestaurantDetail } from "./RestaurantDetail";
 
 type DetailLabels = {
   address: string;
+  badges: string;
   close: string;
   copied: string;
   copyAddress: string;
   error: string;
+  hasJpMenu: string;
+  isLateNight: string;
+  isSolo: string;
   naverLink: string;
+  photoAlt: string;
+  photoFallback: string;
   price: string;
   priceUnknown: string;
   title: string;
