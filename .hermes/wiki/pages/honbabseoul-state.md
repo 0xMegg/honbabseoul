@@ -6,10 +6,34 @@
 - Git branch and HEAD checked during migration.
 - Project context: `context/about-me.md`.
 - Reason persistence decision and migration: `context/decision-log.md`, `supabase/migrations/0002_submission_reason.sql`.
+- Deployed read-path and seed acceptance traces: `.hermes/logs/log.md`, `e2e/deployed-read-path.spec.ts`, `src/lib/repositories/seed-read-path.test.ts`, `supabase/seed.sql`.
+- Next.js workspace-root warning housekeeping: `.hermes/logs/log.md`, `next.config.ts`.
+- Restaurant detail media slot: `.hermes/logs/log.md`, `docs/project-plan.md`, `src/lib/features/detail/RestaurantDetail.tsx`.
+- UGC photo upload wiring: `.hermes/logs/log.md`, `docs/project-plan.md`, `src/app/[locale]/actions.ts`, `src/lib/supabase/storage-server.ts`.
+- Deployed UGC photo smoke gate: `.hermes/logs/log.md`, `e2e/deployed-ugc-photo.spec.ts`.
+- Restaurant detail feature badges: `.hermes/logs/log.md`, `src/lib/features/detail/RestaurantDetail.tsx`.
+- Preview deployment and UGC photo smoke: `.hermes/logs/log.md`.
+- UGC submit enablement gate: `.hermes/logs/log.md`, `src/app/[locale]/SubmissionForm.tsx`, `src/app/[locale]/SubmissionForm.test.tsx`, `e2e/smoke.spec.ts`.
+- Admin workflow and pending isolation gate: `.hermes/logs/log.md`, `docs/admin-workflow.md`, `e2e/deployed-ugc-photo.spec.ts`.
+- Epic 5 audit artifact: `.hermes/logs/log.md`, `outputs/reviews/epic-5-audit.md`.
+- Deployed approval-flow smoke gate: `.hermes/logs/log.md`, `e2e/deployed-approval-flow.spec.ts`, `outputs/reviews/epic-5-audit.md`.
+- Metadata and OG polish: `.hermes/logs/log.md`, `src/app/layout.tsx`, `src/app/[locale]/layout.tsx`, `src/app/opengraph-image.tsx`, `src/middleware.ts`, `e2e/smoke.spec.ts`.
+- Metadata preview deployment: `.hermes/logs/log.md`.
+- Deployed metadata smoke: `.hermes/logs/log.md`, `e2e/smoke.spec.ts`.
+- Web manifest polish: `.hermes/logs/log.md`, `src/app/manifest.ts`, `src/app/layout.tsx`, `e2e/smoke.spec.ts`.
+- Manifest preview deployment and smoke: `.hermes/logs/log.md`.
+- Robots and sitemap polish: `.hermes/logs/log.md`, `src/app/robots.ts`, `src/app/sitemap.ts`, `e2e/smoke.spec.ts`.
+- Robots/sitemap preview deployment and smoke: `.hermes/logs/log.md`.
+- Deployment documentation refresh: `.hermes/logs/log.md`, `docs/deployment.md`.
+- README orientation refresh: `.hermes/logs/log.md`, `README.md`.
+- Locale HTML lang and e2e server reuse hardening: `.hermes/logs/log.md`, `src/app/[locale]/HtmlLang.tsx`, `src/app/[locale]/layout.tsx`, `e2e/smoke.spec.ts`, `playwright.config.ts`.
+- Locale lang preview deployment and smoke: `.hermes/logs/log.md`.
+- Deployment trace refresh: `.hermes/logs/log.md`, `docs/deployment.md`.
+- UGC duplicate submit guard: `.hermes/logs/log.md`, `src/app/[locale]/SubmissionForm.tsx`, `src/app/[locale]/SubmissionForm.test.tsx`.
 
 ## Current State
 
-- Date: 2026-05-04
+- Date: 2026-05-06
 - Branch: `dev`
 - Baseline checked during Hermes adoption: `216e9c6`
 - Hermes adoption changed operating-layer files only; no runtime source files changed.
@@ -45,6 +69,38 @@
 - Merged PR branch refs were pruned locally and remotely on 2026-05-04 after confirming PR #1-#16 merge state; `snapshot/pre-hermes-cutover-20260503` remains as an archive pointer.
 - Vercel `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` is configured for production, development, and `dev` preview; redeploy `dpl_G9SwTGkXVyXGCcPBhbFDttRuv1u7` owns the `dev` branch preview alias.
 - Verification gap diagnosis is logged: future user-facing product work must include real headless workflow coverage, external SDK success/failure checks, route transition checks, and remote smoke data cleanup.
+- Deployed full read-path smoke is automated behind `DEPLOYED_BASE_URL`; protected Vercel previews can use `VERCEL_SHARE_URL`.
+- Seed-data/read-path acceptance is automated against `supabase/seed.sql`, including public model compatibility, map/detail field completeness, Naver URL shape, and expected UI filter counts.
+- Marker clustering/overlap handling is implemented with branded count clusters and expanded offset individual markers on cluster click.
+- Logo placeholder is replaced by a path-based bilingual SVG mark; the accessible title still exposes both scripts.
+- Next.js workspace-root warning housekeeping is complete: `outputFileTracingRoot` and `turbopack.root` are pinned to this project root.
+- Restaurant detail now renders a media slot: safe `photo_url` values show as images, missing photos show a branded placeholder, and deployed read-path smoke covers the slot.
+- UGC photo upload wiring is implemented with an optional JPEG/PNG form file, server-only Supabase Storage upload, and `submitPending.photoUrl` persistence.
+- Deployed UGC photo smoke is automated behind `RUN_DEPLOYED_UGC_PHOTO_SMOKE=true`; routine e2e skips it by default, and actual preview execution has passed with cleanup verified.
+- Restaurant detail shows compact positive feature badges for solo-friendly, Japanese menu, and late-night attributes.
+- Preview deployment `https://honbabseoul-o40fswnli-meggs-projects.vercel.app` is READY, deployed UGC photo smoke passed, and cleanup was verified. Deployed read-path smoke on that random preview URL hit Naver Maps fallback because the hostname is not whitelisted.
+- UGC submit enablement gate is implemented: required text fields plus required boolean radio groups must be complete before submit is enabled, and preserved invalid/error flash values still restore the form.
+- Supabase-dashboard admin workflow is documented, and deployed UGC photo smoke now also verifies that the created pending row is hidden from the public Supabase client.
+- Epic 5 audit is recorded as `PASS` with `Blocker: 0`; manual Supabase-dashboard approval and public map visibility on the Naver-whitelisted `dev` preview were completed on 2026-05-07.
+- Deployed approval-flow smoke is automated and has passed: a temporary row was submitted, hidden while pending, approved through the admin client, visible to the public client, and cleaned up.
+- Metadata/OG polish is implemented and covered by e2e with production-oriented root metadata, JA/KO route metadata, generated Open Graph image, and middleware exclusion for `/opengraph-image`.
+- Preview deployment `https://honbabseoul-207oftxw7-meggs-projects.vercel.app` is READY after metadata/OG polish. Deployment ID: `dpl_3SZoAHcZkXYV4z3cJ5WH4JkQY1Bs`.
+- Protected share URL was created for the metadata preview, and deployed metadata smoke passed against that preview.
+- Web manifest polish is implemented and covered by e2e: manifest route, manifest link, theme-color meta, and key manifest fields.
+- Manifest preview deployment `https://honbabseoul-401eqjsvw-meggs-projects.vercel.app` is READY, and deployed metadata/manifest smoke passed against its protected preview share URL.
+- Robots/sitemap polish is implemented and covered by e2e for `/robots.txt`, `/sitemap.xml`, content types, sitemap link, and `/ja` plus `/ko` canonical URLs.
+- Robots/sitemap preview deployment `https://honbabseoul-27ilt14gk-meggs-projects.vercel.app` is READY, and deployed metadata/manifest/robots/sitemap smoke passed against its protected preview share URL.
+- Deployment documentation is refreshed with current Vercel envs, protected-preview smoke flow, latest preview trace, and the completed Epic 5 manual production gate.
+- README is refreshed with current product surface, verification commands, and operations document links.
+- Locale HTML lang is corrected after hydration for `/ja` and `/ko`, and Playwright local server reuse is disabled so e2e does not silently exercise another app on port 3000.
+- Locale lang preview deployment `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app` is READY, and deployed `/ja`, `/ko`, lang, and metadata/discoverability smoke passed against its protected preview share URL.
+- Deployment document Current Preview Trace now points to the latest verified locale-lang preview and its smoke scope.
+- UGC duplicate submit guard is implemented locally: the submission form disables its submit button immediately after submit while preserving required-field gating, and local lint/test/e2e verification passed.
+- The current product/admin readiness bundle is packaged in local branch `codex/product-admin-readiness` as `Package product admin readiness bundle`.
+- Draft PR #17 is open against `dev`, checks are green, and merge state is clean.
+- PR #17 preview redeploy is READY after adding branch-scoped `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`; protected `/ja` returns HTTP 200 and deployed metadata/discoverability smoke passed.
+- PR #17 full deployed read-path smoke remains blocked by the Naver hostname whitelist because the PR branch alias renders the expected map fallback instead of Naver markers.
+- PR #17 is marked ready for review.
 
 ## Active Carry-Over
 
@@ -52,10 +108,8 @@
 
 ## Next Product Work
 
-Pick the next post-marker read-path slice: likely clustering/overlap handling, seed-data/read-path acceptance, or deployed preview smoke for the full read path.
+Wait for PR #17 review/merge, then run full Naver read-path smoke on the Naver-whitelisted `dev` preview after merge/redeploy.
 
 ## Open Project Gates
 
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
-- Logo SVG placeholder remains.
-- Optional housekeeping: address Next.js workspace-root warning.

@@ -414,4 +414,82 @@ describe("MapClient", () => {
       },
     });
   });
+
+  it("clusters nearby restaurants and expands them into offset markers", async () => {
+    const marker = vi.fn();
+    const latLng = vi.fn();
+    const listeners: Array<() => void> = [];
+    const nearbyRestaurant = {
+      ...restaurant,
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      name_ja: "近い食堂",
+      latitude: restaurant.latitude + 0.0004,
+      longitude: restaurant.longitude + 0.0004,
+    } satisfies Restaurant;
+
+    window.naver = {
+      maps: {
+        LatLng: class {
+          constructor(lat: number, lng: number) {
+            latLng(lat, lng);
+          }
+        },
+        Map: class {},
+        Marker: class {
+          constructor(options: unknown) {
+            marker(options);
+          }
+          setMap() {}
+        },
+        Event: {
+          addListener: vi.fn((_target, _eventName, listener: () => void) => {
+            listeners.push(listener);
+            return {};
+          }),
+          removeListener: vi.fn(),
+        },
+      },
+    };
+
+    const onRestaurantSelect = vi.fn();
+    render(
+      <MapClient
+        {...labels}
+        onRestaurantSelect={onRestaurantSelect}
+        restaurants={[restaurant, nearbyRestaurant]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(marker).toHaveBeenCalledOnce();
+    });
+    expect(marker.mock.calls[0]?.[0]).toMatchObject({
+      icon: {
+        content: expect.stringContaining('data-hb-cluster="true"'),
+      },
+      title: "2 restaurants",
+    });
+
+    act(() => {
+      listeners[0]?.();
+    });
+
+    await waitFor(() => {
+      expect(marker).toHaveBeenCalledTimes(3);
+    });
+    expect(onRestaurantSelect).not.toHaveBeenCalled();
+    expect(marker.mock.calls[1]?.[0]).toMatchObject({
+      icon: {
+        content: expect.stringContaining(restaurant.name_ja),
+      },
+      title: restaurant.name_ja,
+    });
+    expect(marker.mock.calls[2]?.[0]).toMatchObject({
+      icon: {
+        content: expect.stringContaining(nearbyRestaurant.name_ja),
+      },
+      title: nearbyRestaurant.name_ja,
+    });
+    expect(latLng.mock.calls[1]).not.toEqual([restaurant.latitude, restaurant.longitude]);
+  });
 });

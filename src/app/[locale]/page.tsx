@@ -9,6 +9,7 @@ import { listApproved } from "@/lib/repositories/restaurants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { submitRestaurantAction } from "./actions";
 import { ClearSubmissionFlashCookie } from "./clear-submission-flash-cookie";
+import { SubmissionForm } from "./SubmissionForm";
 import {
   decodePreservedFormValues,
   EMPTY_PRESERVED_FORM_VALUES,
@@ -81,11 +82,17 @@ export default async function Home({ params, searchParams }: HomeProps) {
             clientId={naverMapsClientId}
             detailLabels={{
               address: t("detail.address"),
+              badges: t("detail.badges"),
               close: t("detail.close"),
               copied: t("detail.copied"),
               copyAddress: t("detail.copyAddress"),
               error: t("detail.error"),
+              hasJpMenu: t("detail.hasJpMenu"),
+              isLateNight: t("detail.isLateNight"),
+              isSolo: t("detail.isSolo"),
               naverLink: t("detail.naverLink"),
+              photoAlt: t("detail.photoAlt"),
+              photoFallback: t("detail.photoFallback"),
               price: t("detail.price"),
               priceUnknown: t("detail.priceUnknown"),
               title: t("detail.title"),
@@ -108,118 +115,29 @@ export default async function Home({ params, searchParams }: HomeProps) {
       </section>
 
       <section className="mx-auto w-full max-w-2xl px-5 pb-10 pt-4 md:pb-14">
-        <form action={submitAction} className="space-y-5">
-          <label className="block space-y-2">
-            <span className="text-sm font-semibold">{t("form.name")}</span>
-            <input
-              className="w-full rounded-md border border-border bg-bg px-3 py-2"
-              defaultValue={preservedFormValues.name}
-              maxLength={120}
-              name="name"
-              required
-              type="text"
-            />
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-semibold">{t("form.naverUrl")}</span>
-            <input
-              className="w-full rounded-md border border-border bg-bg px-3 py-2"
-              defaultValue={preservedFormValues.naverUrl}
-              name="naverUrl"
-              required
-              type="url"
-            />
-          </label>
-
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-semibold">{t("form.isSolo")}</legend>
-            <RadioPair
-              name="isSolo"
-              no={t("form.no")}
-              value={preservedFormValues.isSolo}
-              yes={t("form.yes")}
-            />
-          </fieldset>
-
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-semibold">{t("form.hasJpMenu")}</legend>
-            <RadioPair
-              name="hasJpMenu"
-              no={t("form.no")}
-              value={preservedFormValues.hasJpMenu}
-              yes={t("form.yes")}
-            />
-          </fieldset>
-
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-semibold">{t("form.isLateNight")}</legend>
-            <RadioPair
-              name="isLateNight"
-              no={t("form.no")}
-              value={preservedFormValues.isLateNight}
-              yes={t("form.yes")}
-            />
-          </fieldset>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-semibold">{t("form.priceRange")}</span>
-            <select
-              className="w-full rounded-md border border-border bg-bg px-3 py-2"
-              defaultValue={preservedFormValues.priceRange}
-              name="priceRange"
-            >
-              <option value="">{t("form.priceUnknown")}</option>
-              <option value="low">{t("form.priceLow")}</option>
-              <option value="mid">{t("form.priceMid")}</option>
-              <option value="high">{t("form.priceHigh")}</option>
-            </select>
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-semibold">{t("form.reason")}</span>
-            <textarea
-              className="min-h-28 w-full rounded-md border border-border bg-bg px-3 py-2"
-              defaultValue={preservedFormValues.reason}
-              maxLength={500}
-              name="reason"
-              required
-            />
-          </label>
-
-          <button
-            className="w-full rounded-md bg-brand px-4 py-3 font-semibold text-text-invert transition hover:bg-brand-hover"
-            type="submit"
-          >
-            {t("form.submit")}
-          </button>
-        </form>
+        <SubmissionForm
+          action={submitAction}
+          labels={{
+            hasJpMenu: t("form.hasJpMenu"),
+            isLateNight: t("form.isLateNight"),
+            isSolo: t("form.isSolo"),
+            name: t("form.name"),
+            naverUrl: t("form.naverUrl"),
+            no: t("form.no"),
+            photo: t("form.photo"),
+            photoHint: t("form.photoHint"),
+            priceHigh: t("form.priceHigh"),
+            priceLow: t("form.priceLow"),
+            priceMid: t("form.priceMid"),
+            priceRange: t("form.priceRange"),
+            priceUnknown: t("form.priceUnknown"),
+            reason: t("form.reason"),
+            submit: t("form.submit"),
+            yes: t("form.yes"),
+          }}
+          preservedValues={preservedFormValues}
+        />
       </section>
     </main>
-  );
-}
-
-function RadioPair({
-  name,
-  no,
-  value,
-  yes,
-}: {
-  name: string;
-  no: string;
-  value: string;
-  yes: string;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2">
-      <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-        <input defaultChecked={value === "true"} name={name} required type="radio" value="true" />
-        <span>{yes}</span>
-      </label>
-      <label className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
-        <input defaultChecked={value === "false"} name={name} required type="radio" value="false" />
-        <span>{no}</span>
-      </label>
-    </div>
   );
 }

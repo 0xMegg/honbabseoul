@@ -1,6 +1,7 @@
 /**
  * Logo smoke test — guards the spec invariants:
- *  - Bilingual brand mark always renders BOTH scripts (Hangul + カタカナ).
+ *  - Bilingual brand mark always exposes BOTH scripts (Hangul + カタカナ).
+ *  - Visible glyphs are path outlines, not device-font-dependent SVG text.
  *  - Fill respects the `tone` prop, all values are token-backed (no hex).
  *  - The component never branches on locale (single SVG, identical output).
  */
@@ -16,11 +17,15 @@ describe("Logo", () => {
     expect(img.textContent).toContain("ホンバプソウル");
   });
 
+  it("renders visible glyphs as path outlines instead of text nodes", () => {
+    const { container } = render(<Logo />);
+    expect(container.querySelectorAll("text")).toHaveLength(0);
+    expect(container.querySelectorAll("path").length).toBeGreaterThan(0);
+  });
+
   it("uses --hb-text token by default (no hex literals)", () => {
     const { container } = render(<Logo />);
-    const fills = Array.from(container.querySelectorAll("text")).map((el) =>
-      el.getAttribute("fill"),
-    );
+    const fills = Array.from(container.querySelectorAll("g")).map((el) => el.getAttribute("fill"));
     for (const fill of fills) {
       expect(fill).toMatch(/^var\(--hb-/);
     }
@@ -28,9 +33,7 @@ describe("Logo", () => {
 
   it("switches to --hb-brand token when tone='brand'", () => {
     const { container } = render(<Logo tone="brand" />);
-    const fills = Array.from(container.querySelectorAll("text")).map((el) =>
-      el.getAttribute("fill"),
-    );
+    const fills = Array.from(container.querySelectorAll("g")).map((el) => el.getAttribute("fill"));
     for (const fill of fills) {
       expect(fill).toBe("var(--hb-brand)");
     }

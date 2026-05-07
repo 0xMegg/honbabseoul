@@ -5,9 +5,15 @@ import { RestaurantDetail } from "./RestaurantDetail";
 
 const labels = {
   address: "住所",
+  badges: "お店の特徴",
   copyAddress: "住所をコピー",
   copied: "コピーしました",
+  hasJpMenu: "日本語メニューあり",
+  isLateNight: "深夜営業",
+  isSolo: "一人食いOK",
   naverLink: "Naver Mapで見る",
+  photoAlt: "代表写真",
+  photoFallback: "写真準備中",
   price: "価格帯",
   priceUnknown: "未選択",
 };
@@ -46,6 +52,13 @@ describe("RestaurantDetail", () => {
     expect(screen.getByRole("heading", { name: restaurant.name_ja })).toBeVisible();
     expect(screen.getByText(restaurant.name_ko!)).toBeVisible();
     expect(screen.getByText("₩₩")).toBeVisible();
+    expect(screen.getByRole("list", { name: labels.badges })).toBeVisible();
+    expect(screen.getByText(labels.isSolo)).toBeVisible();
+    expect(screen.queryByText(labels.hasJpMenu)).not.toBeInTheDocument();
+    expect(screen.queryByText(labels.isLateNight)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: `${labels.photoFallback}: ${restaurant.name_ja}` }),
+    ).toBeVisible();
     expect(screen.getByRole("link", { name: labels.naverLink })).toHaveAttribute(
       "href",
       restaurant.naver_url,
@@ -73,6 +86,65 @@ describe("RestaurantDetail", () => {
     expect(screen.getByText(restaurant.address_ko!)).toBeVisible();
     expect(screen.getByText(labels.priceUnknown)).toBeVisible();
     expect(screen.queryByRole("link", { name: labels.naverLink })).not.toBeInTheDocument();
+  });
+
+  it("renders safe restaurant photos and rejects unsafe photo URLs", () => {
+    const { rerender } = render(
+      <RestaurantDetail
+        copied={false}
+        labels={labels}
+        locale="ja"
+        onCopyAddress={vi.fn()}
+        restaurant={{
+          ...restaurant,
+          photo_url: "https://images.example.com/menu.jpg",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: `${labels.photoAlt}: ${restaurant.name_ja}` }),
+    ).toHaveAttribute("src", "https://images.example.com/menu.jpg");
+
+    rerender(
+      <RestaurantDetail
+        copied={false}
+        labels={labels}
+        locale="ja"
+        onCopyAddress={vi.fn()}
+        restaurant={{
+          ...restaurant,
+          photo_url: "javascript:alert(1)",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: `${labels.photoFallback}: ${restaurant.name_ja}` }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("img", { name: `${labels.photoAlt}: ${restaurant.name_ja}` }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders all enabled restaurant feature badges", () => {
+    render(
+      <RestaurantDetail
+        copied={false}
+        labels={labels}
+        locale="ja"
+        onCopyAddress={vi.fn()}
+        restaurant={{
+          ...restaurant,
+          has_jp_menu: true,
+          is_late_night: true,
+        }}
+      />,
+    );
+
+    expect(screen.getByText(labels.isSolo)).toBeVisible();
+    expect(screen.getByText(labels.hasJpMenu)).toBeVisible();
+    expect(screen.getByText(labels.isLateNight)).toBeVisible();
   });
 
   it("emits the localized address when copy is clicked", () => {

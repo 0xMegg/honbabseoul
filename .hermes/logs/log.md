@@ -888,3 +888,703 @@ Verification:
 
 - `vercel env ls` shows `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` for Production, Development, and Preview (`dev`).
 - `vercel inspect https://honbabseoul-2pwg1tgs8-meggs-projects.vercel.app` reports `READY` and the `honbabseoul-git-dev` alias.
+
+## 2026-05-04 — Deployed Read Path Smoke Gate
+
+Decision:
+
+- Added a deployed-only Playwright smoke spec for the full `/ja` read path.
+- `DEPLOYED_BASE_URL` switches Playwright to an existing deployment and disables the local dev-server webServer.
+- `VERCEL_SHARE_URL` can be supplied for protected Vercel deployments so Playwright first sets the temporary auth cookie, then tests `/ja`.
+
+Reason:
+
+- The post-marker backlog called out a verification gap: unit and shallow local smoke checks did not prove the deployed read path.
+- The deployment is protected by Vercel Authentication, so the smoke gate needs an explicit protected-preview access path.
+
+Verification:
+
+- Vercel access tool created a temporary share URL for `https://honbabseoul-git-dev-meggs-projects.vercel.app`, expiring on 2026-05-05 14:42:18.
+- Protected dev preview smoke passed: Japanese page rendered, map label and result count were visible, no map error fallback or `Application error` appeared, custom markers rendered, a viewport-clickable marker opened the Japanese bottom sheet, closing worked, and the Japanese-menu filter transition preserved route and pressed state.
+- `pnpm lint` passed on Node 22.17.0.
+- `pnpm test` passed on Node 22.17.0: 13 files, 83 tests.
+- `pnpm test:e2e` passed outside sandbox on Node 22.17.0: 7 passed, 1 deployed-only spec skipped.
+- Deployed-only Playwright smoke passed outside sandbox on Node 22.17.0: 1 test.
+
+Environment notes:
+
+- Plain sandbox e2e failed with `listen EPERM` for the local dev server and Chromium MachPort permission errors; the same commands passed outside sandbox.
+- Codex default Node v24 hit local native optional-binary code-signing failures for Rollup/Next SWC; Node 22.17.0 remains the working verification runtime.
+
+## 2026-05-05 — Seed Data Read Path Acceptance
+
+Decision:
+
+- Added an automated seed-data acceptance test that reads `supabase/seed.sql` as the source of truth.
+- The test verifies the curated MVP seed set size, public restaurant model compatibility, map/detail field completeness, Naver URL shape, and expected read-path filter counts.
+
+Reason:
+
+- The seed file documented expected counts in comments, but those expectations were not enforced by automation.
+- The map read path now depends on seed rows having coordinates, localized names, localized addresses, safe Naver URLs, and enough rows after default UI filters.
+
+Acceptance counts:
+
+- All approved rows with filters off: 20.
+- Default solo-friendly read path: 16.
+- Default solo-friendly plus Japanese-menu filter: 15.
+- Default solo-friendly plus late-night filter: 4.
+- All three UI filters on: 4.
+
+Verification:
+
+- Targeted seed acceptance run passed on Node 22.17.0: 14 files, 87 tests.
+- `pnpm test` passed on Node 22.17.0: 14 files, 87 tests.
+- `pnpm lint` passed on Node 22.17.0.
+
+## 2026-05-05 — Marker Clustering And Overlap Handling
+
+Decision:
+
+- Added lightweight client-side clustering inside `MapClient` using a small coordinate grid.
+- Nearby restaurants now render as one branded count marker.
+- Clicking a cluster expands that cluster into individual restaurant markers with small circular coordinate offsets, so marker-to-bottom-sheet selection remains available without introducing a new map library.
+- Updated the deployed/read-path smoke to handle cluster-first map states by expanding a visible cluster before clicking an individual marker.
+
+Reason:
+
+- The post-marker backlog called out dense marker areas as the next read-path usability gap.
+- This approach keeps the current Naver Maps marker API surface and bottom-sheet contract intact while reducing visual overlap in dense seed areas.
+
+Verification:
+
+- `MapClient` coverage now asserts nearby restaurants cluster first, cluster click does not select a restaurant prematurely, and expansion redraws offset individual markers.
+- `pnpm test` passed on Node 22.17.0: 14 files, 88 tests.
+- `pnpm lint` passed on Node 22.17.0.
+- `pnpm build` passed on Node 22.17.0.
+- `pnpm test:e2e` passed outside sandbox on Node 22.17.0: 7 passed, 1 deployed-only spec skipped.
+- Real localhost Naver smoke passed with `NEXT_PUBLIC_NAVER_MAPS_ALLOW_LOCALHOST=true`: `/ja` rendered the map, marker/cluster path opened the Japanese bottom sheet, filter transition stayed stable, and the dev server was stopped afterward.
+
+## 2026-05-05 — Path-Based Logo Replacement
+
+Decision:
+
+- Replaced the temporary font-dependent SVG `<text>` logo with fixed SVG path outlines for the bilingual `혼밥서울` / `ホンバプソウル` mark.
+- Kept the accessible `<title>` text as `혼밥서울 (ホンバプソウル)`.
+- Switched the logo title id to `useId()` so multiple logo instances do not duplicate `id` values.
+- Updated Logo tests to assert that visible glyphs render as paths, not SVG text nodes, while token-backed `tone` fills still work.
+
+Reason:
+
+- The previous logo visually depended on device fonts. Path outlines make the brand mark locale-agnostic and device-agnostic.
+- The product convention still requires a single bilingual mark with no locale branch.
+
+Verification:
+
+- Targeted Logo test passed on Node 22.17.0.
+- `pnpm test` passed on Node 22.17.0: 14 files, 89 tests.
+- `pnpm lint` passed on Node 22.17.0.
+- `pnpm build` passed on Node 22.17.0.
+- `git diff --check` passed.
+
+## 2026-05-05 — Workflow Model Profile Surfaced
+
+Decision:
+
+- Hermes Core added a Recommended, opt-in stricter Claude-first workflow profile.
+- Honbabseoul did not adopt it as active project policy in this change.
+- Existing legacy harness provenance remains recorded: archived `.claude/commands/plan.md` used Opus, `develop.md` used Sonnet, and `review.md` used Opus.
+
+Reason:
+
+- Honbabseoul currently uses a lighter Hermes layer, and prior Core analysis explicitly identified forced adoption as a possible project-fit cost.
+- Surfacing the profile preserves the reusable model mapping without adding process weight to active Honbabseoul product work.
+
+Verification:
+
+- No runtime source, automation, hook, permission, deployment, Supabase, or Vercel change occurred.
+- Adoption remains available through project-local review under Hermes promotion policy.
+- Claude non-interactive review was requested from Hermes Core with scoped Honbabseoul access but produced no stdout for more than 60 seconds and was terminated; Codex accepted this as a surfaced opt-in profile, not active adoption.
+
+## 2026-05-06 — Next.js Workspace Root Warning Housekeeping
+
+Decision:
+
+- Set `outputFileTracingRoot` and `turbopack.root` in `next.config.ts` to the honbabseoul project directory.
+
+Reason:
+
+- The parent workouts directory contains another app with its own lockfile, so Next.js can infer the workspace root from multiple lockfiles and warn that the selected root may be wrong.
+- Pinning both tracing and Turbopack roots keeps build/dev resolution scoped to this app without changing runtime behavior.
+
+Verification:
+
+- `pnpm lint` passed.
+- `pnpm build` first failed inside the sandbox because Google Fonts DNS access was blocked, then passed with network access.
+- `pnpm dev` started cleanly on `http://localhost:3000` with no workspace-root warning, then the dev server was stopped.
+
+## 2026-05-06 — Restaurant Detail Media Slot
+
+Decision:
+
+- Added a media slot to the restaurant bottom-sheet detail.
+- The detail renders a safe `http`/`https` `photo_url` when one exists and falls back to a stable branded placeholder when the curated row has no photo yet.
+- Added JA/KO labels for representative photo alt text and the no-photo placeholder.
+- Extended deployed read-path smoke coverage so future deployment checks assert the detail media slot.
+
+Reason:
+
+- MVP v1.0 requires visual emphasis in the restaurant detail, but the current seed data has `photo_url = NULL` for every fake row.
+- A placeholder-first media slot improves the detail surface now without changing schema, seed data, storage, or approval workflow.
+
+Verification:
+
+- Targeted detail tests passed: 2 files, 6 tests.
+- `pnpm lint` passed.
+- `pnpm test` passed: 14 files, 90 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 7 passed, 1 deployed-only spec skipped.
+
+## 2026-05-06 — UGC Photo Upload Wiring
+
+Decision:
+
+- Added an optional UGC photo field to the submission form with JPEG/PNG accept metadata and JA/KO helper copy.
+- Added a server-only Supabase Storage upload helper for submitted photos.
+- The Server Action now uploads a non-empty selected file, passes the returned public URL to `submitPending`, and keeps empty file inputs as `photoUrl: undefined`.
+- Rejected photo input, such as unsupported MIME or oversize, redirects through `submission=invalid`; storage upload/public URL failures redirect through `submission=error`.
+
+Reason:
+
+- The MVP form allows an optional food/menu photo, and `restaurants.photo_url` plus `submitPending.photoUrl` were already available.
+- Uploading inside the Server Action keeps the storage write behind the server-only admin client and avoids exposing elevated keys or requiring a browser Supabase storage flow.
+
+Verification:
+
+- Targeted action/storage/submission tests passed: 3 files, 23 tests.
+- `pnpm lint` passed.
+- `pnpm test` passed: 15 files, 97 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed after asserting the photo input: 7 passed, 1 deployed-only spec skipped.
+
+## 2026-05-06 — Deployed UGC Photo Smoke Gate
+
+Decision:
+
+- Added a gated deployed-only Playwright smoke spec for UGC photo submission.
+- The spec fills the Japanese UGC form, attaches a tiny PNG, submits to a deployed target, verifies a `pending` restaurant row with a public `restaurant-photos` URL, then removes both the storage object and smoke row through the Supabase admin client.
+- The gate is opt-in behind `RUN_DEPLOYED_UGC_PHOTO_SMOKE=true` so routine local e2e does not write remote data.
+
+Reason:
+
+- UGC photo upload touches deployment runtime env, Supabase Storage bucket behavior, Server Action multipart handling, row persistence, and cleanup.
+- A gated deployed smoke keeps that full path measurable without making every local test run depend on remote services.
+
+Verification:
+
+- `pnpm lint` passed.
+- `pnpm test:e2e` passed with deployed-only specs skipped by default: 7 passed, 2 skipped.
+- Actual deployed photo smoke remains pending until a current deployed URL, Vercel share URL if protected, and Supabase admin envs are supplied.
+
+## 2026-05-06 — Restaurant Detail Feature Badges
+
+Decision:
+
+- Added compact feature badges to the restaurant bottom-sheet detail for positive restaurant attributes: solo-friendly, Japanese menu, and late-night.
+- Badges reuse existing restaurant booleans and locale message maps; disabled/false attributes remain hidden.
+
+Reason:
+
+- The same filters that drive map discovery are decision-critical inside the detail view.
+- Showing only positive badges keeps the bottom sheet scannable on mobile and avoids adding noisy negative labels.
+
+Verification:
+
+- Targeted detail tests passed: 2 files, 7 tests.
+- `pnpm lint` passed.
+- `pnpm test` passed: 15 files, 98 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 7 passed, 2 deployed-only specs skipped.
+
+## 2026-05-06 — Preview Deployment And UGC Photo Smoke
+
+Decision:
+
+- Created a Vercel preview deployment for the current working tree: `https://honbabseoul-o40fswnli-meggs-projects.vercel.app`.
+- Created a protected-preview share URL expiring on 2026-05-07 07:41:47.
+- Ran deployed UGC photo smoke against the preview with Supabase admin envs loaded.
+
+Result:
+
+- Preview deployment `dpl_eF2TKnEiA9fQodmsabM3qi69sy9y` reached `READY`.
+- Deployed UGC photo smoke passed: form submission with a tiny PNG returned success, inserted a `pending` row with a public `restaurant-photos` URL, and the spec cleanup removed the uploaded object plus pending smoke row.
+- Follow-up Supabase admin check found `Codex photo smoke%` rows count `0`.
+- Deployed read-path smoke did not pass on the random preview URL because Naver Maps rendered the Japanese map fallback and no marker/cluster appeared. This is consistent with the random preview hostname not being in the Naver Maps allowed-domain whitelist, not with UGC photo upload failure.
+
+Verification:
+
+- `vercel deploy -y` passed.
+- `RUN_DEPLOYED_UGC_PHOTO_SMOKE=true` deployed photo smoke passed outside sandbox.
+- Supabase cleanup verification passed outside sandbox.
+
+## 2026-05-06 — UGC Submit Enablement Gate
+
+Decision:
+
+- Split the UGC submission form into a client `SubmissionForm` component.
+- The submit button now starts disabled and becomes enabled only after all required text fields and required boolean radio groups are complete.
+- Preserved flash values still prefill the form after invalid/error redirects and can enable submit immediately when required values are complete.
+
+Reason:
+
+- Native `required` validation only blocks after the user attempts submission.
+- The MVP requires clearer required-input feedback before submit, while keeping the existing Server Action validation as the source of truth.
+
+Verification:
+
+- Targeted `SubmissionForm` tests passed: 2 tests.
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 100 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 7 passed, 2 deployed-only specs skipped.
+
+## 2026-05-06 — Admin Workflow And Pending Isolation Gate
+
+Decision:
+
+- Added `docs/admin-workflow.md` for the Supabase-dashboard moderation flow.
+- Documented review, approval, rejection, and public-read rules for UGC restaurant submissions.
+- Extended deployed UGC photo smoke so the submitted row is verified as `pending` through the admin client and invisible through the public Supabase client.
+
+Reason:
+
+- MVP admin scope is the Supabase dashboard, not a custom admin UI.
+- The user-facing map must never expose `pending` or `rejected` rows; the deployed smoke now checks that RLS/public-read boundary on the same row it creates.
+
+Verification:
+
+- Targeted deployed UGC photo spec loaded and skipped by default without errors.
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 100 tests.
+- `pnpm test:e2e` passed: 7 passed, 2 deployed-only specs skipped.
+
+## 2026-05-06 — Epic 5 Audit Artifact
+
+Decision:
+
+- Added `outputs/reviews/epic-5-audit.md` as the UGC submission acceptance record.
+- Marked the audit `CONDITIONAL PASS` with `Blocker: 1` instead of overstating completion.
+- Recorded that the remaining gate is manual Supabase-dashboard approval verification plus public map visibility on a Naver-whitelisted deployed URL.
+
+Reason:
+
+- Epic 5 acceptance explicitly requires an audit artifact.
+- Automated submission, deployed photo upload, pending status, cleanup, and public pending-row isolation are verified; manual operator approval has not been performed in the dashboard.
+
+Verification:
+
+- Deployed UGC photo smoke with public pending-row isolation passed outside sandbox.
+
+## 2026-05-06 — Deployed Approval Flow Smoke Gate
+
+Decision:
+
+- Added `e2e/deployed-approval-flow.spec.ts` behind `RUN_DEPLOYED_APPROVAL_SMOKE=true`.
+- The spec submits a temporary UGC row on a deployed preview, verifies it starts as `pending`, verifies the public client cannot read it, updates it through the admin client to `approved` with public map fields, verifies the public client can read it, then deletes the smoke row.
+- Updated the Epic 5 audit to record automated approval-flow evidence separately from the remaining manual Supabase-dashboard gate.
+
+Reason:
+
+- The remaining Epic 5 blocker is a human operator workflow gate, but the data path around approval can still be tested safely with a gated temporary row.
+- Keeping this deployed-only prevents routine local e2e from writing remote public data.
+
+Verification:
+
+- Targeted approval-flow spec loaded and skipped by default without errors.
+- Deployed approval-flow smoke passed outside sandbox on the protected preview.
+
+## 2026-05-06 — Metadata And OG Polish
+
+Decision:
+
+- Replaced the root `Coming soon` metadata with production-oriented Honbabseoul title, description, Open Graph, Twitter card, and application name.
+- Added locale-specific metadata in `[locale]/layout.tsx` for Japanese and Korean routes.
+- Added a generated `/opengraph-image` image using Next.js `ImageResponse`.
+- Set the root HTML language default to Japanese because Japanese is the primary MVP locale.
+- Excluded `/opengraph-image` from the locale middleware matcher so the generated metadata image route responds directly instead of redirecting to `/ja/opengraph-image`.
+- Added local e2e coverage for JA/KO metadata and the generated OG image response.
+
+Reason:
+
+- The product is no longer a placeholder; social previews and search snippets should describe the actual solo-dining map.
+- Locale-specific metadata keeps Japanese as the default user-facing offer while giving `/ko` a Korean title and description.
+
+Verification:
+
+- `pnpm lint` passed.
+- `pnpm build` passed and generated `/opengraph-image`.
+- Targeted metadata e2e passed.
+- `pnpm test:e2e` passed: 8 passed, 3 deployed-only specs skipped.
+
+## 2026-05-06 — Metadata Preview Deployment
+
+Decision:
+
+- Created a Vercel preview deployment for the current working tree after metadata/OG and middleware polish.
+- Preview URL: `https://honbabseoul-207oftxw7-meggs-projects.vercel.app`.
+- Deployment ID: `dpl_3SZoAHcZkXYV4z3cJ5WH4JkQY1Bs`.
+
+Result:
+
+- Vercel deployment reached `READY`.
+- Vercel build output included the generated `/opengraph-image` route.
+
+Verification:
+
+- `vercel deploy -y` passed.
+
+## 2026-05-06 — Deployed Metadata Smoke
+
+Decision:
+
+- Created a protected-preview share URL for the metadata preview deployment.
+- Share URL: `https://honbabseoul-207oftxw7-meggs-projects.vercel.app/?_vercel_share=a2M39oHj8CJsX20QWuOuKTspRsW3PNNx`.
+- Expires on 2026-05-07 08:28:38.
+- Updated local smoke setup to visit `VERCEL_SHARE_URL` first when present, matching the deployed-only smoke pattern for protected previews.
+
+Result:
+
+- Deployed metadata smoke passed against `https://honbabseoul-207oftxw7-meggs-projects.vercel.app`.
+- The smoke verified route metadata and generated `/opengraph-image` response on the protected preview.
+
+Verification:
+
+- First deployed metadata smoke attempt failed in sandbox due Chromium MachPort permissions, then passed outside sandbox.
+- `pnpm test:e2e` passed locally after the smoke setup change: 8 passed, 3 deployed-only specs skipped.
+
+## 2026-05-06 — Web Manifest Polish
+
+Decision:
+
+- Added `src/app/manifest.ts` using the Next.js manifest file convention.
+- Added root metadata `manifest: "/manifest.webmanifest"` and viewport `themeColor`.
+- Extended metadata e2e coverage to verify the manifest link, `theme-color` meta tag, manifest response, and key manifest fields.
+
+Reason:
+
+- Metadata/OG polish should also cover app/share surface metadata, not only social cards.
+- A generated manifest keeps the browser-facing app name, start URL, display mode, language, and theme color explicit.
+
+Verification:
+
+- Targeted metadata/manifest e2e passed.
+- `pnpm lint` passed.
+- `pnpm build` passed and generated `/manifest.webmanifest`.
+- `pnpm test:e2e` passed: 8 passed, 3 deployed-only specs skipped.
+
+## 2026-05-06 — Manifest Preview Deployment And Smoke
+
+Decision:
+
+- Created a Vercel preview deployment for the current working tree after manifest polish.
+- Preview URL: `https://honbabseoul-401eqjsvw-meggs-projects.vercel.app`.
+- Deployment ID: `dpl_mH1g4rZqKW7apvEgsfzSgCMz8t2U`.
+- Created a protected-preview share URL: `https://honbabseoul-401eqjsvw-meggs-projects.vercel.app/?_vercel_share=Tu0a7nXzykY4yOosbo0JQjUOWEht1IIC`.
+- Share URL expires on 2026-05-07 08:36:41.
+
+Result:
+
+- Vercel deployment reached `READY`.
+- Vercel build output included both `/manifest.webmanifest` and `/opengraph-image`.
+- Deployed metadata/manifest smoke passed against the protected preview.
+
+Verification:
+
+- `vercel deploy -y` passed.
+- First deployed metadata/manifest smoke attempt failed in sandbox due Chromium MachPort permissions, then passed outside sandbox.
+
+## 2026-05-06 — Robots And Sitemap Polish
+
+Decision:
+
+- Added `src/app/robots.ts` using the Next.js robots file convention.
+- Added `src/app/sitemap.ts` with `/ja` and `/ko` canonical URLs.
+- Extended metadata e2e coverage to verify `/robots.txt`, `/sitemap.xml`, content types, sitemap link, and locale URLs.
+
+Reason:
+
+- Metadata, OG, and manifest are now present; robots and sitemap complete the basic discoverability surface for the MVP routes.
+- Keeping the sitemap limited to `/ja` and `/ko` avoids indexing generated metadata assets as primary pages.
+
+Verification:
+
+- Targeted metadata/robots/sitemap e2e passed.
+- `pnpm lint` passed.
+- `pnpm build` passed and generated `/robots.txt` and `/sitemap.xml`.
+- `pnpm test:e2e` passed: 8 passed, 3 deployed-only specs skipped.
+
+## 2026-05-06 — Robots/Sitemap Preview Deployment And Smoke
+
+Decision:
+
+- Created a Vercel preview deployment for the current working tree after robots/sitemap polish.
+- Preview URL: `https://honbabseoul-27ilt14gk-meggs-projects.vercel.app`.
+- Deployment ID: `dpl_26xho1AsPXxjcnH4RRucrWMVk2tZ`.
+- Created a protected-preview share URL: `https://honbabseoul-27ilt14gk-meggs-projects.vercel.app/?_vercel_share=NeFlWeiVJkeWiZY8GLozxE2hUfFq2KK9`.
+- Share URL expires on 2026-05-07 08:46:46.
+
+Result:
+
+- Vercel deployment reached `READY`.
+- Vercel build output included `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- Deployed metadata/manifest/robots/sitemap smoke passed against the protected preview.
+
+Verification:
+
+- `vercel deploy -y` passed.
+- First deployed metadata smoke attempt failed in sandbox due Chromium MachPort permissions, then passed outside sandbox.
+
+## 2026-05-06 — Deployment Documentation Refresh
+
+Decision:
+
+- Expanded `docs/deployment.md` from a Vercel output-directory note into the current deployment runbook.
+- Documented required Vercel environment variables, legacy key fallback status, protected-preview share URL handling, gated remote smoke specs, the latest verified preview trace, and the remaining Epic 5 manual production gate.
+
+Reason:
+
+- Deployment state had moved beyond the original placeholder document.
+- Fresh operators need one concise document that connects preview deployment, protected Vercel auth, Supabase-backed smoke tests, and the unresolved manual approval gate.
+
+Verification:
+
+- `docs/deployment.md` formatted with Prettier.
+
+## 2026-05-06 — README Orientation Refresh
+
+Decision:
+
+- Expanded `README.md` with the current product surface, default locale routes, public approval boundary, generated discoverability routes, E2E command, and operations document links.
+- Kept detailed deployment and approval procedures in `docs/deployment.md` and `docs/admin-workflow.md` to avoid duplicating runbook content in README.
+
+Reason:
+
+- Fresh contributors need a concise entrypoint before reading Hermes state or deployment runbooks.
+- The README still described only the initial development commands and did not mention the UGC approval boundary or generated metadata routes.
+
+Verification:
+
+- `README.md` formatted with Prettier.
+
+## 2026-05-06 — Locale HTML Lang And E2E Server Reuse Hardening
+
+Decision:
+
+- Added a locale client helper that updates `document.documentElement.lang` to `ja` or `ko` from the active `[locale]` route.
+- Added e2e assertions that `/ja` resolves to `html[lang="ja"]` and `/ko` resolves to `html[lang="ko"]`.
+- Changed Playwright local web server config to `reuseExistingServer: false`.
+
+Reason:
+
+- The root layout is above the `[locale]` segment, so the server-rendered root `<html>` cannot safely derive the route locale from `[locale]` params in this app structure.
+- A client-side lang correction improves the hydrated document state for `/ko` without a larger App Router layout restructure.
+- The e2e suite was able to reuse an unrelated app already listening on port 3000, producing misleading failures; disabling reuse makes this class of harness error loud.
+
+Verification:
+
+- Targeted JA/KO locale smoke passed after killing the stale server.
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 100 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 8 passed, 3 deployed-only specs skipped.
+
+## 2026-05-06 — Locale Lang Preview Deployment And Smoke
+
+Decision:
+
+- Created a Vercel preview deployment after locale HTML lang and Playwright server-reuse hardening.
+- Preview URL: `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app`.
+- Deployment ID: `dpl_FwZX8GRAXrAwMyFdnjAUJ5DoEMvE`.
+- Created a protected-preview share URL: `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app/?_vercel_share=Kmrqc1KnIYksfsKG5vjLv9sgHTxE0P2G`.
+- Share URL expires on 2026-05-07 09:14:22.
+
+Result:
+
+- Vercel deployment reached `READY`.
+- Vercel build output included `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- Deployed smoke passed for `/ja`, `/ko`, locale HTML lang correction after hydration, and metadata/discoverability routes.
+
+Verification:
+
+- `vercel deploy -y` passed.
+- First deployed smoke attempt failed in sandbox due Chromium MachPort permissions, then passed outside sandbox.
+
+## 2026-05-06 — Deployment Trace Refresh
+
+Decision:
+
+- Updated `docs/deployment.md` Current Preview Trace to the latest verified locale-lang preview.
+- The document now points to `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app`, deployment `dpl_FwZX8GRAXrAwMyFdnjAUJ5DoEMvE`, and its protected share URL.
+- Added the deployed smoke scope verified on that preview: `/ja`, `/ko`, hydrated `html[lang]`, metadata, manifest, Open Graph image, robots, and sitemap.
+
+Reason:
+
+- `docs/deployment.md` still pointed to the prior robots/sitemap preview.
+- Operators should use the most recent verified preview trace when continuing deployment or production-readiness work.
+
+Verification:
+
+- `docs/deployment.md` formatted with Prettier.
+
+## 2026-05-06 — Next Work Triage And Local Verification Refresh
+
+Decision:
+
+- Deferred the remaining Epic 5 PASS update because the open blocker is a manual Supabase-dashboard operator gate.
+- Treated the current worktree as an accumulated product/admin readiness bundle rather than starting another feature slice on top of uncommitted changes.
+- Re-ran local verification for the current bundle before further product work.
+
+Reason:
+
+- The active handoff lists manual dashboard approval as the first candidate, but that requires human operator action before the audit can be marked `PASS`.
+- Adding another product slice before confirming the existing bundle would increase review risk and make failures harder to attribute.
+
+Verification:
+
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 100 tests.
+- `pnpm build` passed and generated `/ja`, `/ko`, `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- `pnpm test:e2e` passed: 8 local specs passed, 3 deployed-only specs skipped.
+
+## 2026-05-07 — Epic 5 Manual Approval Gate Completed
+
+Decision:
+
+- Updated `outputs/reviews/epic-5-audit.md` from `CONDITIONAL PASS` / `Blocker: 1` to `PASS` / `Blocker: 0`.
+- Updated active handoff, deployment documentation, and project state to reflect the completed manual operator gate.
+
+Result:
+
+- The operator submitted a test row, completed missing public map fields in the Supabase dashboard, set the row to `approved`, and confirmed it appears on the Naver-whitelisted `dev` deployed map after refresh.
+- Duplicate accidental submissions were identified as an operator-flow issue; non-canonical duplicate rows should remain audit-preserved and be set to `rejected` rather than deleted.
+
+Verification:
+
+- Human verification completed on 2026-05-07 against the Naver-whitelisted `dev` deployed map URL.
+
+## 2026-05-07 — UGC Duplicate Submit Guard Slice
+
+Decision:
+
+- Selected the next product/admin slice from the manual approval finding: reduce accidental duplicate UGC submissions at the browser form layer.
+- The UGC form now marks itself submitting on submit and disables the submit button while preserving the existing required-field enablement gate.
+- Added component coverage for the immediate post-submit disabled and `aria-busy` state.
+
+Reason:
+
+- Manual approval verification exposed duplicate accidental submissions as an operator-flow issue.
+- A client-side pending guard is additive and reversible, reduces common double-click repeats, and does not change Supabase schema, moderation status, or server-side validation.
+
+Verification:
+
+- `pnpm test 'src/app/[locale]/SubmissionForm.test.tsx'` passed: 1 file, 3 tests.
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 101 tests.
+- `pnpm build` passed and generated `/ja`, `/ko`, `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- `pnpm test:e2e` passed: 8 local specs passed, 3 deployed-only specs skipped.
+
+## 2026-05-07 — Product/Admin Readiness Bundle Packaged
+
+Decision:
+
+- Created branch `codex/product-admin-readiness` from `dev`.
+- Staged the accumulated product/admin readiness bundle and committed it as `Package product admin readiness bundle`.
+- Left remote publish and PR creation as the next explicit publish step.
+
+Reason:
+
+- The worktree contained a coherent local bundle spanning read-path polish, UGC photo/admin readiness, discoverability metadata, documentation, and verification gates.
+- A local branch commit gives review a stable artifact without pushing or opening a PR before publish is explicitly requested.
+
+Verification:
+
+- Staged file list contained source, docs, e2e, audit, and Hermes state files only; generated `.next` output was not staged.
+
+## 2026-05-07 — PR #17 Preview Verification
+
+Decision:
+
+- Pushed `codex/product-admin-readiness` and opened draft PR #17 against `dev`: https://github.com/0xMegg/honbabseoul/pull/17
+- Added branch-scoped Vercel Preview env `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID` for `codex/product-admin-readiness` after the first preview returned `/ja` 500.
+- Redeployed the PR preview after the env fix.
+- Marked PR #17 ready for review after checks passed and the branch-host Naver whitelist gap was documented.
+
+Result:
+
+- GitHub/Vercel checks are green and PR merge state is `CLEAN`.
+- First protected deployed smoke found `/ja` server-side exception digest `903459998`; Vercel runtime logs showed missing `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`.
+- After adding the branch Preview env and redeploying, protected `/ja` returned HTTP 200.
+- Deployed metadata/discoverability smoke passed on the PR preview.
+- Deployed full read-path smoke still does not pass on the PR branch alias because Naver Maps falls back and renders `地図を読み込めませんでした。`; the branch alias is not part of the known Naver-whitelisted host gate.
+
+Verification:
+
+- `gh pr checks 17` passed: GitGuardian, Vercel, Vercel Preview Comments.
+- `vercel inspect https://honbabseoul-eqdum8l17-meggs-projects.vercel.app` reported deployment `dpl_Ap87ZHfsSAaxUUuDNPzNtCnH1dr9` as `READY`.
+- Protected preview share URL was created for the redeploy; it expires on 2026-05-08 01:53:01 KST.
+- `DEPLOYED_BASE_URL=... VERCEL_SHARE_URL=... pnpm exec playwright test e2e/deployed-read-path.spec.ts e2e/smoke.spec.ts -g 'deployed read path smoke|locale metadata and generated OG image are available'` passed the metadata smoke and failed the read-path smoke at marker visibility because the deployed map rendered the expected fallback instead of Naver markers.
+
+## 2026-05-07 — PR #17 Recent Implementation Review
+
+Decision:
+
+- Reviewed PR #17 recent implementation bundle from branch `codex/product-admin-readiness` against `dev`.
+- Attempted Claude CLI peer review twice from the Honbabseoul project root with `/opt/homebrew/bin/claude -p`; both invocations started but returned no output and were terminated after waiting.
+- Continued with Codex direct review and verification rather than leaving a stuck Claude process running.
+- Follow-up Claude retry confirmed CLI health with a minimal `ping`, then showed that broad review prompts and unescaped `src/app/[locale]/...` paths can hang. Escaping the bracketed route segment and asking narrow verification questions returned output.
+- Claude confirmed the concrete residual risk that photo upload precedes `submitPending`, so a later validation/database failure can leave an orphaned Supabase Storage object because `uploadSubmissionPhoto` returns only `publicUrl`.
+
+Findings:
+
+- No blocking regression was found in local verification.
+- Residual risk: photo upload happens before the pending restaurant insert. If storage upload succeeds and the later database insert fails, the uploaded object can be orphaned because there is no compensating storage cleanup in the Server Action.
+- Residual risk: deployed full Naver read-path smoke remains branch-host gated by the Naver Maps hostname whitelist; it should be rerun on the whitelisted `dev` preview after PR #17 merge/redeploy.
+
+Verification:
+
+- `git diff --check dev...HEAD` passed.
+- `pnpm lint` passed.
+- `pnpm test` passed: 16 files, 101 tests.
+- `pnpm build` passed and generated `/ja`, `/ko`, `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- `pnpm test:e2e` passed: 8 local specs passed, 3 deployed-only specs skipped.
+- Follow-up cross-check after Claude retry:
+  - Claude confirmed the UGC photo orphan risk at `src/app/[locale]/actions.ts:71-83` and `src/lib/supabase/storage-server.ts:45-65`.
+  - Codex confirmed the same risk by reading the implementation: upload precedes `submitPending`, catch handling redirects without storage cleanup, and the upload helper returns only `publicUrl`.
+  - Claude confirmed the deployed read-path smoke intentionally fails on Naver fallback text and requires marker/cluster elements.
+  - Codex confirmed the same deployed smoke gate at `e2e/deployed-read-path.spec.ts`.
+  - Claude confirmed middleware excludes discoverability static routes; Codex confirmed `src/middleware.ts` and `src/app/layout.tsx` line-level behavior.
+  - `pnpm test 'src/app/[locale]/SubmissionForm.test.tsx' src/lib/supabase/storage-server.test.ts 'src/app/[locale]/actions.test.ts'` passed: 3 files, 14 tests.
+
+## 2026-05-07 — UGC Photo Orphan Cleanup Implemented
+
+Decision:
+
+- Fixed the residual UGC photo orphan risk with Claude-generated patches and Codex verification.
+- `uploadSubmissionPhoto` now returns both the storage `path` and `publicUrl`.
+- Added `cleanupSubmissionPhoto(path)` for server-side storage cleanup.
+- `submitRestaurantAction` now passes `uploaded.publicUrl` to `submitPending` and attempts best-effort cleanup with `uploaded.path` if `submitPending` fails after upload.
+- If `getPublicUrl` fails after a successful upload, the upload helper now attempts cleanup before throwing `SubmissionPhotoUploadError("publicUrl")`.
+
+Reason:
+
+- Claude and Codex both confirmed that upload-before-insert could leave a Supabase Storage object orphaned when validation/database failure happens after upload.
+- Returning the path keeps the existing upload-first flow while giving the Server Action a concrete cleanup handle.
+
+Verification:
+
+- `pnpm test 'src/app/[locale]/actions.test.ts' src/lib/supabase/storage-server.test.ts` passed: 2 files, 13 tests.
+- `pnpm lint` passed.
+- `pnpm build` passed.
+- `pnpm test` passed: 16 files, 103 tests.
+- `git diff --check` passed.
+- `pnpm exec prettier --check 'src/app/[locale]/actions.ts' 'src/app/[locale]/actions.test.ts' src/lib/supabase/storage-server.ts src/lib/supabase/storage-server.test.ts .hermes/logs/log.md` passed after formatting `src/lib/supabase/storage-server.ts`.
