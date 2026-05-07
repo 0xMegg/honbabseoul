@@ -7,14 +7,15 @@ Read order for fresh agents:
 3. `.hermes/NEXT.md` — active handoff pointer and next action.
 4. `.hermes/MEMORY.md` — operational memory boundary and current observations.
 5. `.hermes/policy/automation.md` — change classification and human-gate rules.
-6. `.hermes/policy/promotion.md` — Core/project rule propagation.
-7. `.hermes/policy/harness-review.md` — operating-layer review boundary.
-8. `.hermes/policy/claude-cli.md` — Claude CLI invocation boundary.
-9. `.hermes/wiki/pages/hermes-operating-model.md` — full Hermes model.
-10. `.hermes/wiki/pages/hermes-rejected-options.md` — decisions not to re-derive.
-11. `.hermes/wiki/index.md` — project knowledge index.
-12. `.hermes/wiki/pages/honbabseoul-conventions.md` — project-specific development conventions.
-13. `.hermes/wiki/pages/honbabseoul-state.md` — current project state and carry-over.
+6. `.hermes/policy/agent-workflow.md` — Claude/Codex plan, verification, implementation, and closeoff workflow.
+7. `.hermes/policy/promotion.md` — Core/project rule propagation.
+8. `.hermes/policy/harness-review.md` — operating-layer review boundary.
+9. `.hermes/policy/claude-cli.md` — Claude CLI invocation boundary.
+10. `.hermes/wiki/pages/hermes-operating-model.md` — full Hermes model.
+11. `.hermes/wiki/pages/hermes-rejected-options.md` — decisions not to re-derive.
+12. `.hermes/wiki/index.md` — project knowledge index.
+13. `.hermes/wiki/pages/honbabseoul-conventions.md` — project-specific development conventions.
+14. `.hermes/wiki/pages/honbabseoul-state.md` — current project state and carry-over.
 
 Precedence: `AGENTS.md` > `.hermes/policy/` > `.hermes/SOUL.md` > `.hermes/USER.md` > `.hermes/NEXT.md` > `.hermes/MEMORY.md` > `.hermes/wiki/`.
 

@@ -31,6 +31,25 @@ Review these fields before approval:
 - `photo_url`: optional; confirm it is relevant and not low-quality/spam.
 - `reason`: internal moderation context. Do not expose it on the public map.
 
+## Daily Operations
+
+For MVP v1.0, the Supabase dashboard is the admin surface. There is no custom
+admin UI.
+
+Daily operator pass:
+
+- Review new `pending` rows.
+- Reject spam, duplicates, unverifiable places, and restaurants that do not
+  help solo travelers.
+- Complete missing public map fields before approval.
+- Keep `reason` private as moderation context.
+- Confirm approved rows still match the public filters they are meant to
+  satisfy.
+
+Escalate instead of approving when a row has suspicious photo content, an
+unclear Naver Maps URL, unsafe location data, or a restaurant policy that is
+ambiguous for solo diners.
+
 ## Approval
 
 Approve only after the row is complete enough for the public map:
@@ -42,6 +61,26 @@ Approve only after the row is complete enough for the public map:
 - Set `status` to `approved`.
 
 The row appears on the public map on the next page load only if it also matches the active filters.
+
+## Launch Dataset
+
+The production launch dataset must be 20 real restaurants approved by the
+project owner. Use `docs/launch-data-template.csv` as the collection shape.
+
+Do not import `supabase/seed.sql` into production. It contains fictional
+development rows.
+
+Each launch row must be complete enough for public map display:
+
+- Japanese and Korean names.
+- Japanese and Korean addresses.
+- Latitude and longitude.
+- Naver Maps web URL.
+- `status = approved`.
+- Accurate values for `is_solo_default`, `has_jp_menu`, and `is_late_night`.
+
+`photo_url` is optional for launch because the public detail view has a branded
+placeholder, but real food or menu photos should be added when available.
 
 ## Rejection
 

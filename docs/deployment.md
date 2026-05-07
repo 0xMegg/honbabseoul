@@ -23,6 +23,88 @@ Legacy fallback keys are still supported locally but should not be preferred for
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
+## MVP v1.0 Production Closeoff
+
+MVP v1.0 is not complete until the custom domain is chosen, connected to Vercel
+Production, added to the Naver Maps allowed-domain list, opened publicly, and
+verified with the production smoke gates below.
+
+Pre-domain closeoff can prepare the production stack, but it must not be
+recorded as launch complete.
+
+### Production Backend
+
+Production uses a Supabase project separate from dev so smoke rows, fake seed
+data, and development experiments do not mix with live content.
+
+Required production backend state:
+
+- `supabase/migrations/0001_restaurants.sql` and
+  `supabase/migrations/0002_submission_reason.sql` are applied.
+- Public reads expose only `status = approved` rows through RLS and the
+  repository-level status filter.
+- UGC submissions create `pending` rows through the server-only secret key path.
+- The `restaurant-photos` Storage bucket exists and returns public `photo_url`
+  values for approved rows.
+
+Do not apply `supabase/seed.sql` to production. It is a development acceptance
+fixture with fictional restaurants.
+
+### Production Environment
+
+Vercel Production must point at the production Supabase project:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+- `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`
+
+Preview and development scopes may continue to point at non-production
+Supabase projects, but production scope must not reuse dev credentials for
+launch.
+
+### Launch Dataset
+
+The launch dataset is 20 real, operator-approved restaurants provided by the
+project owner. Use `docs/launch-data-template.csv` as the input shape.
+
+Minimum public fields for each launch row:
+
+- `name_ja`
+- `name_ko`
+- `address_ja`
+- `address_ko`
+- `latitude`
+- `longitude`
+- `naver_url`
+- `status = approved`
+- `is_solo_default`
+- `has_jp_menu`
+- `is_late_night`
+
+`photo_url` is recommended but not required. Rows without photos render the
+current branded placeholder.
+
+### Post-Domain Launch Gate
+
+Run this gate only after the custom domain is selected.
+
+- Connect the custom domain to Vercel Production.
+- Add the same hostname to the Naver Maps allowed-domain list.
+- Confirm Production is publicly accessible, not protected by Vercel
+  authentication.
+- Verify `/ja`, `/ko`, metadata, Open Graph image, manifest, robots, and
+  sitemap on the production URL.
+- Verify the deployed read path on the production URL: Naver map surface,
+  marker or cluster, marker-to-bottom-sheet detail, close, and filter route
+  transition.
+- Verify UGC photo submission creates a `pending` row, hides it from the public
+  client, and cleans up the smoke row and storage object.
+- Verify approval flow creates a temporary `pending` row, approves it through
+  the admin client, exposes it through the public client, and cleans it up.
+- Perform one human phone pass: submit a throwaway restaurant, approve it in
+  Supabase, confirm it appears on the public map, then delete it.
+
 ## Preview Verification
 
 Every preview deployment should at least pass:
@@ -50,13 +132,28 @@ These specs require Supabase admin envs locally:
 
 ## Current Preview Trace
 
-Latest verified preview after locale lang and discoverability polish:
+Latest verified preview after PR #17 product/admin readiness merge:
 
-- URL: `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app`
-- Deployment ID: `dpl_FwZX8GRAXrAwMyFdnjAUJ5DoEMvE`
-- Share URL expires on 2026-05-07 09:14:22:
-  `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app/?_vercel_share=Kmrqc1KnIYksfsKG5vjLv9sgHTxE0P2G`
-- Verified smoke: `/ja`, `/ko`, hydrated `html[lang]`, metadata, manifest, Open Graph image, robots, and sitemap.
+- URL: `https://honbabseoul-n5vzpd3ya-meggs-projects.vercel.app`
+- Naver-whitelisted alias:
+  `https://honbabseoul-git-dev-meggs-projects.vercel.app`
+- Deployment ID: `dpl_BER8ymkXBYP6jF3nZafPuuQUXrGk`
+- Share URL expires on 2026-05-08 04:34:53:
+  `https://honbabseoul-git-dev-meggs-projects.vercel.app/?_vercel_share=Ufytw6saYeYh8S1OUnQX0qeuC0fqJiRD`
+- Verified smoke: deployed read-path on `/ja`, including Naver map surface,
+  marker/cluster visibility, marker-to-bottom-sheet detail with media, close,
+  and Japanese-menu filter route transition.
+
+## Production Trace
+
+Status: gated.
+
+- Custom domain: not selected yet.
+- Production Supabase: separate project required before launch.
+- Launch dataset: waiting for 20 real approved restaurant rows from the
+  project owner.
+- Public production smoke: blocked until custom domain, Vercel Production alias,
+  Naver Maps allowed-domain entry, and production Supabase are ready.
 
 ## Completed Production Gate
 

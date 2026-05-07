@@ -2,6 +2,48 @@
 
 Append important decisions, execution traces, and verification results here.
 
+## 2026-05-07 — Claude/Codex Workflow Adoption
+
+Decision:
+
+- Adopted a Honbabseoul-specific split agent workflow by direct user request.
+- Added `.hermes/policy/agent-workflow.md` as the active policy for Claude planning, Codex plan verification, Claude implementation, and Codex closeoff.
+- Added the new workflow policy to the `AGENTS.md` fresh-agent read order.
+
+Reason:
+
+- The user wants Honbabseoul to use a split workflow where Claude plans and implements, while Codex verifies plans and owns final closeoff.
+- The change affects execution flow and ownership, so it is recorded as a policy-level decision rather than an informal preference.
+
+Verification:
+
+- The policy keeps destructive-change and human-gate requirements delegated to `AGENTS.md` and `.hermes/policy/automation.md`.
+- The policy explicitly keeps PR merge, deployment confirmation, and deployed smoke verification inside Codex closeoff rather than Claude implementation.
+- This adoption is docs-only and limited to `AGENTS.md`, `.hermes/policy/agent-workflow.md`, and this log entry.
+- `pnpm lint` and `pnpm test` passed after restoring the policy from the saved stash.
+
+## 2026-05-07 — MVP v1.0 Closeoff Gate
+
+Decision:
+
+- MVP v1.0 closeoff is split into pre-domain readiness and post-domain launch.
+- Production launch requires a custom domain, public Vercel Production access, a Naver Maps allowed-domain entry for that hostname, a separate production Supabase project, and 20 real approved restaurant rows provided by the project owner.
+- `supabase/seed.sql` remains a development acceptance fixture and must not be applied to production.
+
+Execution Trace:
+
+- Created the closeoff branch from `origin/dev` after PR #17 was squash-merged.
+- Added production closeoff gates and the latest verified PR #17 preview trace to `docs/deployment.md`.
+- Added launch operations guidance and a production launch dataset rule to `docs/admin-workflow.md`.
+- Added `docs/launch-data-template.csv` so the project owner can provide the 20 real launch restaurants in the expected public row shape.
+- Updated `.hermes/NEXT.md` so fresh sessions do not treat PR #17 as still waiting for review.
+
+Verification:
+
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm test` passed: 16 files, 103 tests.
+- `git diff --check` passed.
+
 ## 2026-05-03 — Cut Over Honbabseoul To Hermes Core
 
 Decision:
