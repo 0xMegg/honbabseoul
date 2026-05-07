@@ -32,6 +32,16 @@ Verification:
 - `pnpm build` passed.
 - `git diff --check` passed.
 
+Follow-up:
+
+- Added Naver Search credentials to local `.env.local`, Vercel Production,
+  and the `dev` Preview branch environment without printing secret values.
+- Redeployed Production; `https://honbabseoul.vercel.app` now runs with the
+  Naver Search envs.
+- Live Production smoke submitted `조선옥`, confirmed the pending row was
+  enriched with `name_ko`, `address_ko`, `latitude`, and `longitude`, then
+  deleted the smoke row by id.
+
 ## 2026-05-07 — UGC Naver Place URL Fix
 
 Decision:
