@@ -10,3 +10,4 @@
 - 2026-05-04: Updated honbabseoul state for PR #12 restaurant pin layer landing.
 - 2026-05-04: Updated honbabseoul state for local Epic 4 Slice 4.3.1 bottom sheet detail progress.
 - 2026-05-04: Updated honbabseoul state for PR #13 bottom sheet detail landing.
+- 2026-05-11: Added active policy reference for local `policy/agent-workflow.md`.
