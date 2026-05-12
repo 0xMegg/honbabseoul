@@ -2,6 +2,162 @@
 
 Append important decisions, execution traces, and verification results here.
 
+## 2026-05-07 — Production UGC Client Exception Guard
+
+Decision:
+
+- Hardened Naver Maps marker rendering so marker constructor failures become
+  the existing inline map error instead of an uncaught client exception.
+- Added a route-level client error boundary around the map/read-path surface
+  so unexpected map/detail client errors cannot replace the entire page with
+  the Next.js application error screen.
+- This keeps the UGC success redirect and submission form usable even if the
+  Naver Maps SDK behaves differently in a user browser.
+
+Execution Trace:
+
+- User reported repeated production client-side exception after `제보하기`,
+  including in an incognito window.
+- Codex could not reproduce on `https://honbabseoul.vercel.app/ko` with public
+  alias browser smoke, photo smoke, or Naver enrichment smoke; all reached
+  `?submission=success` and cleaned up smoke rows.
+- The remaining high-risk surface was the map marker effect, which previously
+  did not catch `new maps.Marker(...)` failures.
+
+Verification:
+
+- Added marker-construction failure coverage.
+- `pnpm test -- src/lib/features/map/MapClient.test.tsx` passed: 17 files,
+  113 tests.
+- Boundary follow-up: `pnpm test -- src/lib/features/map/MapClient.test.tsx
+  'src/app/[locale]/SubmissionForm.test.tsx'` passed: 17 files, 113 tests.
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm build` passed.
+- `git diff --check` passed.
+
+Follow-up:
+
+- User confirmed the error only occurs when submitting with a photo.
+- Root cause: app-level photo limit was 2MB, but Next.js Server Action default
+  multipart body limit is 1MB. Tiny PNG smoke passed while real browser photos
+  commonly exceeded 1MB and failed before application validation could handle
+  the file.
+- Set `experimental.serverActions.bodySizeLimit` to `4mb`.
+- Added client-side photo validation so unsupported files and files over 2MB
+  block submission with localized inline feedback instead of hitting the
+  Server Action transport limit.
+- Moved photo constraints to a client-safe module to avoid pulling server
+  validation dependencies into the client bundle.
+- Verification: `pnpm test` passed: 17 files, 114 tests; `pnpm lint`,
+  `pnpm build`, and `git diff --check` passed.
+
+## 2026-05-07 — UGC Naver Local Search Enrichment
+
+Decision:
+
+- UGC submissions now attempt server-side Naver Local Search enrichment before
+  inserting a pending row.
+- If Naver Search credentials are configured and the restaurant-name match is
+  confident, the pending row is prefilled with `name_ko`, `address_ko`,
+  `latitude`, and `longitude`.
+- If credentials are missing, the API fails, or the match is ambiguous,
+  submission still succeeds without auto-filled location fields.
+- Auto-filled values are review assistance only; operators must still confirm
+  the row before setting `status = approved`.
+
+Execution Trace:
+
+- Added optional server-only envs:
+  `NAVER_SEARCH_CLIENT_ID` and `NAVER_SEARCH_CLIENT_SECRET`.
+- Added exact-match/containment-based candidate selection and Korea-bounds
+  coordinate validation.
+- Updated admin and deployment docs to describe the optional enrichment path.
+- Vercel env audit showed the Naver Search envs are not currently configured.
+
+Verification:
+
+- `pnpm test` passed: 17 files, 112 tests.
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm build` passed.
+- `git diff --check` passed.
+
+Follow-up:
+
+- Added Naver Search credentials to local `.env.local`, Vercel Production,
+  and the `dev` Preview branch environment without printing secret values.
+- Redeployed Production; `https://honbabseoul.vercel.app` now runs with the
+  Naver Search envs.
+- Live Production smoke submitted `조선옥`, confirmed the pending row was
+  enriched with `name_ko`, `address_ko`, `latitude`, and `longitude`, then
+  deleted the smoke row by id.
+
+## 2026-05-07 — UGC Naver Place URL Fix
+
+Decision:
+
+- Expanded accepted UGC Naver URL hosts from only `map.naver.com` and
+  `naver.me` to include common Naver Place copy targets:
+  `m.place.naver.com`, `pcmap.place.naver.com`, and `place.map.naver.com`.
+- Kept exact-host matching so suffix-injection lookalikes remain rejected.
+- Reused the same allowlist for restaurant detail outbound links.
+
+Execution Trace:
+
+- Production `main` deployment `dpl_9wpMVYZVyrTneVZbRdq5t2e25oLw` reached
+  `READY` and basic UGC runtime checks passed on `/ja` and `/ko`.
+- The likely user-facing failure was validation rejection of real Naver Place
+  URLs copied from mobile/desktop place pages.
+
+Verification:
+
+- Production `/ja` deployed UGC photo smoke passed.
+- Production `/ko` direct `제보하기` smoke passed and inserted a `pending` row.
+- `pnpm test` passed: 16 files, 105 tests.
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm build` passed.
+
+## 2026-05-07 — Claude/Codex Workflow Adoption
+
+Decision:
+
+- Adopted a Honbabseoul-specific split agent workflow by direct user request.
+- Added `.hermes/policy/agent-workflow.md` as the active policy for Claude planning, Codex plan verification, Claude implementation, and Codex closeoff.
+- Added the new workflow policy to the `AGENTS.md` fresh-agent read order.
+
+Reason:
+
+- The user wants Honbabseoul to use a split workflow where Claude plans and implements, while Codex verifies plans and owns final closeoff.
+- The change affects execution flow and ownership, so it is recorded as a policy-level decision rather than an informal preference.
+
+Verification:
+
+- The policy keeps destructive-change and human-gate requirements delegated to `AGENTS.md` and `.hermes/policy/automation.md`.
+- The policy explicitly keeps PR merge, deployment confirmation, and deployed smoke verification inside Codex closeoff rather than Claude implementation.
+- This adoption is docs-only and limited to `AGENTS.md`, `.hermes/policy/agent-workflow.md`, and this log entry.
+- `pnpm lint` and `pnpm test` passed after restoring the policy from the saved stash.
+
+## 2026-05-07 — MVP v1.0 Closeoff Gate
+
+Decision:
+
+- MVP v1.0 closeoff is split into pre-domain readiness and post-domain launch.
+- Production launch requires a custom domain, public Vercel Production access, a Naver Maps allowed-domain entry for that hostname, a separate production Supabase project, and 20 real approved restaurant rows provided by the project owner.
+- `supabase/seed.sql` remains a development acceptance fixture and must not be applied to production.
+
+Execution Trace:
+
+- Created the closeoff branch from `origin/dev` after PR #17 was squash-merged.
+- Added production closeoff gates and the latest verified PR #17 preview trace to `docs/deployment.md`.
+- Added launch operations guidance and a production launch dataset rule to `docs/admin-workflow.md`.
+- Added `docs/launch-data-template.csv` so the project owner can provide the 20 real launch restaurants in the expected public row shape.
+- Updated `.hermes/NEXT.md` so fresh sessions do not treat PR #17 as still waiting for review.
+
+Verification:
+
+- `pnpm lint` passed with no warnings or errors.
+- `pnpm test` passed: 16 files, 103 tests.
+- `git diff --check` passed.
+
 ## 2026-05-03 — Cut Over Honbabseoul To Hermes Core
 
 Decision:

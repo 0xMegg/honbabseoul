@@ -112,39 +112,49 @@ export function MapClient({
     markersRef.current = [];
     markerListenersRef.current = [];
 
-    for (const descriptor of buildMarkerDescriptors(
-      restaurants.filter(hasCoordinates),
-      expandedClusterKey,
-    )) {
-      const selected =
-        descriptor.kind === "restaurant" && descriptor.restaurant.id === selectedRestaurantId;
-      const marker = new maps.Marker({
-        icon: {
-          content:
-            descriptor.kind === "cluster"
-              ? buildClusterIconContent(descriptor.restaurants.length)
-              : buildMarkerIconContent(descriptor.label, selected),
-        },
-        map: mapRef.current,
-        position: new maps.LatLng(descriptor.latitude, descriptor.longitude),
-        title: descriptor.label,
-      });
-      markersRef.current.push(marker);
+    try {
+      for (const descriptor of buildMarkerDescriptors(
+        restaurants.filter(hasCoordinates),
+        expandedClusterKey,
+      )) {
+        const selected =
+          descriptor.kind === "restaurant" && descriptor.restaurant.id === selectedRestaurantId;
+        const marker = new maps.Marker({
+          icon: {
+            content:
+              descriptor.kind === "cluster"
+                ? buildClusterIconContent(descriptor.restaurants.length)
+                : buildMarkerIconContent(descriptor.label, selected),
+          },
+          map: mapRef.current,
+          position: new maps.LatLng(descriptor.latitude, descriptor.longitude),
+          title: descriptor.label,
+        });
+        markersRef.current.push(marker);
 
-      if (onRestaurantSelect && maps.Event) {
-        markerListenersRef.current.push(
-          maps.Event.addListener(marker, "click", () => {
-            if (descriptor.kind === "cluster") {
-              setExpandedClusterKey(descriptor.key);
-              setSelectedRestaurantId(null);
-              return;
-            }
+        if (onRestaurantSelect && maps.Event) {
+          markerListenersRef.current.push(
+            maps.Event.addListener(marker, "click", () => {
+              if (descriptor.kind === "cluster") {
+                setExpandedClusterKey(descriptor.key);
+                setSelectedRestaurantId(null);
+                return;
+              }
 
-            setSelectedRestaurantId(descriptor.restaurant.id);
-            onRestaurantSelect(descriptor.restaurant.id);
-          }),
-        );
+              setSelectedRestaurantId(descriptor.restaurant.id);
+              onRestaurantSelect(descriptor.restaurant.id);
+            }),
+          );
+        }
       }
+      setMapInitFailed(false);
+    } catch {
+      clearMarkers(markersRef.current, markerListenersRef.current);
+      markersRef.current = [];
+      markerListenersRef.current = [];
+      setSelectedRestaurantId(null);
+      setExpandedClusterKey(null);
+      setMapInitFailed(true);
     }
 
     return () => {

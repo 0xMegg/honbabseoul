@@ -12,6 +12,8 @@ const labels = {
   no: "いいえ",
   photo: "写真",
   photoHint: "JPEG/PNG, 2MBまで",
+  photoInvalid: "JPEG/PNG only",
+  photoTooLarge: "2MBまで",
   priceHigh: "高め",
   priceLow: "安め",
   priceMid: "普通",
@@ -96,5 +98,49 @@ describe("SubmissionForm", () => {
 
     expect(submit).toBeDisabled();
     expect(submit).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("keeps submit disabled when the selected photo is too large or unsupported", () => {
+    renderForm({
+      hasJpMenu: "false",
+      isLateNight: "true",
+      isSolo: "true",
+      name: "弘大ひとり食堂",
+      naverUrl: "https://naver.me/example",
+      priceRange: "mid",
+      reason: "カウンター席がある",
+    });
+
+    const submit = screen.getByRole("button", { name: labels.submit });
+    const photo = document.querySelector('input[name="photo"]');
+    expect(photo).toBeInstanceOf(HTMLInputElement);
+    expect(submit).toBeEnabled();
+
+    fireEvent.change(photo!, {
+      target: {
+        files: [new File([new Uint8Array(2 * 1024 * 1024 + 1)], "large.png", { type: "image/png" })],
+      },
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(labels.photoTooLarge);
+    expect(submit).toBeDisabled();
+
+    fireEvent.change(photo!, {
+      target: {
+        files: [new File([new Uint8Array([1])], "photo.gif", { type: "image/gif" })],
+      },
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(labels.photoInvalid);
+    expect(submit).toBeDisabled();
+
+    fireEvent.change(photo!, {
+      target: {
+        files: [new File([new Uint8Array([1])], "photo.png", { type: "image/png" })],
+      },
+    });
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(submit).toBeEnabled();
   });
 });

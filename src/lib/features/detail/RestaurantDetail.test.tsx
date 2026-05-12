@@ -65,8 +65,8 @@ describe("RestaurantDetail", () => {
     );
   });
 
-  it("falls back to the alternate locale and hides non map.naver.com links", () => {
-    render(
+  it("falls back to the alternate locale and renders safe short Naver links", () => {
+    const { rerender } = render(
       <RestaurantDetail
         copied={false}
         labels={labels}
@@ -85,6 +85,44 @@ describe("RestaurantDetail", () => {
     expect(screen.getByRole("heading", { name: restaurant.name_ko! })).toBeVisible();
     expect(screen.getByText(restaurant.address_ko!)).toBeVisible();
     expect(screen.getByText(labels.priceUnknown)).toBeVisible();
+    expect(screen.getByRole("link", { name: labels.naverLink })).toHaveAttribute(
+      "href",
+      "https://naver.me/abc",
+    );
+
+    rerender(
+      <RestaurantDetail
+        copied={false}
+        labels={labels}
+        locale="ja"
+        onCopyAddress={vi.fn()}
+        restaurant={{
+          ...restaurant,
+          naver_url: "https://pcmap.place.naver.com/restaurant/123",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: labels.naverLink })).toHaveAttribute(
+      "href",
+      "https://pcmap.place.naver.com/restaurant/123",
+    );
+  });
+
+  it("hides unsafe Naver lookalike links", () => {
+    render(
+      <RestaurantDetail
+        copied={false}
+        labels={labels}
+        locale="ja"
+        onCopyAddress={vi.fn()}
+        restaurant={{
+          ...restaurant,
+          naver_url: "https://map.naver.com.attacker.tld/p/entry/place/123",
+        }}
+      />,
+    );
+
     expect(screen.queryByRole("link", { name: labels.naverLink })).not.toBeInTheDocument();
   });
 

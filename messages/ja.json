@@ -28,6 +28,8 @@
       "no": "いいえ",
       "photo": "料理・メニュー写真（任意）",
       "photoHint": "JPEGまたはPNG、2MBまで",
+      "photoInvalid": "JPEGまたはPNGの写真のみ添付できます。",
+      "photoTooLarge": "写真は2MBまで添付できます。",
       "priceHigh": "高め",
       "priceLow": "安め",
       "priceMid": "ふつう",

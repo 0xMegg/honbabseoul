@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { publicEnv } from "@/lib/env";
 import { parseFiltersFromSearchParams } from "@/lib/features/filters/filter-params";
+import { ClientErrorBoundary } from "@/lib/features/common/ClientErrorBoundary";
 import { MapReadPath } from "@/lib/features/detail/MapReadPath";
 import { Header } from "@/lib/features/layout/Header";
 import { listApproved } from "@/lib/repositories/restaurants";
@@ -77,41 +78,50 @@ export default async function Home({ params, searchParams }: HomeProps) {
 
         {shouldPreserveFormValues(submissionStatus) ? <ClearSubmissionFlashCookie /> : null}
 
-        <Suspense fallback={null}>
-          <MapReadPath
-            clientId={naverMapsClientId}
-            detailLabels={{
-              address: t("detail.address"),
-              badges: t("detail.badges"),
-              close: t("detail.close"),
-              copied: t("detail.copied"),
-              copyAddress: t("detail.copyAddress"),
-              error: t("detail.error"),
-              hasJpMenu: t("detail.hasJpMenu"),
-              isLateNight: t("detail.isLateNight"),
-              isSolo: t("detail.isSolo"),
-              naverLink: t("detail.naverLink"),
-              photoAlt: t("detail.photoAlt"),
-              photoFallback: t("detail.photoFallback"),
-              price: t("detail.price"),
-              priceUnknown: t("detail.priceUnknown"),
-              title: t("detail.title"),
-            }}
-            filterLabels={{
-              solo: t("filters.solo"),
-              jp: t("filters.jp"),
-              late: t("filters.late"),
-            }}
-            locale={locale}
-            mapLabels={{
-              label: t("map.label"),
-              loading: t("map.loading"),
-              error: t("map.error"),
-              resultCount: t("map.resultCount", { count: restaurants.length }),
-            }}
-            restaurants={restaurants}
-          />
-        </Suspense>
+        <ClientErrorBoundary
+          fallback={
+            <p className="rounded-md border border-border bg-surface p-3 text-sm text-danger">
+              {t("map.error")}
+            </p>
+          }
+          label="MapReadPath"
+        >
+          <Suspense fallback={null}>
+            <MapReadPath
+              clientId={naverMapsClientId}
+              detailLabels={{
+                address: t("detail.address"),
+                badges: t("detail.badges"),
+                close: t("detail.close"),
+                copied: t("detail.copied"),
+                copyAddress: t("detail.copyAddress"),
+                error: t("detail.error"),
+                hasJpMenu: t("detail.hasJpMenu"),
+                isLateNight: t("detail.isLateNight"),
+                isSolo: t("detail.isSolo"),
+                naverLink: t("detail.naverLink"),
+                photoAlt: t("detail.photoAlt"),
+                photoFallback: t("detail.photoFallback"),
+                price: t("detail.price"),
+                priceUnknown: t("detail.priceUnknown"),
+                title: t("detail.title"),
+              }}
+              filterLabels={{
+                solo: t("filters.solo"),
+                jp: t("filters.jp"),
+                late: t("filters.late"),
+              }}
+              locale={locale}
+              mapLabels={{
+                label: t("map.label"),
+                loading: t("map.loading"),
+                error: t("map.error"),
+                resultCount: t("map.resultCount", { count: restaurants.length }),
+              }}
+              restaurants={restaurants}
+            />
+          </Suspense>
+        </ClientErrorBoundary>
       </section>
 
       <section className="mx-auto w-full max-w-2xl px-5 pb-10 pt-4 md:pb-14">
@@ -126,6 +136,8 @@ export default async function Home({ params, searchParams }: HomeProps) {
             no: t("form.no"),
             photo: t("form.photo"),
             photoHint: t("form.photoHint"),
+            photoInvalid: t("form.photoInvalid"),
+            photoTooLarge: t("form.photoTooLarge"),
             priceHigh: t("form.priceHigh"),
             priceLow: t("form.priceLow"),
             priceMid: t("form.priceMid"),

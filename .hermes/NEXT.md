@@ -69,26 +69,30 @@ Use Hermes as the active operating layer for honbabseoul. The legacy harness art
 - Locale lang preview deployment `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app` reached READY and deployed `/ja`, `/ko`, lang, and metadata/discoverability smoke passed. Deployment ID: `dpl_FwZX8GRAXrAwMyFdnjAUJ5DoEMvE`. Share URL expires on 2026-05-07 09:14:22: `https://honbabseoul-qp30yxjgw-meggs-projects.vercel.app/?_vercel_share=Kmrqc1KnIYksfsKG5vjLv9sgHTxE0P2G`.
 - `docs/deployment.md` Current Preview Trace now points to the latest verified locale-lang preview and its smoke scope.
 - UGC duplicate submit guard is implemented locally: the submission form disables its submit button immediately after submit while preserving the existing required-field gate. Local lint, unit/component tests, and e2e passed.
-- Local review package commit created on branch `codex/product-admin-readiness`: `Package product admin readiness bundle`.
-- Draft PR #17 is open against `dev`: https://github.com/0xMegg/honbabseoul/pull/17
-- PR #17 checks are green and merge state is clean.
+- Local review package commit was created on branch `codex/product-admin-readiness`: `Package product admin readiness bundle`.
+- PR #17 was opened against `dev`: https://github.com/0xMegg/honbabseoul/pull/17
 - PR #17 preview needed branch-scoped `NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID`; after adding it and redeploying, protected `/ja` returned HTTP 200 and metadata/discoverability smoke passed.
-- PR #17 full deployed read-path smoke remains blocked by the Naver hostname whitelist: the PR branch alias renders the expected map fallback instead of Naver markers.
 - PR #17 was marked ready for review after checks passed and the branch-host Naver whitelist gap was documented.
+- PR #17 was squash-merged into `dev` on 2026-05-07. Merge commit: `1e63487306a3cb55ec1db246dab5c1a382509e31`.
+- Dev preview deployment `https://honbabseoul-n5vzpd3ya-meggs-projects.vercel.app` reached READY and is aliased by the Naver-whitelisted `https://honbabseoul-git-dev-meggs-projects.vercel.app`.
+- Protected dev preview full Naver read-path smoke passed on 2026-05-07: Japanese page, Naver map surface, marker/cluster, marker-to-bottom-sheet detail with media, close, and Japanese-menu filter route transition.
+- MVP v1.0 closeoff plan is now split into pre-domain readiness and post-domain launch gate: custom domain is not selected yet, production Supabase must be separate from dev, launch data must be 20 real approved restaurants from the project owner, and public production launch remains gated until domain, Naver whitelist, production env, and production smoke pass.
 
 ## Next Action
 
-Wait for PR #17 review/merge, then run full Naver read-path smoke on the Naver-whitelisted `dev` preview after merge/redeploy.
+Complete MVP v1.0 pre-domain closeoff docs, then prepare production infrastructure and launch data once the custom domain and production Supabase project are available.
 
 Candidate next work:
 
-1. Address PR #17 review comments or failing checks if they appear.
-2. After PR #17 merge, verify on the Naver-whitelisted `dev` preview: Japanese page, Naver tiles, custom markers/clusters, marker-to-bottom-sheet detail, close, and filter transition.
+1. Configure a separate production Supabase project and Vercel Production envs.
+2. Collect the 20 real launch restaurants using `docs/launch-data-template.csv`.
+3. After custom domain selection, connect Vercel Production, add the hostname to the Naver Maps allowed-domain list, open production publicly, and run the production smoke gates.
 
 ## Open Gates
 
 - Legacy JWT keys are disabled in Supabase.
 - Supabase legacy JWT migration is complete and verified on deployed `dev`.
+- Production launch is gated until custom domain selection, separate production Supabase, production Vercel envs, 20 real approved restaurant rows, Naver Maps allowed-domain registration, and public production smoke verification are complete.
 - `pnpm db:types` needs Supabase CLI login token access; sandboxed runs without token access can fail and truncate the generated file because shell redirection opens the output first.
 - Real Naver Maps local verification succeeds when localhost SDK loading is intentionally enabled and the NCP whitelist is configured. Default localhost SDK loading remains disabled so routine local sessions do not depend on NCP/network availability.
 
