@@ -1752,6 +1752,7 @@ Decision:
 - Reframed `README.md` from an operator-first handoff into a product-first portfolio page covering the user problem, implemented features, end-to-end moderation flow, architecture decisions, local setup, verification, and honest launch status.
 - Kept operations documentation linked at the end instead of presenting Hermes internals before the product.
 - Did not publish a live-demo link. The production alias currently returns HTTP 500 on `/ja`, while the known `dev` preview redirects to Vercel authentication; production remains gated in `docs/deployment.md`.
+- Cleared the broken GitHub homepage field, added a concise product description, and added implementation-focused repository topics.
 - Attempted the default Claude planning step from the repository root with `/opt/homebrew/bin/claude -p`, but the executable was absent (`no such file or directory`). Continued with Codex under the additive, reversible documentation exception and the user's explicit request.
 
 Reason:
@@ -1767,3 +1768,6 @@ Verification:
 - `pnpm lint` passed with no warnings or errors.
 - `pnpm test` passed: 17 files, 114 tests.
 - `pnpm build` passed with non-secret placeholder environment values and generated `/ja`, `/ko`, `/manifest.webmanifest`, `/opengraph-image`, `/robots.txt`, and `/sitemap.xml`.
+- Opened draft PR #19 against `main`: https://github.com/0xMegg/honbabseoul/pull/19
+- PR checks passed: GitGuardian Security Checks, Vercel, and Vercel Preview Comments.
+- `gh repo view` confirmed the public repository description, empty homepage field, and eight topics: `internationalization`, `naver-maps`, `nextjs`, `playwright`, `restaurant-map`, `supabase`, `travel-app`, and `typescript`.
